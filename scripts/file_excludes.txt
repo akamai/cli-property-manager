@@ -1,0 +1,9 @@
+.git
+node_modules
+package-lock.json
+pom.xml
+jsdoc.config.json
+stuff
+dist
+.nyc_output
+*/.DS_Store

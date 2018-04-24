@@ -1,0 +1,210 @@
+{
+  "accountId": "act_1-599K",
+  "contractId": "ctr_1-3CV382",
+  "groupId": "grp_18385",
+  "propertyId": "prp_453162",
+  "propertyName": "qa.test_site_defender.com",
+  "propertyVersion": 1,
+  "etag": "ed47ab05c3485be4bc8c7879e00c3f1c287b2177",
+  "rules": {
+    "name": "default",
+    "children": [
+      {
+        "name": "Content Compression",
+        "children": [],
+        "behaviors": [
+          {
+            "name": "gzipResponse",
+            "options": {
+              "behavior": "ALWAYS"
+            }
+          }
+        ],
+        "criteria": [
+          {
+            "name": "contentType",
+            "options": {
+              "matchCaseSensitive": false,
+              "matchOperator": "IS_ONE_OF",
+              "matchWildcard": true,
+              "values": [
+                "text/html*",
+                "text/css*",
+                "application/x-javascript*"
+              ]
+            }
+          }
+        ],
+        "criteriaMustSatisfy": "all"
+      },
+      {
+        "name": "Static Content",
+        "children": [],
+        "behaviors": [
+          {
+            "name": "caching",
+            "options": {
+              "behavior": "MAX_AGE",
+              "mustRevalidate": false,
+              "ttl": "1d"
+            }
+          }
+        ],
+        "criteria": [
+          {
+            "name": "fileExtension",
+            "options": {
+              "matchCaseSensitive": false,
+              "matchOperator": "IS_ONE_OF",
+              "values": [
+                "aif",
+                "aiff",
+                "au",
+                "avi",
+                "bin",
+                "bmp",
+                "cab",
+                "carb",
+                "cct",
+                "cdf",
+                "class",
+                "css",
+                "doc",
+                "dcr",
+                "dtd",
+                "exe",
+                "flv",
+                "gcf",
+                "gff",
+                "gif",
+                "grv",
+                "hdml",
+                "hqx",
+                "ico",
+                "ini",
+                "jpeg",
+                "jpg",
+                "js",
+                "mov",
+                "mp3",
+                "nc",
+                "pct",
+                "pdf",
+                "png",
+                "ppc",
+                "pws",
+                "swa",
+                "swf",
+                "txt",
+                "vbs",
+                "w32",
+                "wav",
+                "wbmp",
+                "wml",
+                "wmlc",
+                "wmls",
+                "wmlsc",
+                "xsd",
+                "zip",
+                "webp",
+                "jxr",
+                "hdp",
+                "wdp"
+              ]
+            }
+          }
+        ],
+        "criteriaMustSatisfy": "all"
+      },
+      {
+        "name": "Dynamic Content",
+        "children": [],
+        "behaviors": [
+          {
+            "name": "downstreamCache",
+            "options": {
+              "behavior": "TUNNEL_ORIGIN"
+            }
+          }
+        ],
+        "criteria": [
+          {
+            "name": "cacheability",
+            "options": {
+              "matchOperator": "IS_NOT",
+              "value": "CACHEABLE"
+            }
+          }
+        ],
+        "criteriaMustSatisfy": "all"
+      }
+    ],
+    "behaviors": [
+      {
+        "name": "origin",
+        "options": {
+          "cacheKeyHostname": "ORIGIN_HOSTNAME",
+          "compress": true,
+          "enableTrueClientIp": false,
+          "forwardHostHeader": "REQUEST_HOST_HEADER",
+          "httpPort": 80,
+          "originType": "CUSTOMER",
+          "useUniqueCacheKey": false
+        }
+      },
+      {
+        "name": "cpCode",
+        "options": {}
+      },
+      {
+        "name": "caching",
+        "options": {
+          "behavior": "NO_STORE"
+        }
+      },
+      {
+        "name": "allowPost",
+        "options": {
+          "allowWithoutContentLength": false,
+          "enabled": true
+        }
+      },
+      {
+        "name": "report",
+        "options": {
+          "logAcceptLanguage": false,
+          "logCookies": "OFF",
+          "logCustomLogField": false,
+          "logHost": false,
+          "logReferer": false,
+          "logUserAgent": true
+        }
+      },
+      {
+        "name": "webApplicationFirewall",
+        "options": {}
+      }
+    ],
+    "options": {
+      "is_secure": false
+    }
+  },
+  "errors": [
+    {
+      "type": "https://problems.luna.akamaiapis.net/papi/v0/validation/attribute_required",
+      "errorLocation": "#/rules/behaviors/0/options/hostname",
+      "detail": "The Origin Server Hostname option on the `Origin Server` behavior is required."
+    },
+    {
+      "type": "https://problems.luna.akamaiapis.net/papi/v0/validation/attribute_required",
+      "errorLocation": "#/rules/behaviors/1/options/value",
+      "detail": "The Content Provider Code option on the `Content Provider Code` behavior is required."
+    },
+    {
+      "type": "https://problems.luna.akamaiapis.net/papi/v0/validation/attribute_required",
+      "errorLocation": "#/rules/behaviors/5/options/firewallConfiguration",
+      "detail": "The Enter the WAF Configuration File option on the `Web Application Firewall (WAF)` behavior is required."
+    }
+  ],
+  "ruleFormat": "v2018-02-27"
+}

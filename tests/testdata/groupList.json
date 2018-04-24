@@ -1,0 +1,1574 @@
+{
+  "accountId": "15Q-MPF",
+  "accountName": "IKEA IT AB",
+  "groups": {
+    "items": [
+      {
+        "groupName": "TestGroupupdategrptestcase4",
+        "groupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "IRW domains",
+        "groupId": "24514",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "IRW CTE",
+        "groupId": "24515",
+        "parentGroupId": "24514",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "CIP domains",
+        "groupId": "24516",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupupdategrptestcase1",
+        "groupId": "24518",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "IRW PPE",
+        "groupId": "24519",
+        "parentGroupId": "24514",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "DES domains",
+        "groupId": "24520",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "Ikea IT AB-3-1UGNCZ",
+        "groupId": "24523"
+      },
+      {
+        "groupName": "IKEA PS and LWC",
+        "groupId": "30874",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "OLD",
+        "groupId": "39809",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "IRW Catalogue Innovation",
+        "groupId": "33401",
+        "parentGroupId": "24514",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "Ikea IT AB-3-X6BJWZ",
+        "groupId": "36386"
+      },
+      {
+        "groupName": "Ikea IT AB-3-TQJ6M4",
+        "groupId": "32730",
+        "contractIds": [
+          "3-TQJ6M4"
+        ]
+      },
+      {
+        "groupName": "MotionPoint",
+        "groupId": "35553",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "Ikea IT AB-C-FBV7R5",
+        "groupId": "34258"
+      },
+      {
+        "groupName": "Ikea IT AB-3-X0PMDK",
+        "groupId": "36306",
+        "contractIds": [
+          "3-X0PMDK"
+        ]
+      },
+      {
+        "groupName": "IICG - Inter IKEA Centre Group",
+        "groupId": "30873",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "Ikea IT AB-C-SS4Q3H",
+        "groupId": "45772"
+      },
+      {
+        "groupName": "IRW DEV",
+        "groupId": "56828",
+        "parentGroupId": "24514",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "Ikea IT AB-C-198ZFB7",
+        "groupId": "58829"
+      },
+      {
+        "groupName": "Ikea IT AB-C-198YG0H",
+        "groupId": "58830"
+      },
+      {
+        "groupName": "ikea_swe",
+        "groupId": "65085",
+        "parentGroupId": "64680",
+        "contractIds": [
+          "C-1FHPV0Z"
+        ]
+      },
+      {
+        "groupName": "Ikea IT AB-C-1FHPV0Z",
+        "groupId": "64680",
+        "contractIds": [
+          "C-1FHPV0Z"
+        ]
+      },
+      {
+        "groupName": "PAPI Test",
+        "groupId": "59839",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "108092",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "108096",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "108112",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase2",
+        "groupId": "108113",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase4",
+        "groupId": "108115",
+        "parentGroupId": "24520",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "K3 Checkout",
+        "groupId": "72782",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase60",
+        "groupId": "108267",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase60",
+        "groupId": "108268",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "108544",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "108545",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase2",
+        "groupId": "108546",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase4",
+        "groupId": "108548",
+        "parentGroupId": "24520",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "108720",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "108721",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase2",
+        "groupId": "108722",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase4",
+        "groupId": "108724",
+        "parentGroupId": "24520",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase69",
+        "groupId": "108303",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "108250",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "StoreApp",
+        "groupId": "108040",
+        "parentGroupId": "24514",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase58",
+        "groupId": "108256",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase65",
+        "groupId": "108301",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "IPEX Add On Apps",
+        "groupId": "106681",
+        "parentGroupId": "82883",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroupOpen1",
+        "groupId": "110512",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "110516",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "110519",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase2",
+        "groupId": "110520",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase4",
+        "groupId": "110522",
+        "parentGroupId": "24520",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroupOpen",
+        "groupId": "110554",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "110555",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "IKEA IT AB-F-HSO6QV",
+        "groupId": "104362",
+        "contractIds": [
+          "F-HSO6QV"
+        ]
+      },
+      {
+        "groupName": "WANGSU",
+        "groupId": "107148",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "IHP Kitchenplanner",
+        "groupId": "107150",
+        "parentGroupId": "107148",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "IRW",
+        "groupId": "107149",
+        "parentGroupId": "107148",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "110485",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "110487",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase2",
+        "groupId": "110488",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase4",
+        "groupId": "110490",
+        "parentGroupId": "24520",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "110504",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "110505",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "110506",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "110507",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "110508",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroupOpen",
+        "groupId": "110509",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroupOpen",
+        "groupId": "110545",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroupOpen",
+        "groupId": "110513",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroupOpen",
+        "groupId": "110544",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "110548",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase2",
+        "groupId": "110549",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "110666",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "110669",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase2",
+        "groupId": "110670",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase4",
+        "groupId": "110672",
+        "parentGroupId": "24520",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "IKEA IT AB-M-24ZFQW7",
+        "groupId": "108251"
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase63",
+        "groupId": "108277",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase65",
+        "groupId": "108302",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "110439",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroupOpen",
+        "groupId": "110511",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroupOpen",
+        "groupId": "110547",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroupOpen",
+        "groupId": "110553",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "110603",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "110609",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase2",
+        "groupId": "110610",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase4",
+        "groupId": "110612",
+        "parentGroupId": "24520",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase70",
+        "groupId": "108466",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "108786",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "108789",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase2",
+        "groupId": "108790",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase4",
+        "groupId": "108792",
+        "parentGroupId": "24520",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroupOpen",
+        "groupId": "110575",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroupOpen",
+        "groupId": "110576",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroupOpen",
+        "groupId": "110577",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroupOpen",
+        "groupId": "110578",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroupOpen",
+        "groupId": "110579",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "110580",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase2",
+        "groupId": "110581",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "null",
+        "groupId": "110582",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "110583",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase2",
+        "groupId": "110584",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase7",
+        "groupId": "110585",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "null",
+        "groupId": "110586",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "110587",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "110588",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase2",
+        "groupId": "110589",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase4",
+        "groupId": "110591",
+        "parentGroupId": "24520",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "110594",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase2",
+        "groupId": "110595",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "null",
+        "groupId": "110596",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "110638",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase2",
+        "groupId": "110639",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase4",
+        "groupId": "110641",
+        "parentGroupId": "24520",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase58",
+        "groupId": "108265",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase63",
+        "groupId": "108276",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "108582",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "108583",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase2",
+        "groupId": "108584",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase4",
+        "groupId": "108586",
+        "parentGroupId": "24520",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase59",
+        "groupId": "108266",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "108472",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "108473",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "108479",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "108716",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase61",
+        "groupId": "108270",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "108118",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "108293",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase2",
+        "groupId": "108294",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "IPEX - Planners",
+        "groupId": "104680",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase4",
+        "groupId": "108296",
+        "parentGroupId": "24520",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "108299",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase62",
+        "groupId": "108274",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase62",
+        "groupId": "108275",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "108713",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TonyDemo",
+        "groupId": "106682",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "MMAPI",
+        "groupId": "103181",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "108492",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase2",
+        "groupId": "108493",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase4",
+        "groupId": "108495",
+        "parentGroupId": "24520",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "108498",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase63",
+        "groupId": "108278",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "111452",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "110769",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "110772",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "110998",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "111492",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase2",
+        "groupId": "111493",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "111496",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase2",
+        "groupId": "111497",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase2",
+        "groupId": "111504",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase4",
+        "groupId": "111499",
+        "parentGroupId": "24520",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "111500",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "111503",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase4",
+        "groupId": "111506",
+        "parentGroupId": "24520",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "110890",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "111549",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase2",
+        "groupId": "111553",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "111552",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase4",
+        "groupId": "111555",
+        "parentGroupId": "24520",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "IKEA IT AB-F-HVQ58I",
+        "groupId": "104420"
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "111145",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase2",
+        "groupId": "110789",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "IKEA Place App",
+        "groupId": "105081",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "111264",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "110760",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "110748",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "110724",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "111172",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "Plus-windchill",
+        "groupId": "76700",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "EXT-apps",
+        "groupId": "82883",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "IKEA Inside",
+        "groupId": "71455",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "MAMMUT",
+        "groupId": "80744",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "EXT InHouse - FoodPages",
+        "groupId": "81037",
+        "parentGroupId": "24514",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "EXT GreatWorks - LocalStore et al",
+        "groupId": "74740",
+        "parentGroupId": "24514",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "GIFTCARDS-AU",
+        "groupId": "93366",
+        "parentGroupId": "82883",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "IKEA IT AB-F-D69VHE",
+        "groupId": "95583",
+        "contractIds": [
+          "F-D69VHE"
+        ]
+      },
+      {
+        "groupName": "PROD",
+        "groupId": "96052",
+        "parentGroupId": "80744",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "IKEA IT AB-F-9RTKUI",
+        "groupId": "91302"
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "114461",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase4",
+        "groupId": "114463",
+        "parentGroupId": "24520",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "114428",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase2",
+        "groupId": "114432",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "114431",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "114366",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "114369",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase4",
+        "groupId": "114371",
+        "parentGroupId": "24520",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase2",
+        "groupId": "114520",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "114345",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "114348",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase2",
+        "groupId": "114349",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase4",
+        "groupId": "114351",
+        "parentGroupId": "24520",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase4",
+        "groupId": "114504",
+        "parentGroupId": "24520",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase2",
+        "groupId": "114398",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase4",
+        "groupId": "114400",
+        "parentGroupId": "24520",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "114403",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase1",
+        "groupId": "114306",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase2",
+        "groupId": "114307",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase4",
+        "groupId": "114488",
+        "parentGroupId": "24520",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "TestGroupcreategrptestcase2",
+        "groupId": "114702",
+        "parentGroupId": "24518",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "dummyGroup",
+        "groupId": "114323",
+        "parentGroupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      }
+    ]
+  }
+}

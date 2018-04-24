@@ -1,0 +1,20 @@
+{
+  "name": "prod",
+  "propertyName": "prod.testproject.com",
+  "propertyId": 411091,
+  "environmentHash": "ddc71e346d217bcb717870b63b8ba3c515fd3d65faeb2626db0f6fd01ce54664",
+  "lastValidatedHash": "ddc71e346d217bcb717870b63b8ba3c515fd3d65faeb2626db0f6fd01ce54664",
+  "ruleTreeHash": "621bac67d0294c0b774aa64cd478120cb2457b89e11cc789cae94914f61e93ea",
+  "latestVersionInfo": {
+    "propertyVersion": 1,
+    "updatedByUser": "jpws7ubcv5jjsv37",
+    "updatedDate": "2017-11-13T21:49:31Z",
+    "productionStatus": "INACTIVE",
+    "stagingStatus": "INACTIVE",
+    "etag": "9fdf49fecd0ed31b57eb13a6326f5190b9a14cc2",
+    "productId": "Web_App_Accel",
+    "ruleFormat": "latest"
+  },
+  "lastSaveErrors": [],
+  "lastSaveWarnings": []
+}

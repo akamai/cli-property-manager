@@ -1,0 +1,58 @@
+{
+  "accountId": "1-1TJZFB",
+  "contractId": "1-1TJZH5",
+  "groupId": "61726",
+  "edgeHostnames": {
+    "items": [
+      {
+        "edgeHostnameId": "2888490",
+        "domainPrefix": "qa.jmbigdemo.org",
+        "domainSuffix": "edgesuite.net",
+        "ipVersionBehavior": "IPV6_COMPLIANCE",
+        "secure": false,
+        "edgeHostnameDomain": "qa.jmbigdemo.org.edgesuite.net"
+      },
+      {
+        "edgeHostnameId": "2888550",
+        "domainPrefix": "www.greatproducts.com",
+        "domainSuffix": "edgesuite.net",
+        "ipVersionBehavior": "IPV6_COMPLIANCE",
+        "secure": false,
+        "edgeHostnameDomain": "www.greatproducts.com.edgesuite.net"
+      },
+      {
+        "edgeHostnameId": "2922843",
+        "domainPrefix": "qa.securesite.com",
+        "domainSuffix": "edgekey.net",
+        "ipVersionBehavior": "IPV4",
+        "secure": true,
+        "edgeHostnameDomain": "qa.securesite.com.edgekey.net"
+      },
+      {
+        "edgeHostnameId": "2933851",
+        "domainPrefix": "test.letitflow.info",
+        "domainSuffix": "edgekey.net",
+        "ipVersionBehavior": "IPV4",
+        "secure": true,
+        "edgeHostnameDomain": "test.letitflow.info.edgekey.net"
+      },
+      {
+        "edgeHostnameId": "2934035",
+        "domainPrefix": "hacker.faden.me",
+        "domainSuffix": "edgekey.net",
+        "ipVersionBehavior": "IPV6_COMPLIANCE",
+        "secure": true,
+        "edgeHostnameDomain": "hacker.faden.me.edgekey.net"
+      },
+      {
+        "edgeHostnameId": "2934823",
+        "domainPrefix": "some.very.long.hostname.indeed.com",
+        "domainSuffix": "edgesuite.net",
+        "ipVersionBehavior": "IPV6_COMPLIANCE",
+        "secure": false,
+        "edgeHostnameDomain": "some.very.long.hostname.indeed.com.edgesuite.net"
+      }
+    ]
+  }
+}
+

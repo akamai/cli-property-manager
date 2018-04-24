@@ -1,0 +1,18 @@
+{
+  "plugins": [
+    "node"
+  ],
+  "rules": {
+    "eqeqeq": "error",
+    "node/exports-style": [
+      "error",
+      "module.exports"
+    ],
+    "no-console": "off",
+    "no-bitwise": ["error", { "int32Hint": true }]
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:node/recommended"
+  ]
+}

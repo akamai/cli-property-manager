@@ -1,0 +1,627 @@
+{
+    "rules": {
+        "name": "default",
+        "children": [
+            {
+                "name": "Content Compression",
+                "children": [],
+                "comments": "",
+                "conditionBehavior": "all",
+                "criteriaLocked": false,
+                "behaviors": [
+                    {
+                        "name": "gzipResponse",
+                        "options": {
+                            "behavior": "ORIGIN_RESPONSE"
+                        }
+                    }
+                ],
+                "criteria": [
+                    {
+                        "name": "contentType",
+                        "options": {
+                            "matchOperator": "IS_ONE_OF",
+                            "values": [
+                                "text/html*",
+                                "text/css*",
+                                "application/x-javascript*"
+                            ],
+                            "matchWildcard": true,
+                            "matchCaseSensitive": false
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Static Content",
+                "children": [],
+                "comments": "",
+                "conditionBehavior": "all",
+                "criteriaLocked": false,
+                "behaviors": [
+                    {
+                        "name": "caching",
+                        "options": {
+                            "behavior": "MAX_AGE",
+                            "ttl": "1d",
+                            "mustRevalidate": false
+                        }
+                    },
+                    {
+                        "name": "prefetch",
+                        "options": {
+                            "enabled": false
+                        }
+                    },
+                    {
+                        "name": "prefetchable",
+                        "options": {
+                            "enabled": true
+                        }
+                    }
+                ],
+                "criteria": [
+                    {
+                        "name": "fileExtension",
+                        "options": {
+                            "matchOperator": "IS_ONE_OF",
+                            "values": [
+                                "aif",
+                                "aiff",
+                                "au",
+                                "avi",
+                                "bin",
+                                "bmp",
+                                "cab",
+                                "carb",
+                                "cct",
+                                "cdf",
+                                "class",
+                                "css",
+                                "doc",
+                                "dcr",
+                                "dtd",
+                                "exe",
+                                "flv",
+                                "gcf",
+                                "gff",
+                                "gif",
+                                "grv",
+                                "hdml",
+                                "hqx",
+                                "ico",
+                                "ini",
+                                "jpeg",
+                                "jpg",
+                                "js",
+                                "mov",
+                                "mp3",
+                                "nc",
+                                "pct",
+                                "pdf",
+                                "png",
+                                "ppc",
+                                "pws",
+                                "swa",
+                                "swf",
+                                "txt",
+                                "vbs",
+                                "w32",
+                                "wav",
+                                "wbmp",
+                                "wml",
+                                "wmlc",
+                                "wmls",
+                                "wmlsc",
+                                "xsd",
+                                "zip",
+                                "webp",
+                                "jxr",
+                                "hdp",
+                                "wdp"
+                            ],
+                            "matchCaseSensitive": false
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Dynamic Content",
+                "children": [],
+                "comments": "",
+                "conditionBehavior": "all",
+                "criteriaLocked": false,
+                "behaviors": [
+                    {
+                        "name": "downstreamCache",
+                        "options": {
+                            "behavior": "TUNNEL_ORIGIN"
+                        }
+                    }
+                ],
+                "criteria": [
+                    {
+                        "name": "cacheability",
+                        "options": {
+                            "value": "CACHEABLE",
+                            "matchOperator": "IS_NOT"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Allow OPTIONS",
+                "children": [],
+                "comments": "",
+                "conditionBehavior": "all",
+                "criteriaLocked": false,
+                "behaviors": [
+                    {
+                        "name": "webdav",
+                        "options": {
+                            "enabled": true
+                        }
+                    }
+                ],
+                "criteria": [
+                    {
+                        "name": "requestMethod",
+                        "options": {
+                            "value": "OPTIONS",
+                            "matchOperator": "IS"
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Access-Control Headers if matches domain whitelist",
+                "children": [],
+                "comments": "",
+                "conditionBehavior": "all",
+                "criteriaLocked": false,
+                "behaviors": [
+                    {
+                        "name": "advanced",
+                        "options": {
+                            "description": "Sets Outgoing Access-Control-Allow-Origin header",
+                            "xml": "<assign:extract-value>\n<variable-name>Origin_Value</variable-name>\n<location>Client_Request_Header</location>\n<location-id>Origin</location-id>\n</assign:extract-value>\n<edgeservices:modify-outgoing-response>\n<add-header>\n<name>Access-Control-Allow-Origin</name>\n<value>%(Origin_Value)</value>\n</add-header>\n</edgeservices:modify-outgoing-response>"
+                        }
+                    },
+                    {
+                        "name": "modifyOutgoingResponseHeader",
+                        "options": {
+                            "action": "ADD",
+                            "standardAddHeaderName": "ACCESS_CONTROL_ALLOW_METHODS",
+                            "headerValue": "GET, OPTIONS, PUT, POST, DELETE, PATCH, HEAD"
+                        }
+                    },
+                    {
+                        "name": "modifyOutgoingResponseHeader",
+                        "options": {
+                            "action": "ADD",
+                            "standardAddHeaderName": "ACCESS_CONTROL_MAX_AGE",
+                            "headerValue": "604800"
+                        }
+                    },
+                    {
+                        "name": "modifyOutgoingResponseHeader",
+                        "options": {
+                            "action": "ADD",
+                            "standardAddHeaderName": "ACCESS_CONTROL_ALLOW_HEADERS",
+                            "headerValue": "Origin, X-Requested-With, Content-Type, Accept, Accept-Charset, Accept-Encoding, X-Override-Internal-Permissions, X-Properties-Source, X-Properties-SourceId, X-Properties-Flag, X-Hubspot-User-Id, X-Hubspot-Trace, X-Hubspot-Callee, X-Hubspot-Offset, X-Hubspot-No-Trace, X-HubSpot-Request-Source, X-HubSpot-Request-Reason, Subscription-Billing-Auth-Token, X-App-CSRF, X-Tools-CSRF, Online-Payment-Signing-UUID, X-Source, X-SourceId"
+                        }
+                    },
+                    {
+                        "name": "modifyOutgoingResponseHeader",
+                        "options": {
+                            "action": "ADD",
+                            "standardAddHeaderName": "ACCESS_CONTROL_ALLOW_CREDENTIALS",
+                            "headerValue": "true"
+                        }
+                    },
+                    {
+                        "name": "modifyOutgoingResponseHeader",
+                        "options": {
+                            "action": "ADD",
+                            "standardAddHeaderName": "OTHER",
+                            "customHeaderName": "Timing-Allow-Origin",
+                            "headerValue": "*"
+                        }
+                    }
+                ],
+                "criteria": [
+                    {
+                        "name": "requestHeader",
+                        "options": {
+                            "headerName": "Origin",
+                            "matchOperator": "IS_ONE_OF",
+                            "values": [
+                                "http*://*.hubteam.com",
+                                "http*://*.hubteamqa.com",
+                                "http*://*.grader.com",
+                                "http*://*.graderqa.com",
+                                "http*://*.getsignals.com",
+                                "http*://*.getsignalsqa.com",
+                                "http*://*.getsidekick.com",
+                                "http*://*.getsidekickqa.com",
+                                "http*://*.gettally.com",
+                                "http*://*.gettallyqa.com",
+                                "http*://*.hubspot.com",
+                                "http*://*.hubspotqa.com"
+                            ],
+                            "matchWildcardName": false,
+                            "matchWildcardValue": false,
+                            "matchCaseSensitiveValue": true
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "CORs for JS (custom and always Vary)",
+                "children": [],
+                "comments": "",
+                "conditionBehavior": "all",
+                "criteriaLocked": false,
+                "behaviors": [
+                    {
+                        "name": "modifyOutgoingResponseHeader",
+                        "options": {
+                            "action": "DELETE",
+                            "standardDeleteHeaderName": "OTHER",
+                            "customHeaderName": "Vary"
+                        }
+                    },
+                    {
+                        "name": "modifyOutgoingResponseHeader",
+                        "options": {
+                            "action": "ADD",
+                            "standardAddHeaderName": "OTHER",
+                            "customHeaderName": "Vary",
+                            "headerValue": "Origin, Accept-Encoding, Access-Control-Request-Headers, Access-Control-Request-Method"
+                        }
+                    }
+                ],
+                "criteria": [
+                    {
+                        "name": "contentType",
+                        "options": {
+                            "matchOperator": "IS_ONE_OF",
+                            "values": [
+                                "application/x-javascript*",
+                                "text/javascript*",
+                                "application/javascript*"
+                            ],
+                            "matchWildcard": true,
+                            "matchCaseSensitive": false
+                        }
+                    }
+                ]
+            },
+            {
+                "name": "Compression Fix",
+                "children": [],
+                "comments": "",
+                "conditionBehavior": "any",
+                "criteriaLocked": false,
+                "behaviors": [
+                    {
+                        "name": "modifyOutgoingRequestHeader",
+                        "options": {
+                            "action": "DELETE",
+                            "standardDeleteHeaderName": "OTHER",
+                            "customHeaderName": "Accept-Encoding"
+                        }
+                    }
+                ],
+                "criteria": [
+                    {
+                        "name": "requestHeader",
+                        "options": {
+                            "headerName": "Accept-Encoding",
+                            "matchOperator": "DOES_NOT_EXIST",
+                            "matchWildcardName": false
+                        },
+                        "locked": false
+                    }
+                ]
+            },
+            {
+                "name": "Compression Fix2",
+                "children": [],
+                "comments": "",
+                "conditionBehavior": "any",
+                "criteriaLocked": false,
+                "behaviors": [
+                    {
+                        "name": "modifyOutgoingRequestHeader",
+                        "options": {
+                            "action": "DELETE",
+                            "standardDeleteHeaderName": "OTHER",
+                            "customHeaderName": "Accept-Encoding"
+                        }
+                    }
+                ],
+                "criteria": [
+                    {
+                        "name": "requestHeader",
+                        "options": {
+                            "headerName": "Accept-Encoding",
+                            "matchOperator": "IS_ONE_OF",
+                            "values": [
+                                "identity"
+                            ],
+                            "matchWildcardName": false,
+                            "matchWildcardValue": false,
+                            "matchCaseSensitiveValue": true
+                        },
+                        "locked": false
+                    }
+                ]
+            },
+            {
+                "name": "Disable PCONN for DELETE",
+                "children": [],
+                "conditionBehavior": "all",
+                "behaviors": [
+                    {
+                        "name": "advanced",
+                        "options": {
+                            "description": "Disable PCONN for DELETE",
+                            "xml": "<match:request.method value=\"HTTP_DELETE\">\n<network:pconn.client.status>off</network:pconn.client.status>\n</match:request.method>"
+                        }
+                    }
+                ],
+                "criteria": []
+            }
+        ],
+        "comments": "",
+        "options": {
+            "is_secure": true
+        },
+        "uneditedDefaults": [],
+        "hiddenMessageIds": {
+            "features.origin.validation.ssl_custom_warning_expert.html_f3eb5cb5-5420-4b75-83a9-4a62e19a41e5": 1,
+            "features.origin.validation.ssl_custom_warning_test_staging.html_f3eb5cb5-5420-4b75-83a9-4a62e19a41e5": 1,
+            "validation.generic_behavior_issue.origin_valid_cn_wildcard.html_f3eb5cb5-5420-4b75-83a9-4a62e19a41e5": 1,
+            "matches.requestMethod.validation.options_with_webdav_f3d1c964-2e72-4787-ba6d-c341fa8db248": 1,
+            "validation.moving_from_cp_validated_false_to_true_permanently.html_default": 1
+        },
+        "variables": [],
+        "behaviors": [
+            {
+                "name": "origin",
+                "options": {
+                    "hostname": "api.origin.hubapiqa.com",
+                    "ports": "",
+                    "originType": "CUSTOMER",
+                    "forwardHostHeader": "REQUEST_HOST_HEADER",
+                    "cacheKeyHostname": "ORIGIN_HOSTNAME",
+                    "compress": true,
+                    "enableTrueClientIp": true,
+                    "trueClientIpHeader": "True-Client-IP",
+                    "trueClientIpClientSetting": false,
+                    "originCertificate": "",
+                    "verificationMode": "CUSTOM",
+                    "customValidCnValues": [
+                        "{{Origin Hostname}}",
+                        "{{Forward Host Header}}",
+                        "*.hubapiqa.com",
+                        "wild.hubapiqa.com"
+                    ],
+                    "originCertsToHonor": "COMBO",
+                    "standardCertificateAuthorities": [
+                        "akamai-permissive"
+                    ],
+                    "customCertificateAuthorities": [
+                        {
+                            "subjectCN": "DigiCert SHA2 High Assurance Server CA",
+                            "subjectAlternativeNames": [],
+                            "subjectRDNs": {
+                                "C": "US",
+                                "OU": "www.digicert.com",
+                                "O": "DigiCert Inc",
+                                "CN": "DigiCert SHA2 High Assurance Server CA"
+                            },
+                            "issuerRDNs": {
+                                "C": "US",
+                                "OU": "www.digicert.com",
+                                "O": "DigiCert Inc",
+                                "CN": "DigiCert High Assurance EV Root CA"
+                            },
+                            "notBefore": 1382443200000,
+                            "notAfter": 1855828800000,
+                            "sigAlgName": "SHA256withRSA",
+                            "publicKey": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtuAvwiQGyG0EX9fvCmQGsn0iJmUWrkJAm87cn592Bz7DMFWHGblPlA5alB9VVrTCAiqv0JjuC0DXxNA7csgUnu+QsRGprtLIuEM62QsL1dWV9UCvyB3tTZxfV7eGUGiZ9Yra0scFH6iXydyksYKELcatpZzHGYKmhQ9eRFgqN4/9NfELCCcyWvW7i56kvVHQJ+LdO0IzowUoxLsozJqsKyMNeMZ75l5xt0o+CPuBtxYWoZ0jEk3l15IIrHWknLrNF7IeRDVlf1MlOdEcCppjGxmSdGgKN8LCUkjLOVqituFdwd2gILghopMmbxRKIUHH7W2b8kgv8wP1omiSUy9e4wIDAQAB",
+                            "publicKeyAlgorithm": "RSA",
+                            "publicKeyFormat": "X.509",
+                            "serialNumber": 6.489877074546166e+36,
+                            "version": 3,
+                            "sha1Fingerprint": "a031c46782e6e6c662c2c87c76da9aa62ccabd8e",
+                            "pemEncodedCert": "-----BEGIN CERTIFICATE-----\nMIIEsTCCA5mgAwIBAgIQBOHnpNxc8vNtwCtCuF0VnzANBgkqhkiG9w0BAQsFADBs\nMQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3\nd3cuZGlnaWNlcnQuY29tMSswKQYDVQQDEyJEaWdpQ2VydCBIaWdoIEFzc3VyYW5j\nZSBFViBSb290IENBMB4XDTEzMTAyMjEyMDAwMFoXDTI4MTAyMjEyMDAwMFowcDEL\nMAkGA1UEBhMCVVMxFTATBgNVBAoTDERpZ2lDZXJ0IEluYzEZMBcGA1UECxMQd3d3\nLmRpZ2ljZXJ0LmNvbTEvMC0GA1UEAxMmRGlnaUNlcnQgU0hBMiBIaWdoIEFzc3Vy\nYW5jZSBTZXJ2ZXIgQ0EwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC2\n4C/CJAbIbQRf1+8KZAayfSImZRauQkCbztyfn3YHPsMwVYcZuU+UDlqUH1VWtMIC\nKq/QmO4LQNfE0DtyyBSe75CxEamu0si4QzrZCwvV1ZX1QK/IHe1NnF9Xt4ZQaJn1\nitrSxwUfqJfJ3KSxgoQtxq2lnMcZgqaFD15EWCo3j/018QsIJzJa9buLnqS9UdAn\n4t07QjOjBSjEuyjMmqwrIw14xnvmXnG3Sj4I+4G3FhahnSMSTeXXkgisdaScus0X\nsh5ENWV/UyU50RwKmmMbGZJ0aAo3wsJSSMs5WqK24V3B3aAguCGikyZvFEohQcft\nbZvySC/zA/WiaJJTL17jAgMBAAGjggFJMIIBRTASBgNVHRMBAf8ECDAGAQH/AgEA\nMA4GA1UdDwEB/wQEAwIBhjAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIw\nNAYIKwYBBQUHAQEEKDAmMCQGCCsGAQUFBzABhhhodHRwOi8vb2NzcC5kaWdpY2Vy\ndC5jb20wSwYDVR0fBEQwQjBAoD6gPIY6aHR0cDovL2NybDQuZGlnaWNlcnQuY29t\nL0RpZ2lDZXJ0SGlnaEFzc3VyYW5jZUVWUm9vdENBLmNybDA9BgNVHSAENjA0MDIG\nBFUdIAAwKjAoBggrBgEFBQcCARYcaHR0cHM6Ly93d3cuZGlnaWNlcnQuY29tL0NQ\nUzAdBgNVHQ4EFgQUUWj/kK8CB3U8zNllZGKiErhZcjswHwYDVR0jBBgwFoAUsT7D\naQP4v0cB1JgmGggC72NkK8MwDQYJKoZIhvcNAQELBQADggEBABiKlYkD5m3fXPwd\naOpKj4PWUS+Na0QWnqxj9dJubISZi6qBcYRb7TROsLd5kinMLYBq8I4g4Xmk/gNH\nE+r1hspZcX30BJZr01lYPf7TMSVcGDiEo+afgv2MW5gxTs14nhr9hctJqvIni5ly\n/D6q1UEL2tU2ob8cbkdJf17ZSHwD2f2LSaCYJkJA69aSEaRkCldUxPUd1gJea6zu\nxICaEnL6VpPX/78whQYwvwt/Tv9XBZ0k7YXDK/umdaisLRbvfXknsuvCnQsH6qqF\n0wGjIChBWUMo0oHjqvbsezt3tkBigAVBRQHvFwY+3sAzm2fTYS5yh+Rp/BIAV0Ae\ncPUeybQ=\n-----END CERTIFICATE-----\n",
+                            "canBeLeaf": false,
+                            "canBeCA": true,
+                            "selfSigned": false
+                        }
+                    ],
+                    "customCertificates": [
+                        {
+                            "subjectCN": "*.hubapiqa.com",
+                            "subjectAlternativeNames": [
+                                "*.hubapiqa.com",
+                                "hubapiqa.com"
+                            ],
+                            "subjectRDNs": {
+                                "ST": "Massachusetts",
+                                "C": "US",
+                                "L": "Cambridge",
+                                "O": "HubSpot, Inc.",
+                                "CN": "*.hubapiqa.com"
+                            },
+                            "issuerRDNs": {
+                                "C": "US",
+                                "OU": "www.digicert.com",
+                                "O": "DigiCert Inc",
+                                "CN": "DigiCert SHA2 High Assurance Server CA"
+                            },
+                            "notBefore": 1397692800000,
+                            "notAfter": 1467201600000,
+                            "sigAlgName": "SHA256withRSA",
+                            "publicKey": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwFa/Yoo/5xGj9zItFx9+a22139iU30EsC9rM++D6BaVMTx0GWzMSNjlrH9NDM1dW9bKrFacm6P6kwjTmaGk9C6PARGVrnQ3WsqEE/GvnppZvgSevV5oWLK9d3FkhOj4GlJx/az0dgFuMTr+J/EERE3Zzb7DkP4A5zeLQGEHpjDSxHtziRIMZOt77rT4XmhzWBL853JxVOX+i2Xz/RuVyKzo7kG97Bh6Xg/TsME+vkXvocRoxJOBsA9N+Q8HeLh1x8pTX/Bg+uV3avgOhF3FN7tDIpx0SMntqfjo3VE9E6Y5y2WLMg8zoA2oHHGGfeP7LDsQDs6JOsvYq+xcJV5bUCwIDAQAB",
+                            "publicKeyAlgorithm": "RSA",
+                            "publicKeyFormat": "X.509",
+                            "serialNumber": 1.929713599162758e+37,
+                            "version": 3,
+                            "sha1Fingerprint": "e03ff4a9a836dfeb0f705ff13bcbac897d75a381",
+                            "pemEncodedCert": "-----BEGIN CERTIFICATE-----\nMIIFUTCCBDmgAwIBAgIQDoR+QqoZk/FJcOu78iSAqTANBgkqhkiG9w0BAQsFADBw\nMQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3\nd3cuZGlnaWNlcnQuY29tMS8wLQYDVQQDEyZEaWdpQ2VydCBTSEEyIEhpZ2ggQXNz\ndXJhbmNlIFNlcnZlciBDQTAeFw0xNDA0MTcwMDAwMDBaFw0xNjA2MjkxMjAwMDBa\nMGoxCzAJBgNVBAYTAlVTMRYwFAYDVQQIEw1NYXNzYWNodXNldHRzMRIwEAYDVQQH\nEwlDYW1icmlkZ2UxFjAUBgNVBAoTDUh1YlNwb3QsIEluYy4xFzAVBgNVBAMMDiou\naHViYXBpcWEuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwFa/\nYoo/5xGj9zItFx9+a22139iU30EsC9rM++D6BaVMTx0GWzMSNjlrH9NDM1dW9bKr\nFacm6P6kwjTmaGk9C6PARGVrnQ3WsqEE/GvnppZvgSevV5oWLK9d3FkhOj4GlJx/\naz0dgFuMTr+J/EERE3Zzb7DkP4A5zeLQGEHpjDSxHtziRIMZOt77rT4XmhzWBL85\n3JxVOX+i2Xz/RuVyKzo7kG97Bh6Xg/TsME+vkXvocRoxJOBsA9N+Q8HeLh1x8pTX\n/Bg+uV3avgOhF3FN7tDIpx0SMntqfjo3VE9E6Y5y2WLMg8zoA2oHHGGfeP7LDsQD\ns6JOsvYq+xcJV5bUCwIDAQABo4IB6zCCAecwHwYDVR0jBBgwFoAUUWj/kK8CB3U8\nzNllZGKiErhZcjswHQYDVR0OBBYEFCBxYMTwskRV4IIi+RkV86wJMN+GMCcGA1Ud\nEQQgMB6CDiouaHViYXBpcWEuY29tggxodWJhcGlxYS5jb20wDgYDVR0PAQH/BAQD\nAgWgMB0GA1UdJQQWMBQGCCsGAQUFBwMBBggrBgEFBQcDAjB1BgNVHR8EbjBsMDSg\nMqAwhi5odHRwOi8vY3JsMy5kaWdpY2VydC5jb20vc2hhMi1oYS1zZXJ2ZXItZzMu\nY3JsMDSgMqAwhi5odHRwOi8vY3JsNC5kaWdpY2VydC5jb20vc2hhMi1oYS1zZXJ2\nZXItZzMuY3JsMEIGA1UdIAQ7MDkwNwYJYIZIAYb9bAEBMCowKAYIKwYBBQUHAgEW\nHGh0dHBzOi8vd3d3LmRpZ2ljZXJ0LmNvbS9DUFMwgYMGCCsGAQUFBwEBBHcwdTAk\nBggrBgEFBQcwAYYYaHR0cDovL29jc3AuZGlnaWNlcnQuY29tME0GCCsGAQUFBzAC\nhkFodHRwOi8vY2FjZXJ0cy5kaWdpY2VydC5jb20vRGlnaUNlcnRTSEEySGlnaEFz\nc3VyYW5jZVNlcnZlckNBLmNydDAMBgNVHRMBAf8EAjAAMA0GCSqGSIb3DQEBCwUA\nA4IBAQAiZBYsXlVdPt8Hq+UroE0HifVwla9zJPtUvxio3Svq5W2r8cHlytjKjci0\namhsRD2odQABXGCimaU+SWwrQXkrWImcBWJ3uTn2h3w/wIJF2Uau8CSoTSEjFWw7\nrju/tiAMnnCviawF568Q1sgQLD7eZaAx8/nEVs3emXZ2CKZlK/i3I8EhwXmZ6W9y\nG+qLiBw8Hh+sBPIFzC9kqOFioDclQx6b3TisYmWAoc+V0fDSI14bghMrHX3Xqvdf\nj9Az1OGvymriXbdIGZOg4bI000kehf1npHfNri43xoKGmoGBxpHlxTzhMTz6JrOb\nf1nOBNuN//VRpilUO+c5k0Uyws2p\n-----END CERTIFICATE-----\n",
+                            "canBeLeaf": true,
+                            "canBeCA": false,
+                            "selfSigned": false
+                        }
+                    ],
+                    "httpPort": 80,
+                    "httpsPort": 443,
+                    "originSni": false
+                }
+            },
+            {
+                "name": "cpCode",
+                "options": {
+                    "value": {
+                        "id": 372773
+                    }
+                }
+            },
+            {
+                "name": "caching",
+                "options": {
+                    "behavior": "NO_STORE"
+                }
+            },
+            {
+                "name": "sureRoute",
+                "options": {
+                    "enabled": true,
+                    "type": "PERFORMANCE",
+                    "testObjectUrl": "/sureroute-test-object.html",
+                    "toHostStatus": "INCOMING_HH",
+                    "raceStatTtl": "30m",
+                    "forceSslForward": true,
+                    "enableCustomKey": false
+                }
+            },
+            {
+                "name": "tieredDistribution",
+                "options": {
+                    "enabled": true
+                }
+            },
+            {
+                "name": "prefetch",
+                "options": {
+                    "enabled": true
+                }
+            },
+            {
+                "name": "allowPost",
+                "options": {
+                    "enabled": true,
+                    "allowWithoutContentLength": true
+                }
+            },
+            {
+                "name": "report",
+                "options": {
+                    "logHost": true,
+                    "logReferer": true,
+                    "logUserAgent": true,
+                    "logAcceptLanguage": false,
+                    "logCookies": "OFF"
+                }
+            },
+            {
+                "name": "allowPut",
+                "options": {
+                    "enabled": true
+                }
+            },
+            {
+                "name": "allowPatch",
+                "options": {
+                    "enabled": true
+                }
+            },
+            {
+                "name": "allowDelete",
+                "options": {
+                    "enabled": true
+                }
+            },
+            {
+                "name": "allHttpInCacheHierarchy",
+                "options": {
+                    "enabled": true
+                }
+            },
+            {
+                "name": "edgeConnect",
+                "options": {
+                    "enabled": true,
+                    "apiConnector": "DEFAULT",
+                    "apiDataElements": [
+                        "HTTP",
+                        "APM",
+                        "NETWORK_PERFORMANCE",
+                        "RESPONSE_HEADER",
+                        "NETWORK_V1",
+                        "GEO",
+                        "REQUEST_HEADER",
+                        "SEC_APP_V2",
+                        "SEC_RATE_WARN_V2",
+                        "SEC_RATE_DENY_V2"
+                    ],
+                    "destinationHostname": "cloudmonitor.prod.hubspot.net",
+                    "destinationPath": "/cloudmonitor-collector/v1/collect",
+                    "overrideAggregateSettings": false
+                }
+            },
+            {
+                "name": "webApplicationFirewall",
+                "options": {
+                    "firewallConfiguration": {
+                        "_data": {
+                            "configId": 3281,
+                            "productionStatus": "Active",
+                            "productionVersion": 247,
+                            "stagingStatus": "Was Active",
+                            "stagingVersion": 242
+                        },
+                        "_cid": ".map6511",
+                        "_computedBindings": {},
+                        "configId": 3281,
+                        "productionStatus": "Active",
+                        "productionVersion": 247,
+                        "stagingStatus": "Was Active",
+                        "stagingVersion": 242,
+                        "__bindEvents": {
+                            "change": [
+                                {
+                                    "name": "change"
+                                }
+                            ],
+                            "destroyed": []
+                        },
+                        "_bindings": 0,
+                        "fileName": "waf_portal_3281.xml"
+                    }
+                }
+            },
+            {
+                "name": "persistentConnection",
+                "options": {
+                    "enabled": true,
+                    "timeout": "59s"
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,119 @@
+{
+  "generic": {
+    "behaviorMapping": {
+      "sureRoute": {
+        "enableCustomKey": {
+          "value": false,
+          "type": "boolean",
+          "name": "enableCustomKey",
+          "defaultValue": false,
+          "overrideValue": null,
+          "useVariable": false
+        },
+        "testObjectUrl": {
+          "value": "\\${env.sureRouteTestObject}",
+          "type": "url",
+          "name": "sureRouteTestObject",
+          "defaultValue": "/akamai/sure-route-test-object.html",
+          "overrideValue": null,
+          "useVariable": true
+        }
+      },
+      "origin": {
+        "hostname": {
+          "value": "\\${env.originHostname}",
+          "type": "hostname",
+          "name": "originHostname",
+          "defaultValue": null,
+          "overrideValue": "origin-${environment.propertyName}",
+          "useVariable": true
+        },
+        "netStorage": {
+          "value": "\\${env.netStorageInfo}",
+          "type": "netStorage",
+          "name": "netStorageInfo",
+          "defaultValue": null,
+          "overrideValue": {
+            "downloadDomainName": "${environment.propertyName}.download.akamai.com",
+            "cpCode": null,
+            "g2oToken": null
+          },
+          "useVariable": true
+        }
+      },
+      "cpCode": {
+        "value": {
+          "value": {
+            "id": "\\${env.cpCode}"
+          },
+          "type": "cpCode",
+          "name": "cpCode",
+          "defaultValue": null,
+          "overrideValue": null,
+          "useVariable": true
+        }
+      }
+    },
+    "ruleMapping": {
+      "Content Compression": "compression.json",
+      "Static Content": "static.json",
+      "Dynamic Content": "dynamic.json",
+      "Performance": "performance.json"
+    }
+  },
+  "productOverrides": {
+    "Web_App_Accel": {
+    },
+    "Rich_Media_Accel": {
+    },
+    "Site_Del": {
+    },
+    "HTTP_Downloads": {
+      "ruleMapping": {
+        "Large File Optimization": "lfo.json"
+      }
+    },
+    "Mobile_Accel": {
+    },
+    "SPM": {
+      "behaviorMapping": {
+        "adaptiveImageCompression": {
+          "tier1MobileCompressionMethod": {
+            "value": "\\${env.tier1MobileCompressionMethod}",
+            "type": "url",
+            "name": "tier1MobileCompressionMethod",
+            "defaultValue": "BYPASS",
+            "overrideValue": null,
+            "useVariable": true
+          },
+          "tier2MobileCompressionMethod": {
+            "value": "\\${env.tier2MobileCompressionMethod}",
+            "type": "url",
+            "name": "tier2MobileCompressionMethod",
+            "defaultValue": "BYPASS",
+            "overrideValue": null,
+            "useVariable": true
+          }
+        }
+      }
+    },
+    "Download_Delivery": {
+    },
+    "Progressive_Media": {
+    },
+    "Site_Defender": {
+      "behaviorMapping": {
+        "webApplicationFirewall": {
+          "firewallConfiguration": {
+            "value": "\\${env.firewallConfiguration}",
+            "type": "wafRule",
+            "name": "firewallConfiguration",
+            "defaultValue": null,
+            "overrideValue": null,
+            "useVariable": true
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,9 @@
+
+  Usage: list-status|lstat [options]
+
+  Show status of each environment in a table
+
+  Options:
+
+    -p, --project [projectName]  Project name
+    -h, --help                   output usage information

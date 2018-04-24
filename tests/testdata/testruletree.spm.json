@@ -1,0 +1,430 @@
+{
+  "accountId": "act_1-1BT9",
+  "contractId": "ctr_C-9MWL9N",
+  "groupId": "grp_14456",
+  "propertyId": "prp_452879",
+  "propertyName": "qa.external_spm.com",
+  "propertyVersion": 1,
+  "etag": "88b4a80ef631b0355be51b8a05044410b87083cd",
+  "rules": {
+    "name": "default",
+    "children": [
+      {
+        "name": "Performance",
+        "children": [
+          {
+            "name": "JPEG Images",
+            "children": [],
+            "behaviors": [
+              {
+                "name": "adaptiveImageCompression",
+                "options": {
+                  "compressMobile": true,
+                  "compressStandard": true,
+                  "tier1StandardCompressionMethod": "BYPASS",
+                  "tier2MobileCompressionValue": 60,
+                  "tier2StandardCompressionMethod": "BYPASS",
+                  "tier2StandardCompressionValue": 60,
+                  "tier3MobileCompressionMethod": "COMPRESS",
+                  "tier3MobileCompressionValue": 40,
+                  "tier3StandardCompressionMethod": "COMPRESS",
+                  "tier3StandardCompressionValue": 40,
+                  "title_aic_mobile": "",
+                  "title_aic_nonmobile": ""
+                }
+              }
+            ],
+            "criteria": [
+              {
+                "name": "fileExtension",
+                "options": {
+                  "matchCaseSensitive": false,
+                  "matchOperator": "IS_ONE_OF",
+                  "values": [
+                    "jpg",
+                    "jpeg",
+                    "jpe",
+                    "jif",
+                    "jfif",
+                    "jfi"
+                  ]
+                }
+              }
+            ],
+            "criteriaMustSatisfy": "all",
+            "comments": "Improves load time by applying Adaptive Image Compression (AIC) to all JPEG images. The poorer the connection quality, the more AIC compresses the image files."
+          },
+          {
+            "name": "Compressible Objects",
+            "children": [],
+            "behaviors": [
+              {
+                "name": "gzipResponse",
+                "options": {
+                  "behavior": "ALWAYS"
+                }
+              }
+            ],
+            "criteria": [
+              {
+                "name": "contentType",
+                "options": {
+                  "matchCaseSensitive": false,
+                  "matchOperator": "IS_ONE_OF",
+                  "matchWildcard": true,
+                  "values": [
+                    "text/*",
+                    "application/javascript",
+                    "application/x-javascript",
+                    "application/x-javascript*",
+                    "application/json",
+                    "application/x-json",
+                    "application/*+json",
+                    "application/*+xml",
+                    "application/text",
+                    "application/vnd.microsoft.icon",
+                    "application/vnd-ms-fontobject",
+                    "application/x-font-ttf",
+                    "application/x-font-opentype",
+                    "application/x-font-truetype",
+                    "application/xmlfont/eot",
+                    "application/xml",
+                    "font/opentype",
+                    "font/otf",
+                    "font/eot",
+                    "image/svg+xml",
+                    "image/vnd.microsoft.icon"
+                  ]
+                }
+              }
+            ],
+            "criteriaMustSatisfy": "all",
+            "comments": "Compresses content to improve performance of clients with slow connections. Applies Last Mile Acceleration to requests when the returned object supports gzip compression."
+          }
+        ],
+        "behaviors": [
+          {
+            "name": "enhancedAkamaiProtocol",
+            "options": {
+              "display": ""
+            }
+          },
+          {
+            "name": "http2",
+            "options": {
+              "enabled": ""
+            }
+          },
+          {
+            "name": "allowTransferEncoding",
+            "options": {
+              "enabled": true
+            }
+          },
+          {
+            "name": "removeVary",
+            "options": {
+              "enabled": true
+            }
+          },
+          {
+            "name": "sureRoute",
+            "options": {
+              "enabled": true,
+              "forceSslForward": false,
+              "raceStatTtl": "30m",
+              "testObjectUrl": "",
+              "toHostStatus": "INCOMING_HH",
+              "type": "PERFORMANCE"
+            }
+          },
+          {
+            "name": "prefetch",
+            "options": {
+              "enabled": true
+            }
+          }
+        ],
+        "criteria": [],
+        "criteriaMustSatisfy": "all",
+        "comments": "Improves the performance of delivering objects to end users. Behaviors in this rule are applied to all requests as appropriate."
+      },
+      {
+        "name": "Offload",
+        "children": [
+          {
+            "name": "CSS and JavaScript",
+            "children": [],
+            "behaviors": [
+              {
+                "name": "caching",
+                "options": {
+                  "behavior": "MAX_AGE",
+                  "mustRevalidate": false,
+                  "ttl": "1d"
+                }
+              },
+              {
+                "name": "prefreshCache",
+                "options": {
+                  "enabled": true,
+                  "prefreshval": 90
+                }
+              },
+              {
+                "name": "prefetchable",
+                "options": {
+                  "enabled": true
+                }
+              }
+            ],
+            "criteria": [
+              {
+                "name": "fileExtension",
+                "options": {
+                  "matchCaseSensitive": false,
+                  "matchOperator": "IS_ONE_OF",
+                  "values": [
+                    "css",
+                    "js"
+                  ]
+                }
+              }
+            ],
+            "criteriaMustSatisfy": "any",
+            "comments": "Overrides the default caching behavior for CSS and JavaScript objects that are cached on the edge server. Because these object types are dynamic, the TTL is brief."
+          },
+          {
+            "name": "Static Objects",
+            "children": [],
+            "behaviors": [
+              {
+                "name": "caching",
+                "options": {
+                  "behavior": "MAX_AGE",
+                  "mustRevalidate": false,
+                  "ttl": "7d"
+                }
+              },
+              {
+                "name": "prefreshCache",
+                "options": {
+                  "enabled": true,
+                  "prefreshval": 90
+                }
+              },
+              {
+                "name": "prefetchable",
+                "options": {
+                  "enabled": true
+                }
+              }
+            ],
+            "criteria": [
+              {
+                "name": "fileExtension",
+                "options": {
+                  "matchCaseSensitive": false,
+                  "matchOperator": "IS_ONE_OF",
+                  "values": [
+                    "aif",
+                    "aiff",
+                    "au",
+                    "avi",
+                    "bin",
+                    "bmp",
+                    "cab",
+                    "carb",
+                    "cct",
+                    "cdf",
+                    "class",
+                    "doc",
+                    "dcr",
+                    "dtd",
+                    "exe",
+                    "flv",
+                    "gcf",
+                    "gff",
+                    "gif",
+                    "grv",
+                    "hdml",
+                    "hqx",
+                    "ico",
+                    "ini",
+                    "jpeg",
+                    "jpg",
+                    "mov",
+                    "mp3",
+                    "nc",
+                    "pct",
+                    "pdf",
+                    "png",
+                    "ppc",
+                    "pws",
+                    "swa",
+                    "swf",
+                    "txt",
+                    "vbs",
+                    "w32",
+                    "wav",
+                    "wbmp",
+                    "wml",
+                    "wmlc",
+                    "wmls",
+                    "wmlsc",
+                    "xsd",
+                    "zip",
+                    "pict",
+                    "tif",
+                    "tiff",
+                    "mid",
+                    "midi",
+                    "ttf",
+                    "eot",
+                    "woff",
+                    "woff2",
+                    "otf",
+                    "svg",
+                    "svgz",
+                    "webp",
+                    "jxr",
+                    "jar",
+                    "jp2"
+                  ]
+                }
+              }
+            ],
+            "criteriaMustSatisfy": "any",
+            "comments": "Overrides the default caching behavior for images, music, and similar objects that are cached on the edge server. Because these object types are static, the TTL is long."
+          },
+          {
+            "name": "Uncacheable Responses",
+            "children": [],
+            "behaviors": [
+              {
+                "name": "downstreamCache",
+                "options": {
+                  "behavior": "TUNNEL_ORIGIN"
+                }
+              }
+            ],
+            "criteria": [
+              {
+                "name": "cacheability",
+                "options": {
+                  "matchOperator": "IS_NOT",
+                  "value": "CACHEABLE"
+                }
+              }
+            ],
+            "criteriaMustSatisfy": "all",
+            "comments": "Overrides the default downstream caching behavior for uncacheable object types. Instructs the edge server to pass Cache-Control and/or Expire headers from the origin to the client."
+          }
+        ],
+        "behaviors": [
+          {
+            "name": "caching",
+            "options": {
+              "behavior": "NO_STORE"
+            }
+          },
+          {
+            "name": "cacheError",
+            "options": {
+              "enabled": true,
+              "preserveStale": true,
+              "ttl": "10s"
+            }
+          },
+          {
+            "name": "downstreamCache",
+            "options": {
+              "allowBehavior": "LESSER",
+              "behavior": "ALLOW",
+              "sendHeaders": "CACHE_CONTROL_AND_EXPIRES",
+              "sendPrivate": false
+            }
+          },
+          {
+            "name": "tieredDistribution",
+            "options": {
+              "enabled": true,
+              "tieredDistributionMap": "CH2"
+            }
+          }
+        ],
+        "criteria": [],
+        "criteriaMustSatisfy": "all",
+        "comments": "Controls caching, which offloads traffic away from the origin. Most objects types are not cached. However, the child rules override this behavior for certain subsets of requests."
+      }
+    ],
+    "behaviors": [
+      {
+        "name": "origin",
+        "options": {
+          "cacheKeyHostname": "ORIGIN_HOSTNAME",
+          "compress": true,
+          "enableTrueClientIp": false,
+          "forwardHostHeader": "REQUEST_HOST_HEADER",
+          "httpPort": 80,
+          "originType": "CUSTOMER",
+          "useUniqueCacheKey": false
+        }
+      },
+      {
+        "name": "cpCode",
+        "options": {}
+      },
+      {
+        "name": "allowPost",
+        "options": {
+          "allowWithoutContentLength": false,
+          "enabled": true
+        }
+      },
+      {
+        "name": "realUserMonitoring",
+        "options": {
+          "enabled": true
+        }
+      }
+    ],
+    "options": {
+      "is_secure": false
+    },
+    "comments": "The behaviors in the Default Rule apply to all requests for the property hostname(s) unless another rule overrides the Default Rule settings."
+  },
+  "errors": [
+    {
+      "type": "https://problems.luna.akamaiapis.net/papi/v0/validation/attribute_required",
+      "errorLocation": "#/rules/behaviors/0/options/hostname",
+      "detail": "The Origin Server Hostname option on the `Origin Server` behavior is required."
+    },
+    {
+      "type": "https://problems.luna.akamaiapis.net/papi/v0/validation/attribute_required",
+      "errorLocation": "#/rules/behaviors/1/options/value",
+      "detail": "The Content Provider Code option on the `Content Provider Code` behavior is required."
+    },
+    {
+      "type": "https://problems.luna.akamaiapis.net/papi/v0/validation/option_empty",
+      "errorLocation": "#/rules/children/0/behaviors/4/options/testObjectUrl",
+      "detail": "The SureRoute Test Object option in `SureRoute` must not be empty."
+    },
+    {
+      "type": "https://problems.luna.akamaiapis.net/papi/v0/validation/attribute_required",
+      "errorLocation": "#/rules/children/0/behaviors/4/options/enableCustomKey",
+      "detail": "The Race Result Key option on the `SureRoute` behavior is required."
+    },
+    {
+      "type": "https://problems.luna.akamaiapis.net/papi/v0/validation/attribute_required",
+      "errorLocation": "#/rules/children/0/children/0/behaviors/0/options/tier1MobileCompressionMethod",
+      "detail": "The Excellent Connection option on the `Adaptive Image Compression` behavior is required."
+    },
+    {
+      "type": "https://problems.luna.akamaiapis.net/papi/v0/validation/attribute_required",
+      "errorLocation": "#/rules/children/0/children/0/behaviors/0/options/tier2MobileCompressionMethod",
+      "detail": "The Good Connection option on the `Adaptive Image Compression` behavior is required."
+    }
+  ],
+  "ruleFormat": "v2018-02-27"
+}

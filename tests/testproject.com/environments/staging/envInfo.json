@@ -1,0 +1,20 @@
+{
+  "name": "staging",
+  "propertyName": "staging.testproject.com",
+  "propertyId": 411090,
+  "environmentHash": "012c5a4a21d0b39216a5af80e78bf731f0354d51672338adbede86432a697a64",
+  "lastValidatedHash": "012c5a4a21d0b39216a5af80e78bf731f0354d51672338adbede86432a697a64",
+  "ruleTreeHash": "2744fa78eb04033bc18cfa7c4496d95b2af7ee15195dcca93606e9bf4a74405b",
+  "latestVersionInfo": {
+    "propertyVersion": 1,
+    "updatedByUser": "jpws7ubcv5jjsv37",
+    "updatedDate": "2017-11-13T21:49:19Z",
+    "productionStatus": "INACTIVE",
+    "stagingStatus": "INACTIVE",
+    "etag": "7791f7985b1a08f74b57bb5e35e57c75d00324ce",
+    "productId": "Web_App_Accel",
+    "ruleFormat": "latest"
+  },
+  "lastSaveErrors": [],
+  "lastSaveWarnings": []
+}

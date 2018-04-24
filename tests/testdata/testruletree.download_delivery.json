@@ -1,0 +1,60 @@
+{
+  "accountId" : "act_1-599K",
+  "contractId" : "ctr_1-3CV382",
+  "groupId" : "grp_18385",
+  "propertyId" : "prp_453073",
+  "propertyName" : "qa.internal_Download_Delivery2.com",
+  "propertyVersion" : 1,
+  "etag" : "99ddae9ea6c0022be876e451165b4654ffe9e068",
+  "rules" : {
+    "name" : "default",
+    "children" : [ ],
+    "behaviors" : [ {
+      "name" : "originCharacteristics",
+      "options" : {
+        "authenticationMethod" : "AUTOMATIC",
+        "country" : "UNKNOWN"
+      }
+    }, {
+      "name" : "contentCharacteristicsDD",
+      "options" : {
+        "catalogSize" : "UNKNOWN",
+        "contentType" : "UNKNOWN",
+        "objectSize" : "UNKNOWN",
+        "optimizeOption" : false,
+        "popularityDistribution" : "UNKNOWN"
+      }
+    }, {
+      "name" : "clientCharacteristics",
+      "options" : {
+        "country" : "UNKNOWN"
+      }
+    }, {
+      "name" : "origin",
+      "options" : {
+        "originType" : "NET_STORAGE"
+      }
+    }, {
+      "name" : "cpCode",
+      "options" : { }
+    }, {
+      "name" : "cacheKeyQueryParams",
+      "options" : {
+        "behavior" : "IGNORE_ALL"
+      }
+    } ],
+    "options" : {
+      "is_secure" : false
+    }
+  },
+  "errors" : [ {
+    "type" : "https://problems.luna.akamaiapis.net/papi/v0/validation/attribute_required",
+    "errorLocation" : "#/rules/behaviors/3/options/netStorage",
+    "detail" : "The NetStorage Account option on the `Origin Server` behavior is required."
+  }, {
+    "type" : "https://problems.luna.akamaiapis.net/papi/v0/validation/attribute_required",
+    "errorLocation" : "#/rules/behaviors/4/options/value",
+    "detail" : "The Content Provider Code option on the `Content Provider Code` behavior is required."
+  } ],
+  "ruleFormat" : "v2018-02-27"
+}

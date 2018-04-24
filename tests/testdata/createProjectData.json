@@ -1,0 +1,107 @@
+{
+  "qa": {
+    "create": {
+      "propertyLink": "/papi/v0/properties/411089?groupId=61726&contractId=1-1TJZH5"
+    },
+    "latestVersion": {
+      "propertyId": 411089,
+      "propertyName": "qa.testproject.com",
+      "accountId": "1-1TJZFB",
+      "contractId": "1-1TJZH5",
+      "groupId": "61726",
+      "assetId": "10501028",
+      "versions": {
+        "items": [
+          {
+            "propertyVersion": 1,
+            "updatedByUser": "jpws7ubcv5jjsv37",
+            "updatedDate": "2017-11-13T21:49:05Z",
+            "productionStatus": "INACTIVE",
+            "stagingStatus": "INACTIVE",
+            "etag": "7cf327786d5a73aa6340452a064fb77589f750b0",
+            "productId": "Web_App_Accel",
+            "ruleFormat": "latest"
+          }
+        ]
+      }
+    }
+  },
+  "staging": {
+    "create": {
+      "propertyLink": "/papi/v0/properties/411090?groupId=61726&contractId=1-1TJZH5"
+    },
+    "latestVersion": {
+      "propertyId": 411090,
+      "propertyName": "staging.testproject.com",
+      "accountId": "1-1TJZFB",
+      "contractId": "1-1TJZH5",
+      "groupId": "61726",
+      "assetId": "10501029",
+      "versions": {
+        "items": [
+          {
+            "propertyVersion": 1,
+            "updatedByUser": "jpws7ubcv5jjsv37",
+            "updatedDate": "2017-11-13T21:49:19Z",
+            "productionStatus": "INACTIVE",
+            "stagingStatus": "INACTIVE",
+            "etag": "7791f7985b1a08f74b57bb5e35e57c75d00324ce",
+            "productId": "Web_App_Accel",
+            "ruleFormat": "latest"
+          }
+        ]
+      }
+    }
+  },
+  "prod": {
+    "create": {
+      "propertyLink": "/papi/v0/properties/411091?groupId=61726&contractId=1-1TJZH5"
+    },
+    "latestVersion": {
+      "propertyId": 411091,
+      "propertyName": "prod.testproject.com",
+      "accountId": "1-1TJZFB",
+      "contractId": "1-1TJZH5",
+      "groupId": "61726",
+      "assetId": "10501030",
+      "versions": {
+        "items": [
+          {
+            "propertyVersion": 1,
+            "updatedByUser": "jpws7ubcv5jjsv37",
+            "updatedDate": "2017-11-13T21:49:31Z",
+            "productionStatus": "INACTIVE",
+            "stagingStatus": "INACTIVE",
+            "etag": "9fdf49fecd0ed31b57eb13a6326f5190b9a14cc2",
+            "productId": "Web_App_Accel",
+            "ruleFormat": "latest"
+          }
+        ]
+      }
+    }
+  },
+  "bluePrint": {
+    "latestVersion": {
+      "propertyId": 76543,
+      "propertyName": "someother.blueprint.com",
+      "accountId": "1-1TJZFB",
+      "contractId": "1-1TJZH5",
+      "groupId": "61726",
+      "assetId": "471243",
+      "versions": {
+        "items": [
+          {
+            "propertyVersion": 75,
+            "updatedByUser": "jpws7ubcv5jjsv37",
+            "updatedDate": "2017-11-13T21:49:31Z",
+            "productionStatus": "INACTIVE",
+            "stagingStatus": "INACTIVE",
+            "etag": "9fdf49fecd0ed31b57eb13a6326f5190b9a14cc2",
+            "productId": "Web_App_Accel",
+            "ruleFormat": "latest"
+          }
+        ]
+      }
+    }
+  }
+}

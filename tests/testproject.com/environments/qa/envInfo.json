@@ -1,0 +1,19 @@
+{
+  "name": "qa",
+  "propertyName": "qa.testproject.com",
+  "propertyId": 411089,
+  "environmentHash": "f91b2efb777cc1a6124d844e4a707676c9e2c105b8852f4700071193b221aaa2",
+  "ruleTreeHash": "6ac5ef477dbdc1abbc1c8957a0b6faef28f9d21b2f92e5771f29391da00a7744",
+  "latestVersionInfo": {
+    "propertyVersion": 1,
+    "updatedByUser": "jpws7ubcv5jjsv37",
+    "updatedDate": "2017-11-13T21:49:05Z",
+    "productionStatus": "INACTIVE",
+    "stagingStatus": "INACTIVE",
+    "etag": "7cf327786d5a73aa6340452a064fb77589f750b0",
+    "productId": "Web_App_Accel",
+    "ruleFormat": "latest"
+  },
+  "lastSaveErrors": [],
+  "lastSaveWarnings": []
+}

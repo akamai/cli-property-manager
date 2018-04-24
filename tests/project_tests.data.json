@@ -1,0 +1,89 @@
+[
+    [
+        "fileExists",
+        "homeSweetHome/Foobar"
+    ],
+    [
+        "mkdir",
+        "homeSweetHome/Foobar"
+    ],
+    [
+        "mkdir",
+        "homeSweetHome/Foobar/cache"
+    ],
+    [
+        "mkdir",
+        "homeSweetHome/Foobar/dist"
+    ],
+    [
+        "mkdir",
+        "homeSweetHome/Foobar/environments"
+    ],
+    [
+        "mkdir",
+        "homeSweetHome/Foobar/templates"
+    ],
+    [
+        "writeJsonFile",
+        "homeSweetHome/Foobar/projectInfo.json",
+        {
+            "productId": "WAA",
+            "contractId": "ABF543",
+            "groupId": 76342,
+            "environments": [
+                "qa",
+                "staging",
+                "production"
+            ],
+            "name": "Foobar"
+        }
+    ],
+    [
+        "mkdir",
+        "homeSweetHome/Foobar/environments/qa"
+    ],
+    [
+        "writeJsonFile",
+        "homeSweetHome/Foobar/environments/qa/hostnames.json",
+        [
+            {
+                "cnameFrom": "qa.Foobar",
+                "cnameTo": "qa.Foobar.edgesuite.net",
+                "cnameType": "EDGE_HOSTNAME",
+                "edgeHostnameId": null
+            }
+        ]
+    ],
+    [
+        "mkdir",
+        "homeSweetHome/Foobar/environments/staging"
+    ],
+    [
+        "writeJsonFile",
+        "homeSweetHome/Foobar/environments/staging/hostnames.json",
+        [
+            {
+                "cnameFrom": "staging.Foobar",
+                "cnameTo": "staging.Foobar.edgesuite.net",
+                "cnameType": "EDGE_HOSTNAME",
+                "edgeHostnameId": null
+            }
+        ]
+    ],
+    [
+        "mkdir",
+        "homeSweetHome/Foobar/environments/production"
+    ],
+    [
+        "writeJsonFile",
+        "homeSweetHome/Foobar/environments/production/hostnames.json",
+        [
+            {
+                "cnameFrom": "production.Foobar",
+                "cnameTo": "production.Foobar.edgesuite.net",
+                "cnameType": "EDGE_HOSTNAME",
+                "edgeHostnameId": null
+            }
+        ]
+    ]
+]

@@ -1,0 +1,116 @@
+{
+  "accountId" : "1-1TJZFB",
+  "contractId" : "1-1TJZH5",
+  "groupId" : "15225",
+  "propertyId" : "430962",
+  "propertyName" : "qa.downloadsexample.com",
+  "propertyVersion" : 1,
+  "etag" : "4aae78064312976b05c7237f6180a2a6882898af",
+  "rules" : {
+    "name" : "default",
+    "children" : [ {
+      "name" : "Large File Optimization",
+      "children" : [ ],
+      "behaviors" : [ {
+        "name" : "largeFileOptimization",
+        "options" : {
+          "enablePartialObjectCaching" : "PARTIAL_OBJECT_CACHING",
+          "enabled" : true,
+          "maximumSize" : "16GB",
+          "minimumSize" : "100MB",
+          "useVersioning" : true
+        }
+      } ],
+      "criteria" : [ {
+        "name" : "fileExtension",
+        "options" : {
+          "matchCaseSensitive" : false,
+          "matchOperator" : "IS_ONE_OF",
+          "values" : [ "exe", "bz2", "dmg", "gz", "iso", "mov", "pkg", "tar", "tgz", "wmv", "wma", "zip", "webp", "jxr", "hdp", "wdp" ]
+        }
+      } ],
+      "criteriaMustSatisfy" : "all"
+    }, {
+      "name" : "Content Compression",
+      "children" : [ ],
+      "behaviors" : [ {
+        "name" : "gzipResponse",
+        "options" : {
+          "behavior" : "ALWAYS"
+        }
+      } ],
+      "criteria" : [ {
+        "name" : "contentType",
+        "options" : {
+          "matchCaseSensitive" : false,
+          "matchOperator" : "IS_ONE_OF",
+          "matchWildcard" : true,
+          "values" : [ "text/html*", "text/css*", "application/x-javascript*" ]
+        }
+      } ],
+      "criteriaMustSatisfy" : "all"
+    } ],
+    "behaviors" : [ {
+      "name" : "origin",
+      "options" : {
+        "originType" : "NET_STORAGE"
+      }
+    }, {
+      "name" : "cpCode",
+      "options" : { }
+    }, {
+      "name" : "report",
+      "options" : {
+        "logAcceptLanguage" : false,
+        "logCookies" : "OFF",
+        "logCustomLogField" : false,
+        "logHost" : false,
+        "logReferer" : false,
+        "logUserAgent" : true
+      }
+    }, {
+      "name" : "caching",
+      "options" : {
+        "behavior" : "MAX_AGE",
+        "mustRevalidate" : false,
+        "ttl" : "365d"
+      }
+    }, {
+      "name" : "tieredDistribution",
+      "options" : {
+        "enabled" : true,
+        "tieredDistributionMap" : "CH2"
+      }
+    }, {
+      "name" : "cacheKeyQueryParams",
+      "options" : {
+        "behavior" : "IGNORE_ALL"
+      }
+    }, {
+      "name" : "netSession",
+      "options" : {
+        "enabled" : false
+      }
+    } ],
+    "options" : {
+      "is_secure" : false
+    }
+  },
+  "errors" : [ {
+    "type" : "https://problems.luna.akamaiapis.net/papi/v0/validation/attribute_required",
+    "errorLocation" : "#/rules/behaviors/0/options/netStorage",
+    "detail" : "The NetStorage Account option on the `Origin Server` behavior is required."
+  }, {
+    "type" : "https://problems.luna.akamaiapis.net/papi/v0/validation/attribute_required",
+    "errorLocation" : "#/rules/behaviors/1/options/value",
+    "detail" : "The Content Provider Code option on the `Content Provider Code` behavior is required."
+  } ],
+  "warnings" : [ {
+    "title" : "Unstable rule format",
+    "type" : "https://problems.luna.akamaiapis.net/papi/v0/unstable_rule_format",
+    "detail" : "This property is using `latest` rule format, which is designed to reflect interface changes immediately. We suggest converting the property to a stable rule format such as `v2017-06-19` to minimize the risk of interface changes breaking your API client program.",
+    "currentRuleFormat" : "latest",
+    "suggestedRuleFormat" : "v2017-06-19"
+  } ],
+  "ruleFormat" : "latest"
+}

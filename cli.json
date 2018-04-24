@@ -1,0 +1,13 @@
+{
+  "requirements": {
+    "node": "8.9.1"
+  },
+  "commands": [
+    {
+      "name": "promotional-deployment",
+      "aliases": ["pd", "prodeploy"],
+      "version": "0.1.0",
+      "description": "Promotional deployment for DevOps"
+    }
+  ]
+}
