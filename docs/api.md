@@ -47,8 +47,8 @@ Used by CLI</p>
 <dd><p>PAPI REST client</p>
 </dd>
 <dt><a href="#Project">Project</a></dt>
-<dd><p>Represents the data model of the the project (devops provisioning pipeline)
-responsible for all storage operations within the project.</p>
+<dd><p>Represents the data model of the the pipeline (devops provisioning pipeline)
+responsible for all storage operations within the pipeline.</p>
 </dd>
 <dt><a href="#RecordingClient">RecordingClient</a></dt>
 <dd><p>Records request and response data to file.</p>
@@ -156,14 +156,14 @@ Class representing high-level functionality within the SDK.
 <a name="DevOps+getDefaultProjectName"></a>
 
 ### devOps.getDefaultProjectName() ⇒ <code>\*</code>
-retrieve default project name from file.
+retrieve default pipeline name from file.
 
 **Kind**: instance method of [<code>DevOps</code>](#DevOps)  
 <a name="DevOps+extractProjectName"></a>
 
 ### devOps.extractProjectName(options, useDefault) ⇒ <code>null</code>
-Extract the desired project name either from default.project file or
-from the -p [project name] command line option
+Extract the desired pipeline name either from devopsSettings.json file or
+from the -p [pipeline name] command line option
 
 **Kind**: instance method of [<code>DevOps</code>](#DevOps)  
 
@@ -175,7 +175,7 @@ from the -p [project name] command line option
 <a name="DevOps+getDefaultProject"></a>
 
 ### devOps.getDefaultProject() ⇒ <code>\*</code>
-Creates Project instance representing default project
+Creates Project instance representing default pipeline
 
 **Kind**: instance method of [<code>DevOps</code>](#DevOps)  
 <a name="DevOps+createNewProject"></a>
@@ -204,7 +204,7 @@ Uses PAPI formatted rule try to generate template.
 <a name="DevOps+setDefaultProject"></a>
 
 ### devOps.setDefaultProject(projectName)
-Sets the default project in devopsSettings.json
+Sets the default pipeline in devopsSettings.json
 
 **Kind**: instance method of [<code>DevOps</code>](#DevOps)  
 
@@ -271,7 +271,7 @@ Create Environment instance.
 <a name="DevOps+merge"></a>
 
 ### devOps.merge(projectName, environmentName, validate)
-Merge variables with templates to construct the rule tree for passed project and environment name
+Merge variables with templates to construct the rule tree for passed pipeline and environment name
 
 **Kind**: instance method of [<code>DevOps</code>](#DevOps)  
 
@@ -284,7 +284,7 @@ Merge variables with templates to construct the rule tree for passed project and
 <a name="DevOps+save"></a>
 
 ### devOps.save(projectName, environmentName)
-Save ruletree to backend for a particular project and environment name
+Save ruletree to backend for a particular pipeline and environment name
 
 **Kind**: instance method of [<code>DevOps</code>](#DevOps)  
 
@@ -431,7 +431,7 @@ represents environment in a devops pipeline
 
 ### environment.create(isInRetryMode) ⇒ <code>Promise.&lt;void&gt;</code>
 Creates the property associated with this environment using PAPI
-and stores the information in $DEVOPS_PROJECT_HOME/<project_name>/<environment_name>/envInfo.json
+and stores the information in $DEVOPS_PROJECT_HOME/<pipeline_name>/<environment_name>/envInfo.json
 
 **Kind**: instance method of [<code>Environment</code>](#Environment)  
 
@@ -718,8 +718,8 @@ Set or unset PAPI id prefixes
 <a name="Project"></a>
 
 ## Project
-Represents the data model of the the project (devops provisioning pipeline)
-responsible for all storage operations within the project.
+Represents the data model of the the pipeline (devops provisioning pipeline)
+responsible for all storage operations within the pipeline.
 
 **Kind**: global class  
 
@@ -755,7 +755,7 @@ Does this project exist on the filesystem.
 <a name="Project+createProjectFolders"></a>
 
 ### project.createProjectFolders(productId, contractId, groupId, environmentNames)
-Setup project and environments folders
+Setup pipeline and environments folders
 
 **Kind**: instance method of [<code>Project</code>](#Project)  
 
@@ -880,7 +880,7 @@ depends on calling context.
 
 ### createDevOps~getProject(projectName, expectExists) ⇒ <code>\*</code>
 Create and return Project instance.
-Throws error if expectExists === true but project doesn't exist.
+Throws error if expectExists === true but pipeline doesn't exist.
 
 **Kind**: inner method of [<code>createDevOps</code>](#createDevOps)  
 

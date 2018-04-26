@@ -61,13 +61,13 @@ describe('getEnvironment tests', function() {
     it('getEnvironment with wrong env name', function() {
         assert.throws(() => {
             let environment = devops.getDefaultProject().getEnvironment("foobar");
-        }, "'foobar' is not a valid environment in project testproject.com");
+        }, "'foobar' is not a valid environment in pipeline testproject.com");
     });
 
     it('getEnvironment with wrong project name', function() {
         assert.throws(() => {
             let environment = devops.getProject("blahblah").getEnvironment("foobar");
-        }, "Project 'blahblah' doesn't exist!");
+        }, "Pipeline 'blahblah' doesn't exist!");
     });
 });
 

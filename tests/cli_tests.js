@@ -208,7 +208,7 @@ describe('Devops-prov CLI set default tests', function () {
         return mainTester(errorReporter => {
             main(cliArgs, {}, createDevOpsFun, errorReporter);
         }, errorCatcher => {
-            assert.equal(errorCatcher.error, "Error: Project 'foobar' doesn't exist!",
+            assert.equal(errorCatcher.error, "Error: Pipeline 'foobar' doesn't exist!",
                 errorCatcher.error.stack)
         });
     });

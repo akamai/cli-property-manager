@@ -96,7 +96,7 @@ const prepareSettings = function(dependencies, procEnv, utils) {
 
     if (!devopsSettings.devopsHome) {
         throw new errors.DependencyError("Need to know location of devopsHome folder. Please set AKAMAI_PD_PROJECT_HOME environment variable.",
-            "devops_project_home_env_var_missing");
+            "devops_pipeline_home_env_var_missing");
     }
 
     devopsSettings.edgeGridConfig = prepareEdgeGridConfig(utils, devopsSettings, dependencies);
@@ -159,7 +159,7 @@ const createDevOps = function(dependencies = {}) {
 
     /**
      * Create and return Project instance.
-     * Throws error if expectExists === true but project doesn't exist.
+     * Throws error if expectExists === true but pipeline doesn't exist.
      * @param projectName
      * @param expectExists
      * @returns {*}
@@ -174,7 +174,7 @@ const createDevOps = function(dependencies = {}) {
             devopsSettings
         });
         if (expectExists && !project.exists()) {
-            throw new errors.DependencyError(`Project '${projectName}' doesn't exist!`, "unknown_project", projectName);
+            throw new errors.DependencyError(`Pipeline '${projectName}' doesn't exist!`, "unknown_pipeline", projectName);
         }
         return project;
     }

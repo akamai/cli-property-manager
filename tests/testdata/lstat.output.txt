@@ -1,9 +1,9 @@
 
   Usage: list-status|lstat [options]
 
-  Show status of each environment in a table
+  Show status of pipeline
 
   Options:
 
-    -p, --project [projectName]  Project name
-    -h, --help                   output usage information
+    -p, --pipeline [pipelineName]  pipeline name
+    -h, --help                     output usage information

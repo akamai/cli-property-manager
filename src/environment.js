@@ -149,7 +149,7 @@ class Environment {
 
     /**
      * Creates the property associated with this environment using PAPI
-     * and stores the information in $DEVOPS_PROJECT_HOME/<project_name>/<environment_name>/envInfo.json
+     * and stores the information in $DEVOPS_PROJECT_HOME/<pipeline_name>/<environment_name>/envInfo.json
      * @param {boolean} isInRetryMode - true if in retry mode.
      * @returns {Promise.<void>}
      */
@@ -466,7 +466,7 @@ class Environment {
      * @returns {Promise.<void>}
      */
     async merge(validate = true) {
-        logger.info(`Merge environment: '${this.name}' in project: '${this.project.projectName}'`);
+        logger.info(`Merge environment: '${this.name}' in pipeline: '${this.project.projectName}'`);
         let mergeResult = this.getMerger(this.project, this).merge("main.json");
         let fileName = this.storePropertyData(mergeResult.ruleTree);
         let envInfo = this.getEnvironmentInfo();

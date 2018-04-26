@@ -14,7 +14,7 @@
 
 
 /**
- * devops-prov command line tool calling into SDK classes and methods.
+ * akamai pd command line tool calling into SDK classes and methods.
  *
  */
 
@@ -29,7 +29,6 @@ const DevOpsCommand = require('./command');
 const errors = require('./errors');
 const logging = require('./logging');
 const helpers = require('./helpers');
-const devopsFactoryFunction = require('./factory');
 
 const cliLogger = new logging.ConsoleLogger();
 
@@ -39,12 +38,12 @@ const cliLogger = new logging.ConsoleLogger();
  *
  * @param cmdArgs {Array} defaults to process.argv, override in unit tests
  * @param procEnv {Object} defaults to process.env
- * @param factoryFunction {Function} creates all the SDK related instances
- * @param overrideErrorReporter {Function} allows to override error reporting, used for unit tests
- * @param consoleLogger {object} logger instance for CLI output to stdout or stderr
+ * @param overrideDevopsFactoryFunction {Function} allow overriding of default factory function
+ * @param overrideErrorReporter {Function} allow overriding of default error reporter and handler
+ * @param consoleLogger {Object} allow overriding of of default cli logger
  */
 module.exports = function(cmdArgs = process.argv, procEnv = process.env,
-    factoryFunction = devopsFactoryFunction, overrideErrorReporter = null, consoleLogger = cliLogger) {
+    overrideDevopsFactoryFunction = null, overrideErrorReporter = null, consoleLogger = cliLogger) {
 
     const useVerboseLogging = function(options) {
         if (options.parent) {
@@ -88,7 +87,14 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         }
         logging.log4jsLogging(useVerboseLogging(options));
 
-        return factoryFunction({
+        let devopsFactoryFunction;
+        if (_.isFunction(overrideDevopsFactoryFunction)) {
+            devopsFactoryFunction = overrideDevopsFactoryFunction;
+        } else {
+            devopsFactoryFunction = require('./factory');
+        }
+
+        return devopsFactoryFunction({
             procEnv,
             clientType,
             recordFilename,
@@ -124,27 +130,27 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
     }
 
     /**
-     * sets the default project
+     * sets the default pipeline
      * @param options
      */
     const setDefault = function(devops, options) {
-        let projectName = options.project;
+        let pipelineName = options.pipeline;
         let section = options.section || options.parent.section;
-        if (!projectName && !section) {
-            throw new errors.DependencyError("Need at least one option! Use devops-prov -p <project name> or devops-prov -s <section>.",
+        if (!pipelineName && !section) {
+            throw new errors.DependencyError("Need at least one option! Use akamai pd -p <pipeline name> or akamai pd -s <section>.",
                 "missing_option");
         }
 
         if (section) {
             devops.setDefaultSection(section);
         }
-        if (projectName) {
-            devops.setDefaultProject(projectName);
+        if (pipelineName) {
+            devops.setDefaultProject(pipelineName);
         }
     };
 
     /**
-     * Creates a new devops project (devops pipeline)
+     * Creates a new devops pipeline (devops pipeline)
      * @type {Function}
      */
     const createNewProject = function(devops, environments, options) {
@@ -160,10 +166,10 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         if (!productId) {
             throw new errors.DependencyError("productId needs to be provided", "missing_product_id");
         }
-        let projectName = options.project;
+        let projectName = options.pipeline;
         if (!projectName) {
-            throw new errors.DependencyError("Missing project option! Use devops-prov -p <project name> ...",
-                "missing_project_name");
+            throw new errors.DependencyError("Missing pipeline option! Use akamai pd -p <pipeline name> ...",
+                "missing_pipeline_name");
         }
         let isInRetryMode = options.retry || false;
         let createPropertyInfo = {
@@ -253,7 +259,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
     };
 
     /**
-     * list status for the project and environment details
+     * list status for the pipeline and environment details
      * @type {Function}
      */
     const listStatus = function(devops, options) {
@@ -400,7 +406,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
             let saveData = [
                 ["Action", "Result"],
                 ["stored rule tree", data.storedRules ? "yes" : "no"],
-                ["edge hostnames created", helpers.isArrayWithData(data.edgeHostnames.hostnamesCreated.length) ? "yes" : "no"],
+                ["edge hostnames created", helpers.isArrayWithData(data.edgeHostnames.hostnamesCreated) ? "yes" : "no"],
                 ["stored hostnames", data.storedHostnames ? "yes" : "no"],
                 ["validation warnings", helpers.isArrayWithData(data.validationWarnings) ? "yes" : "no"],
                 ["validation errors", helpers.isArrayWithData(data.validationErrors) ? "yes" : "no"]
@@ -535,11 +541,11 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
     let actionCalled;
     let argumentsUsed;
     let verbose = false;
-    const commander = new DevOpsCommand("DevOps SDK", consoleLogger);
+    const commander = new DevOpsCommand("akamai pd", consoleLogger);
     commander
         .version(version)
-        .description("DevOps Provisioning SDK command line too. " +
-            "The command assumes that your current working directory is the project space under which all projects reside")
+        .description("Promotional Deployment CLI package. " +
+            "The command assumes that your current working directory is the pipeline space under which all pipelines reside")
         .option('-v, --verbose', 'Verbose output, show logging on stdout')
         .option('-s, --section <section>', 'Section name representing Client ID in .edgerc file, defaults to "credentials"')
         .option('--record-to-file <filename>', 'Record REST communication to file')
@@ -547,10 +553,10 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         .option('--replay-from-file <filename>', 'Use record file to replay REST communication. Used for offline testing');
 
     commander
-        .command("new-project [environments...]", "Create a new project (pipeline) with provided attributes. " +
-            "This will also create one PM property for each environment.")
+        .command("new-pipeline [environments...]", "Create a new pipeline with provided attributes. " +
+            "This will also create one property for each environment.")
         .option('--retry', 'Assuming command failed last time during execution. Try to continue where it left off.')
-        .option('-p, --project <projectName>', 'Project name')
+        .option('-p, --pipeline <pipelineName>', 'Pipeline name')
         .option('-g, --groupId <groupId>', "Group ID", helpers.parseGroupId)
         .option('-c, --contractId <contractId>', "Contract ID")
         .option('-d, --productId <productId>', "Product ID")
@@ -563,8 +569,8 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         });
 
     commander
-        .command("set-default", "Set the default project and default section name used client.properties.")
-        .option('-p, --project <projectName>', 'Set default project name')
+        .command("set-default", "Set the default pipeline and or the default section name from .edgerc")
+        .option('-p, --pipeline <pipelineName>', 'Set default pipeline name')
         .option('-s, --section <section>', 'Set default section name from edgerc file')
         .alias("sd")
         .action(function(...args) {
@@ -574,8 +580,8 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
 
     commander
         .command("merge <environment>", "Merge template json and variable values into a PM/PAPI ruletree JSON document, " +
-            "stored in dist folder in the current project folder")
-        .option('-p, --project [projectName]', 'Project name')
+            "stored in dist folder in the current pipeline folder")
+        .option('-p, --pipeline [pipelineName]', 'Pipeline name')
         .option('-n, --no-validate', "Don't call validation end point. Just run merge.")
         .alias("m")
         .action(function(...args) {
@@ -584,7 +590,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         });
 
     commander
-        .command("search <name>", "Search for PM properties by name")
+        .command("search <name>", "Search for properties by name")
         .alias("s")
         .action(function(...args) {
             argumentsUsed = args;
@@ -592,7 +598,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         });
 
     commander
-        .command("set-prefixes <useprefix>", "Set or unset prefixes for the currently selected client ID")
+        .command("set-prefixes <useprefix>", "Set or unset use of prefixes for current user credentials and setup")
         .alias("sp")
         .action(function(...args) {
             argumentsUsed = args;
@@ -600,7 +606,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         });
 
     commander
-        .command("set-ruleformat <ruleformat>", "Set ruleformat for the selected client ID")
+        .command("set-ruleformat <ruleformat>", "Set ruleformat for current user credentials and setup")
         .alias("srf")
         .action(function(...args) {
             argumentsUsed = args;
@@ -608,7 +614,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         });
 
     commander
-        .command("list-contracts", "List contracts available to client ID")
+        .command("list-contracts", "List contracts available to current user credentials and setup")
         .alias("lc")
         .action(function(...args) {
             argumentsUsed = args;
@@ -616,7 +622,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         });
 
     commander
-        .command("list-products", "List products available under provided contract ID and client ID")
+        .command("list-products", "List products available under provided contract ID and client ID available to current user credentials and setup")
         .option('-c, --contractId <contractId>', "Contract ID")
         .alias("lp")
         .action(function(...args) {
@@ -625,7 +631,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         });
 
     commander
-        .command("list-groups", "List groups client ID has access to")
+        .command("list-groups", "List groups available to current user credentials and setup")
         .alias("lg")
         .action(function(...args) {
             argumentsUsed = args;
@@ -633,7 +639,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         });
 
     commander
-        .command("list-cpcodes", "List cpcodes for provided contract ID and group ID.")
+        .command("list-cpcodes", "List cpcodes available to current user credentials and setup.")
         .option('-c, --contractId <contractId>', "Contract ID")
         .option('-g, --groupId <groupId>', "Group ID", parseInt)
         .alias("lcp")
@@ -644,7 +650,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
 
     commander
         .command("show-ruletree <environment>", "Fetch latest version of property rule tree for provided environment")
-        .option('-p, --project [projectName]', 'Project name')
+        .option('-p, --pipeline [pipelineName]', 'pipeline name')
         .alias("sr")
         .action(function(...args) {
             argumentsUsed = args;
@@ -654,7 +660,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
     commander
         .command("save <environment>", "Save rule tree and hostnames for provided environment. " +
             "Edge hostnames are also created if needed.")
-        .option('-p, --project [projectName]', 'Project name')
+        .option('-p, --pipeline [pipelineName]', 'pipeline name')
         .alias("sv")
         .action(function(...args) {
             argumentsUsed = args;
@@ -663,7 +669,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
 
     commander
         .command("create-edgehostnames <environment>", "Check if any edge hostnames need to be created and proceed to create them.")
-        .option('-p, --project [projectName]', 'Project name')
+        .option('-p, --pipeline [pipelineName]', 'pipeline name')
         .alias("ceh")
         .action(function(...args) {
             argumentsUsed = args;
@@ -671,8 +677,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         });
 
     commander
-        .command("list-edgehostnames", "List edge hostnames available under provided contract ID and group ID " +
-            "(this could be a long list)")
+        .command("list-edgehostnames", "List edge hostnames available to current user credentials and setup (this could be a long list).")
         .option('-c, --contractId <contractId>', "Contract ID")
         .option('-g, --groupId <groupId>', "Group ID", parseInt)
         .alias("leh")
@@ -682,8 +687,8 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         });
 
     commander
-        .command("list-status", "Show status of each environment in a table")
-        .option('-p, --project [projectName]', 'Project name')
+        .command("list-status", "Show status of pipeline")
+        .option('-p, --pipeline [pipelineName]', 'pipeline name')
         .alias("lstat")
         .action(function(...args) {
             argumentsUsed = args;
@@ -691,8 +696,9 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         });
 
     commander
-        .command("promote <environment> <notificationEmails...>", "Promote (activate) an environment.")
-        .option('-p, --project [projectName]', 'Project name')
+        .command("promote <targetEnvironment> <notificationEmails...>",
+            "Promote (activate) an environment. This command also executes the merge and save commands mentioned above by default.")
+        .option('-p, --pipeline [pipelineName]', 'pipeline name')
         .option('-n, --network <network>', "Network, either 'production' or 'staging', can be abbreviated to 'p' or 's'")
         .alias("pm")
         .action(function(...args) {
@@ -702,7 +708,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
 
     commander
         .command("check-promotion-status <environment>", "Check status of promotion (activation) of an environment.")
-        .option('-p, --project [projectName]', 'Project name')
+        .option('-p, --pipeline [pipelineName]', 'pipeline name')
         .alias("cps")
         .action(function(...args) {
             argumentsUsed = args;
@@ -752,7 +758,8 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
             if (_.isFunction(actionCalled)) {
                 let devops = createDevops(options);
                 let response = actionCalled(devops, ...argumentsUsed);
-                if (_.isObject(response) && (_.isFunction(response.catch))) {
+                //assuming this is returning a promise. TODO: is there a better test?
+                if (response) {
                     response.catch(function(error) {
                         reportError(error, verbose)
                     });

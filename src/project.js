@@ -22,8 +22,8 @@ const logger = require("./logging")
     .createLogger("devops-prov.project");
 
 /**
- * Represents the data model of the the project (devops provisioning pipeline)
- * responsible for all storage operations within the project.
+ * Represents the data model of the the pipeline (devops provisioning pipeline)
+ * responsible for all storage operations within the pipeline.
  */
 class Project {
     /**
@@ -80,7 +80,7 @@ class Project {
     }
 
     /**
-     * Setup project and environments folders
+     * Setup pipeline and environments folders
      * @param productId
      * @param contractId
      * @param groupId
@@ -97,7 +97,7 @@ class Project {
             throw new errors.ArgumentError(`Project folder '${this.projectFolder}' already exists`,
                 "project_folder_already_exists", this.projectFolder);
         }
-        logger.info("creating project %s, with environments: %s", this.projectFolder, environmentNames.join(", "));
+        logger.info("creating pipeline %s, with environments: %s", this.projectFolder, environmentNames.join(", "));
         this.__createProjectFolders();
         this.createProjectSettings(createProjectInfo);
         this.createEnvironments(environmentNames);
@@ -156,7 +156,7 @@ class Project {
             let infoPath = path.join(this.projectFolder, "projectInfo.json");
             if (!this.utils.fileExists(infoPath)) {
                 throw new errors.DependencyError(`projectInfo file: ${infoPath} does not exist!`,
-                    "missing_project_info_file", infoPath);
+                    "missing_pipeline_info_file", infoPath);
             }
             this.__projectInfo = this.utils.readJsonFile(infoPath);
             //overriding global edgeGridConfig with project specific settings.
@@ -251,7 +251,7 @@ class Project {
     getEnvironment(environmentName) {
         if (!this.getProjectInfo().environments.includes(environmentName)) {
             throw new errors.ArgumentError(`'${environmentName}' is not a valid environment in` +
-                ` project ${this.projectName}`, "invalid_env_name", environmentName, this.projectName);
+                ` pipeline ${this.projectName}`, "invalid_env_name", environmentName, this.projectName);
         }
         return this.dependencies.getEnvironment(environmentName, this);
     }

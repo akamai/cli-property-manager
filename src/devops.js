@@ -34,28 +34,28 @@ class DevOps {
     }
 
     /**
-     * retrieve default project name from file.
+     * retrieve default pipeline name from file.
      * @returns {*}
      */
     getDefaultProjectName() {
         let projectName = this.devopsSettings.defaultProject;
         if (!projectName) {
-            throw new errors.DependencyError("Can't read default project name from projectSpace.json " +
-                "and no project name provided per -p <project name> option",
-                "missing_default_project_file");
+            throw new errors.DependencyError("Can't read default pipeline name from devopsSettings.json " +
+                "and no pipeline name provided per -p <pipeline name> option",
+                "missing_default_pipeline_file");
         }
         return projectName;
     }
 
     /**
-     * Extract the desired project name either from default.project file or
-     * from the -p [project name] command line option
+     * Extract the desired pipeline name either from devopsSettings.json file or
+     * from the -p [pipeline name] command line option
      * @param options
      * @param useDefault
      * @returns {null}
      */
     extractProjectName(options) {
-        let projectName = options ? options.project : null;
+        let projectName = options ? options.pipeline : null;
         if (!_.isString(projectName)) {
             projectName = this.getDefaultProjectName();
         }
@@ -64,7 +64,7 @@ class DevOps {
 
 
     /**
-     * Creates Project instance representing default project
+     * Creates Project instance representing default pipeline
      * @returns {*}
      */
     getDefaultProject() {
@@ -78,7 +78,7 @@ class DevOps {
      * @returns {Promise.<*>}
      */
     async createNewProject(createProjectInfo) {
-        logger.info(`creating new project '${createProjectInfo.projectName}' ` +
+        logger.info(`creating new pipeline '${createProjectInfo.projectName}' ` +
             ` with productId: '${createProjectInfo.productId}', ` +
             `contractId: '${createProjectInfo.contractId}, groupId: '${createProjectInfo.groupId}'`);
 
@@ -111,16 +111,16 @@ class DevOps {
     }
 
     /**
-     * Sets the default project in devopsSettings.json
+     * Sets the default pipeline in devopsSettings.json
      * @param projectName {String}
      */
     setDefaultProject(projectName) {
         let project = this.getProject(projectName);
         if (!project.exists()) {
             throw new errors.ArgumentError(`Project with name '${this.projectName}' doesn't exist.`,
-                "project_does_not_exist", this.projectName);
+                "pipeline_does_not_exist", this.projectName);
         }
-        logger.info(`Setting default project to '${projectName}`);
+        logger.info(`Setting default pipeline to '${projectName}`);
         this.devopsSettings.defaultProject = projectName;
         this.updateDevopsSettings({
             defaultProject: projectName
@@ -195,7 +195,7 @@ class DevOps {
     }
 
     /**
-     * Merge variables with templates to construct the rule tree for passed project and environment name
+     * Merge variables with templates to construct the rule tree for passed pipeline and environment name
      * @param projectName {string}
      * @param environmentName {string}
      * @param validate {boolean} send ruletree to validation endpoint?
@@ -205,7 +205,7 @@ class DevOps {
     }
 
     /**
-     * Save ruletree to backend for a particular project and environment name
+     * Save ruletree to backend for a particular pipeline and environment name
      * @param projectName {string}
      * @param environmentName {string}
      */
