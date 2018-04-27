@@ -34,11 +34,9 @@ Here’s a typical workflow for Promotional Deployment pipelines once you instal
 
     * account-specific information, like contract ID. The CLI includes commands for retrieving account-specific IDs. 
 
-    * the names of each applicable environment.
+    * the names of each applicable environment. **Note:** The new pipeline adds one new Akamai property for each environment. The naming convention of the property is `<environment_name>.<pipeline_name>`.  
 
     * (Optional) the ID of an existing property to use as a template for the pipeline. 
-<br> 
-**Note:** The new pipeline adds one new Akamai property for each environment. The naming convention of the property is `<environment_name>.<pipeline_name>`.  
 
 2. In the pipeline’s environments folder, edit the `variableDefinitions.json` file to reflect the attributes shared across the pipeline. 
 
