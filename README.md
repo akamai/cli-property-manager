@@ -141,15 +141,15 @@ To create a new pipeline:
                 ...
                 static.json
 
-7. Edit `variableDefinitions.json` to identify attributes that differ across your environments. See 
+7. Edit `variableDefinitions.json` to declare variables that you can use in any of the templates. See 
 [Update the variableDefinitions.json file](#update-the-variableDefinitions.json-file) for details.
 
 8. In each environment-specific subdirectory under the `/environments` folder, edit these JSON files:                      
 
 <table>
   <tr>
-    <td>File</td>
-    <td>Description</td>
+    <th>File</th>
+    <th>Description</th>
   </tr>
   <tr>
     <td><code>Hostnames.json</code></td>
@@ -165,28 +165,31 @@ To create a new pipeline:
 </table>
 
 ## Update the variableDefinitions.json file 
-Update `variableDefinitions.json` to identify attributes that differ across your environments. Once declared, you can use these attributes as variables in any of the templates.
+Update `variableDefinitions.json` to declare variables that you can use in any of the templates.
 
 As a general rule:
 
 <table>
   <tr>
-    <td>If an attribute has...</td>
-    <td>Then...</td>
+    <th>If an attribute has...</th>
+    <th>Then...</th>
   </tr>
   <tr>
-    <td>the same value across all environments.</td>
+    <td>the same value across all environments and is already in the <code>variableDefinitions.json</code> file.</td>
     <td>Provide the default value in <code>variableDefinitions.json</code>. <br> 
-	You can also declare a new variable that shares the same value across all environments and enter that default value. <br>
 	<b>Note:</b> You can still override the default value in an environment’s <code>variables.json</code> file.</td>
   </tr>
   <tr>
-    <td>no default value across environments. Each environment uses a distinct value.</td>
-    <td>Set the default to <code>null</code> and add the enviroment-specific value to each <code>variables.json</code> file. <br>
-	For example, if the time-to-live (TTL) option in a caching behavior differs between environments, you’d declare a <code>ttl</code> variable in the <code>variableDefinitions.json</code> file. In the environments’ <code>variables.json</code> files, you’d set the value for that specific environment, like this: <code>"ttl": "1d"</code>. You’d then update the appropriate template files by entering the variable expression as the value: <code>"ttl": “${env.ttl}"</code>. 
-</td>
+  <td>different values across environments and is already in the <code>variableDefinitions.json</code> file.</td>
+    <td>Set the default to <code>null</code> in <code>variableDefinitions.json</code> and add the environment-specific value to each <code>variables.json</code> file.</td>
   </tr>
-</table>
+  <tr>
+  <td>different values across environments and does not exist in the <code>variableDefinitions.json</code> file.</td>
+  <td><ol><li>Parameterize it inside your template snippets using <code>“${env.&lt;variableName&gt;}"</code><br>For example: <code>"ttl": “${env.ttl}"</code></li>
+  <li>Add it to <code>variableDefinitions.json</code> and set it to <code>null</code>. You can set the type to anything you choose.</li><li>Add it to your environment-specific <code>variables.json</code> files and set the individual values.
+</li></ol></td>
+  </tr>
+  </table>
 
 # Save and promote changes through the pipeline
 
@@ -201,10 +204,10 @@ To save and promote changes:
 <br>
 For example: `akamai pd promote -p MyPipeline123 -n STAGING qa jsmith@example.com`
 <br>
-This command takes the values in the templates and variable files, creates a new rule tree for the property, then saves and activates the rule tree on the selected Akamai network. 
+This command takes the values in the templates and variable files, creates a new set of rules for the property, then saves and activates the property version on the selected Akamai network. 
 
-3. Run the following command to make sure the pipeline reflects the latest activation status: `akamai pd cps <environment_name>`
-<br> **Note:** Activation times vary, so you may want to wait several minutes before running this command.
+3. Once the activation is complete, run the following command to make sure the pipeline reflects the latest activation status: `akamai pd cps <environment_name>`
+<br> **Note:** You should receive an email once activation is complete. Activation times vary, so you may want to wait several minutes before attempting to run this command.
 
 4. Repeat steps 2 and 3 until you promote your changes to all environments in the pipeline. 
 
