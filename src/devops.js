@@ -16,7 +16,7 @@
 const _ = require('underscore');
 const path = require('path');
 
-const parseEdgeRc = require('./edgegrid/edgerc');
+const edgerc = require('./edgegrid/edgerc');
 const errors = require('./errors');
 const helpers = require('./helpers');
 const logger = require("./logging").createLogger("devops-prov");
@@ -78,18 +78,45 @@ class DevOps {
      * @returns {Promise.<*>}
      */
     async createNewProject(createProjectInfo) {
+        let ruleTree;
+        let project = this.getProject(createProjectInfo.projectName, false);
+        if (project.exists()) {
+            if (createProjectInfo.isInRetryMode) {
+                logger.info(`Project folder '${project.projectFolder}' already exists, ignore`);
+            } else {
+                throw new errors.ArgumentError(`Project folder '${project.projectFolder}' already exists`,
+                    "project_folder_already_exists", project.projectFolder);
+            }
+        }
+        project.validateEnvironmentNames(createProjectInfo.environments);
+        if (_.isString(createProjectInfo.propertyName) && !_.isNumber(createProjectInfo.propertyId)) {
+            let results = await this.getPAPI().findProperty(createProjectInfo.propertyName);
+            if (results.versions.items.length === 0) {
+                throw new errors.ArgumentError(`Can't find any versions for property '${createProjectInfo.propertyName}'`);
+            }
+            createProjectInfo.propertyId = helpers.parsePropertyId(results.versions.items[0].propertyId);
+        }
+        if (_.isNumber(createProjectInfo.propertyId)) {
+            logger.info(`Attempting to load rule tree for property id: ${createProjectInfo.propertyId} and version: ${createProjectInfo.propertyVersion}`);
+            let propertyInfo = await project.getPropertyInfo(createProjectInfo.propertyId, createProjectInfo.propertyVersion);
+            ruleTree = await project.getPropertyRuleTree(createProjectInfo.propertyId, propertyInfo.propertyVersion);
+            if (!createProjectInfo.groupId) {
+                createProjectInfo.groupId = helpers.parseGroupId(propertyInfo.groupId);
+            }
+            if (!createProjectInfo.contractId) {
+                createProjectInfo.contractId = propertyInfo.contractId;
+            }
+            if (!createProjectInfo.productId) {
+                createProjectInfo.productId = propertyInfo.productId;
+            }
+        }
         logger.info(`creating new pipeline '${createProjectInfo.projectName}' ` +
             ` with productId: '${createProjectInfo.productId}', ` +
             `contractId: '${createProjectInfo.contractId}, groupId: '${createProjectInfo.groupId}'`);
 
-        let ruleTree;
-        let project = this.getProject(createProjectInfo.projectName, false);
-        if (_.isNumber(createProjectInfo.propertyId)) {
-            logger.info(`Attempting to load rule tree for property id: ${createProjectInfo.propertyId} and version: ${createProjectInfo.version}`);
-            ruleTree = await project.getPropertyRuleTree(createProjectInfo.propertyId, createProjectInfo.version)
+        if (!project.exists()) {
+            project.createProjectFolders(createProjectInfo);
         }
-
-        project.createProjectFolders(createProjectInfo);
         for (let name of createProjectInfo.environments) {
             logger.info(`Creating environment: '${name}'`);
             let env = project.getEnvironment(name);
@@ -133,18 +160,26 @@ class DevOps {
      */
     setDefaultSection(section) {
         let configPath = this.devopsSettings.edgeGridConfig.path;
-        try {
-            parseEdgeRc(configPath, section);
-        } catch (error) {
-            throw new errors.ArgumentError(`No section name '${section}' found in '${configPath}'`,
-                "invalid_client_id", section);
-        }
+        edgerc.getSection(configPath, section);
         logger.info(`Setting default client id section to '${section}`);
         this.devopsSettings.edgeGridConfig.section = section;
         this.updateDevopsSettings({
             edgeGridConfig: {
                 section: section
             }
+        });
+    }
+
+    /**
+     * Sets the default notification emails passed to backend during promote
+     * @param emails
+     */
+    setDefaultEmails(emails) {
+        let emailsArr = emails.split(",");
+        logger.info(`Setting default notification emails to '${emails}`);
+        this.devopsSettings.emails = emailsArr;
+        this.updateDevopsSettings({
+            emails: emailsArr
         });
     }
 
@@ -222,7 +257,24 @@ class DevOps {
      */
     promote(projectName, environmentName, network, emails) {
         const project = this.getProject(projectName);
-        return project.promote(environmentName, network, emails);
+        let emailSet = new Set([]);
+        if (_.isString(emails) && emails.length > 0) {
+            for (let e of emails.split(',')) {
+                emailSet.add(e);
+            }
+        }
+        logger.info("this.devopsSettings: ", this.devopsSettings);
+        if (_.isArray(this.devopsSettings.emails)) {
+            for (let e of this.devopsSettings.emails) {
+                emailSet.add(e)
+            }
+        }
+        if (emailSet.size === 0) {
+            throw new errors.ArgumentError("No notification emails passed")
+        }
+        logger.info("emails for promote: ", emailSet);
+
+        return project.promote(environmentName, network, emailSet);
     }
 
     /**

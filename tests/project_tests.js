@@ -13,7 +13,7 @@
 //  limitations under the License.
 
 
-global.td = require('testdouble');
+const td = require('testdouble');
 const chai = require('chai');
 const assert = chai.assert;
 const _ = require('underscore');
@@ -21,15 +21,9 @@ const path = require('path');
 
 const VerifyUtils = require("./verify-utils");
 const RoUtils = require("./ro-utils");
-const logger = require("../src/logging")
-    .consoleLogging()
-    .createLogger("devops-prov.project_tests");
 const throwsAsync = require("./testutils").throwsAsync;
 
-const Utils = require('../src/utils');
 const Project = require('../src/project');
-const Environment = require('../src/environment');
-const helpers = require('../src/helpers');
 
 describe('Project Tests', function () {
     let dummyUtil;
@@ -73,45 +67,6 @@ describe('Project Tests', function () {
         });
         let testDataFile = path.join(__dirname, "project_tests.data.json");
         utils.writeJsonFile(testDataFile, data);
-    });
-
-    it('project exists', function () {
-        const doubleUtil = td.object(Utils.prototype);
-
-        td.when(doubleUtil.fileExists("homeSweetHome/Foobar")).thenReturn(true);
-        assert.throws(() => {
-            let project = new Project("Foobar", {devops: devops, getUtils: function () {
-                return doubleUtil;
-            }});
-            assert.equal(project.getName(), "Foobar");
-            project.createProjectFolders({
-                productId: "WAA",
-                contractid: "ABF543",
-                groupid: 76342,
-                environments: ["qa", "staging", "production"]
-            });
-        }, "Project folder 'homeSweetHome/Foobar' already exists");
-    });
-
-    it('project too many environments', function () {
-        const doubleUtil = td.object(Utils.prototype);
-
-        td.when(doubleUtil.fileExists("homeSweetHome/Foobar")).thenReturn(true);
-        assert.throws(() => {
-            let project = new Project("Foobar", {devops: devops, getUtils: function () {
-                return doubleUtil;
-            }});
-            assert.equal(project.getName(), "Foobar");
-            project.createProjectFolders({
-                productId: "WAA",
-                contractId: "ABF543",
-                groupId: 76342,
-                environments: [
-                    "dev1", "dev2", "dev3", "qa1", "qa2", "qa3", "staging1", "stating2",
-                    "staging3", "staging4", "uat1", "uat2", "prod"
-                ]
-            });
-        }, "Number of environments should not exceed 10");
     });
 });
 

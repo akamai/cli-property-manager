@@ -34,6 +34,7 @@ const errors = require('./errors');
 const helpers = require('./helpers');
 const logger = require("./logging")
     .createLogger("devops-prov.factory");
+const akamaiPDVersion = require("../package.json").version;
 
 /**
  *
@@ -58,7 +59,7 @@ const prepareEdgeGridConfig = function(utils, devopsSettings, dependencies) {
         edgegridRc = userHomeEdgerc;
     }
 
-    let sectionName = dependencies.section || edgeGridConfig.section || "credentials";
+    let sectionName = dependencies.section || edgeGridConfig.section || "papi";
 
     logger.info(`Using credentials file: '${edgegridRc}', section: '${sectionName}'`);
 
@@ -181,25 +182,25 @@ const createDevOps = function(dependencies = {}) {
 
     function getEdgeGrid() {
         let config = devopsSettings.edgeGridConfig;
-        try {
-            return new EdgeGrid(config);
-        } catch (error) {
-            throw new errors.ArgumentError(`No client id section '${config.section}' found in '${config.path}'`,
-                "invalid_client_id", config.section);
-        }
+        return new EdgeGrid(config);
     }
 
     function getOpenClient() {
+        const defaultHeaders = {
+            "X-User-Agent": `Akamai-PD; Version=${akamaiPDVersion}`
+        };
         if (clientType === "regular") {
             return new openClientClass({
-                getEdgeGrid
+                getEdgeGrid,
+                defaultHeaders
             });
         } else if (clientType === "record") {
             logger.info(`Using recording client, writing to '${recordFilename}'`);
             return new recordingClientClass(recordFilename, {
                 getEdgeGrid,
                 getUtils,
-                recordErrors
+                recordErrors,
+                defaultHeaders
             });
         } else if (clientType === "replay") {
             logger.info(`Using replay client, reading from '${recordFilename}'`);

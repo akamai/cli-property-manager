@@ -110,17 +110,18 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         reportError = function(error, verbose) {
             if (error instanceof errors.DevOpsError) {
                 if (verbose) {
-                    consoleLogger.error(`DevOps problem '${error.messageId}' occurred: \n`, error.stack);
+                    consoleLogger.error(`Promotional Deployment Error: '${error.messageId}' occurred: \n`, error.stack);
                     if (_.isArray(error.args) && error.args.length > 0) {
-                        for (let details of error.args) {
-                            if (_.isObject(details) || _.isArray(details)) {
-                                details = helpers.jsonStringify(details);
+                        consoleLogger.error("Error details: ");
+                        _.each(error.args, function(detail, index) {
+                            if (_.isObject(detail) || _.isArray(detail)) {
+                                detail = helpers.jsonStringify(detail);
                             }
-                            consoleLogger.error("Error details: ", details);
-                        }
+                            consoleLogger.error(`\tArgument #${index}: `, detail);
+                        });
                     }
                 } else {
-                    consoleLogger.error(`DevOps problem '${error.messageId}' occurred: \n`, error.message);
+                    consoleLogger.error(`Promotional Deployment Error: '${error.messageId}' occurred: \n`, error.message);
                 }
             } else {
                 consoleLogger.error("Unexpected error occurred: ", error, error.stack);
@@ -136,7 +137,8 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
     const setDefault = function(devops, options) {
         let pipelineName = options.pipeline;
         let section = options.section || options.parent.section;
-        if (!pipelineName && !section) {
+        let emails = options.emails;
+        if (!pipelineName && !section && !emails) {
             throw new errors.DependencyError("Need at least one option! Use akamai pd -p <pipeline name> or akamai pd -s <section>.",
                 "missing_option");
         }
@@ -147,6 +149,9 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         if (pipelineName) {
             devops.setDefaultProject(pipelineName);
         }
+        if (emails) {
+            devops.setDefaultEmails(emails);
+        }
     };
 
     /**
@@ -154,22 +159,51 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
      * @type {Function}
      */
     const createNewProject = function(devops, environments, options) {
+        let projectName = options.pipeline;
+        if (!projectName || _.isBoolean(projectName)) {
+            throw new errors.DependencyError("Missing pipeline option! Use akamai pd -p <pipeline name> ...",
+                "missing_pipeline_name");
+        }
+        let propertyId, propertyName, propertyVersion;
+        if (_.isString(options.propertyId)) {
+            if (options.propertyId.startsWith("prp_")) {
+                propertyId = options.propertyId.slice("prp_".length);
+                propertyId = helpers.parseInteger(propertyId);
+                if (_.isNaN(propertyId)) {
+                    propertyId = undefined;
+                    propertyName = options.propertyId
+                }
+            } else {
+                propertyId = helpers.parseInteger(options.propertyId);
+                if (_.isNaN(propertyId)) {
+                    propertyId = undefined;
+                    propertyName = options.propertyId
+                }
+            }
+            if (_.isNumber(options.version)) {
+                propertyVersion = options.version;
+            }
+        } else if (_.isBoolean(options.propertyId)) {
+            throw new errors.ArgumentError("No property ID or name provided with -e option.",
+                "missing_property_id");
+        } else {
+            if (_.isNumber(options.version)) {
+                throw new errors.ArgumentError("Version without propertyId provided. Also need property ID.",
+                    "missing_property_id");
+            }
+        }
+
         let groupId = options.groupId;
-        if (!(groupId && _.isNumber(groupId))) {
+        if (!(propertyId || propertyName || groupId)) {
             throw new errors.DependencyError("groupId needs to be provided as a number", "missing_group_id");
         }
         let contractId = options.contractId;
-        if (!contractId) {
+        if (!(propertyId || propertyName || contractId)) {
             throw new errors.DependencyError("contractId needs to be provided", "missing_contract_id");
         }
         let productId = options.productId;
-        if (!productId) {
+        if (!(propertyId || propertyName || productId)) {
             throw new errors.DependencyError("productId needs to be provided", "missing_product_id");
-        }
-        let projectName = options.pipeline;
-        if (!projectName) {
-            throw new errors.DependencyError("Missing pipeline option! Use akamai pd -p <pipeline name> ...",
-                "missing_pipeline_name");
         }
         let isInRetryMode = options.retry || false;
         let createPropertyInfo = {
@@ -177,21 +211,12 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
             productId,
             contractId,
             groupId,
+            propertyId,
+            propertyName,
+            propertyVersion,
             environments,
             isInRetryMode
         };
-        if (_.isNumber(options.propertyId)) {
-            createPropertyInfo.propertyId = options.propertyId;
-
-            if (_.isNumber(options.version)) {
-                createPropertyInfo.version = options.version;
-            }
-        } else {
-            if (_.isNumber(options.version)) {
-                throw new errors.ArgumentError("Version without propertyId provided. Also need property ID.",
-                    "missing_property_id");
-            }
-        }
         return devops.createNewProject(createPropertyInfo);
     };
 
@@ -456,9 +481,11 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
      * promote environment to staging or production network.
      * @type {Function}
      */
-    const promote = function(devops, envName, emails, options) {
+    const promote = function(devops, envName, options) {
         let network = checkNetworkName(options);
-        return devops.promote(devops.extractProjectName(options), envName, network, emails).then(data => {
+        let emails = options.emails;
+        let projectName = devops.extractProjectName(options);
+        return devops.promote(projectName, envName, network, emails).then(data => {
             let pending = data.pending;
             data = [
                 ["Environment", "Network", "Activation Id"],
@@ -557,10 +584,12 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
             "This will also create one property for each environment.")
         .option('--retry', 'Assuming command failed last time during execution. Try to continue where it left off.')
         .option('-p, --pipeline <pipelineName>', 'Pipeline name')
-        .option('-g, --groupId <groupId>', "Group ID", helpers.parseGroupId)
-        .option('-c, --contractId <contractId>', "Contract ID")
-        .option('-d, --productId <productId>', "Product ID")
-        .option('-e, --propertyId [propertyId]', "Use existing property as blue print for pipeline templates", helpers.parsePropertyId)
+        .option('-g, --groupId [groupId]', "Group ID, optional if -e propertyId/Name is used", helpers.parseGroupId)
+        .option('-c, --contractId [contractId]', "Contract ID, optional if -e propertyId/Name is used", helpers.prefixeableString('ctr_'))
+        .option('-d, --productId [productId]', "Product ID, optional if -e propertyId/Name is used", helpers.prefixeableString('prd_'))
+        .option('-e, --propertyId [propertyId]', "Use existing property as blue print for pipeline templates. " +
+            "Either pass property ID or exact property name. Akamai PD will lookup account information like group id, " +
+            "contract id and product id of the existing property and use the information for creating pipeline properties")
         .option('-n, --version [version]', "Specify version of property, if omitted, use latest", helpers.parsePropertyVersion)
         .alias("np")
         .action(function(...args) {
@@ -572,6 +601,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         .command("set-default", "Set the default pipeline and or the default section name from .edgerc")
         .option('-p, --pipeline <pipelineName>', 'Set default pipeline name')
         .option('-s, --section <section>', 'Set default section name from edgerc file')
+        .option('-e, --emails <emails>', 'Set default notification emails as comma separated list')
         .alias("sd")
         .action(function(...args) {
             argumentsUsed = args;
@@ -641,7 +671,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
     commander
         .command("list-cpcodes", "List cpcodes available to current user credentials and setup.")
         .option('-c, --contractId <contractId>', "Contract ID")
-        .option('-g, --groupId <groupId>', "Group ID", parseInt)
+        .option('-g, --groupId <groupId>', "Group ID", helpers.parseGroupId)
         .alias("lcp")
         .action(function(...args) {
             argumentsUsed = args;
@@ -679,7 +709,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
     commander
         .command("list-edgehostnames", "List edge hostnames available to current user credentials and setup (this could be a long list).")
         .option('-c, --contractId <contractId>', "Contract ID")
-        .option('-g, --groupId <groupId>', "Group ID", parseInt)
+        .option('-g, --groupId <groupId>', "Group ID", helpers.parseGroupId)
         .alias("leh")
         .action(function(...args) {
             argumentsUsed = args;
@@ -696,10 +726,11 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         });
 
     commander
-        .command("promote <targetEnvironment> <notificationEmails...>",
+        .command("promote [targetEnvironment]",
             "Promote (activate) an environment. This command also executes the merge and save commands mentioned above by default.")
         .option('-p, --pipeline [pipelineName]', 'pipeline name')
         .option('-n, --network <network>', "Network, either 'production' or 'staging', can be abbreviated to 'p' or 's'")
+        .option('-e, --emails <emails>', "Comma separated list of email addresses. Optional if default emails were previously set with set-default")
         .alias("pm")
         .action(function(...args) {
             argumentsUsed = args;

@@ -15,24 +15,34 @@
 
 const chai = require('chai');
 const assert = chai.assert;
+const _ = require("underscore");
 
 const logger = require("../src/logging")
     .consoleLogging()
     .createLogger("devops-prov.testutils");
 
-const throwsAsync = async function (fn, expected, extraCheckFun) {
+const throwsAsync = async function (fn, expectation) {
     let didThrow = true;
     try {
         await fn();
         didThrow = false;
     } catch (e) {
-        assert.equal(e, expected, e.stack);
-        if (extraCheckFun) {
-            extraCheckFun(e);
+        if (_.isString(expectation)) {
+            assert.equal(e, expectation, e.stack);
+        } else if (_.isFunction(expectation)) {
+            expectation(e);
+        } else {
+            throw Error(`Unsupported expectation type: ${expectation}`);
         }
     }
     if(!didThrow) {
-        assert.fail("Didn't throw exception", expected);
+        if (_.isString(expectation)) {
+            assert.fail("Didn't throw exception", expectation);
+        } else if (_.isFunction(expectation)) {
+            assert.fail("Didn't throw exception");
+        } else {
+            throw Error(`Unsupported expectation type: ${expectation}`);
+        }
     }
 };
 

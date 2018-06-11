@@ -149,19 +149,21 @@ class PAPI {
     }
 
     createEdgeHostname(contractId, groupId, createRequestBody) {
-        let url = `/papi/v0/edgehostnames/?contractId=ctr_${contractId}&groupId=grp_${groupId}`;
+        let url = `/papi/v0/edgehostnames/?contractId=${contractId}&groupId=${groupId}`;
         return this.openClient.post(url, createRequestBody);
     }
 
     activateProperty(propertyId, propertyVersion, network, notifyEmails) {
-        let url = `/papi/v0/properties/${propertyId}/activations`;
-        let acknowledgeAllWarnings = true;
+        const url = `/papi/v0/properties/${propertyId}/activations`;
+        const acknowledgeAllWarnings = true;
         const complianceRecord = {
             noncomplianceReason: "NO_PRODUCTION_TRAFFIC"
         };
+        const note = "Akamai PD Activation";
         return this.openClient.post(url, {
             propertyVersion,
             network,
+            note,
             notifyEmails,
             acknowledgeAllWarnings,
             complianceRecord

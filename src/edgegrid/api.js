@@ -154,7 +154,7 @@ EdgeGrid.prototype._setConfigFromObj = function(obj) {
         throw new Error('No edgerc path');
     }
 
-    this.config = edgerc(obj.path, obj.section);
+    this.config = edgerc.getSection(obj.path, obj.section);
 };
 
 module.exports = EdgeGrid;

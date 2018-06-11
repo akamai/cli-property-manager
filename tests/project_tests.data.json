@@ -1,9 +1,5 @@
 [
     [
-        "fileExists",
-        "homeSweetHome/Foobar"
-    ],
-    [
         "mkdir",
         "homeSweetHome/Foobar"
     ],

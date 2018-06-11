@@ -143,6 +143,7 @@ Class representing high-level functionality within the SDK.
     * [.setupTemplate(createProjectInfo)](#DevOps+setupTemplate) ⇒ <code>Promise.&lt;void&gt;</code>
     * [.setDefaultProject(projectName)](#DevOps+setDefaultProject)
     * [.setDefaultSection(section)](#DevOps+setDefaultSection)
+    * [.setDefaultEmails(emails)](#DevOps+setDefaultEmails)
     * [.updateDevopsSettings(update)](#DevOps+updateDevopsSettings)
     * [.setPrefixes(usePrefixes)](#DevOps+setPrefixes) ⇒ <code>Promise.&lt;\*&gt;</code>
     * [.setRuleFormat(ruleformat)](#DevOps+setRuleFormat) ⇒ <code>Promise.&lt;(Promise\|\*)&gt;</code>
@@ -222,6 +223,17 @@ Sets the default section name of the client credentials file .edgerc
 | Param |
 | --- |
 | section | 
+
+<a name="DevOps+setDefaultEmails"></a>
+
+### devOps.setDefaultEmails(emails)
+Sets the default notification emails passed to backend during promote
+
+**Kind**: instance method of [<code>DevOps</code>](#DevOps)  
+
+| Param |
+| --- |
+| emails | 
 
 <a name="DevOps+updateDevopsSettings"></a>
 
@@ -731,6 +743,7 @@ responsible for all storage operations within the pipeline.
     * [.createProjectSettings()](#Project+createProjectSettings)
     * [.getStatus()](#Project+getStatus)
     * [.setupPropertyTemplate()](#Project+setupPropertyTemplate) ⇒ <code>Promise.&lt;void&gt;</code>
+    * [.getPropertyInfo(propertyId, version)](#Project+getPropertyInfo) ⇒ <code>Promise.&lt;\*&gt;</code>
 
 <a name="new_Project_new"></a>
 
@@ -785,6 +798,16 @@ Setup templates and variable definitions based on a conversion instruction file
 Each product needs its own set of rules.
 
 **Kind**: instance method of [<code>Project</code>](#Project)  
+<a name="Project+getPropertyInfo"></a>
+
+### project.getPropertyInfo(propertyId, version) ⇒ <code>Promise.&lt;\*&gt;</code>
+**Kind**: instance method of [<code>Project</code>](#Project)  
+
+| Param |
+| --- |
+| propertyId | 
+| version | 
+
 <a name="RecordingClient"></a>
 
 ## RecordingClient

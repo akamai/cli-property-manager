@@ -57,7 +57,7 @@ class Project {
         return this.utils.fileExists(this.projectFolder);
     }
 
-    __validateEnvironmentNames(environmentNames) {
+    validateEnvironmentNames(environmentNames) {
         if (!_.isArray(environmentNames)) {
             throw new errors.ArgumentError(`Expecting array of environment names, but got '${environmentNames}'`,
                 "malformed_environment_data", environmentNames);
@@ -88,15 +88,6 @@ class Project {
      */
     createProjectFolders(createProjectInfo) {
         let environmentNames = createProjectInfo.environments;
-        this.__validateEnvironmentNames(environmentNames);
-        if (this.exists()) {
-            if (createProjectInfo.isInRetryMode) {
-                logger.info(`Project folder '${this.projectFolder}' already exists, ignore`);
-                return;
-            }
-            throw new errors.ArgumentError(`Project folder '${this.projectFolder}' already exists`,
-                "project_folder_already_exists", this.projectFolder);
-        }
         logger.info("creating pipeline %s, with environments: %s", this.projectFolder, environmentNames.join(", "));
         this.__createProjectFolders();
         this.createProjectSettings(createProjectInfo);
@@ -126,9 +117,8 @@ class Project {
             _.isString(this.devopsSettings.edgeGridConfig.section)) {
             this.projectInfo.edgeGridConfig = {
                 section: this.devopsSettings.edgeGridConfig.section
-            }
+            };
         }
-
         this.projectInfo.name = this.projectName;
         //todo: what other stuff can go here?
         let infoPath = path.join(this.projectFolder, "projectInfo.json");
@@ -297,6 +287,30 @@ class Project {
     async getRuleTree(environmentName) {
         let environment = this.getEnvironment(environmentName);
         return await environment.getRuleTree();
+    }
+
+    /**
+     * @param propertyId
+     * @param version
+     * @return {Promise.<*>}
+     */
+
+    async getPropertyInfo(propertyId, version) {
+        let papi = this.dependencies.getPAPI();
+        let versionInfo;
+        if (!_.isNumber(version)) {
+            versionInfo = await papi.latestPropertyVersion(propertyId);
+        } else {
+            versionInfo = await papi.getPropertyVersion(propertyId, version);
+        }
+        return {
+            propertyId: versionInfo.propertyId,
+            propertyName: versionInfo.propertyName,
+            contractId: versionInfo.contractId,
+            groupId: versionInfo.groupId,
+            productId: versionInfo.versions.items[0].productId,
+            propertyVersion: versionInfo.versions.items[0].propertyVersion
+        }
     }
 
     async getPropertyRuleTree(propertyId, version) {

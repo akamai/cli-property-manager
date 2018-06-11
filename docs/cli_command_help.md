@@ -11,34 +11,34 @@ Use akamai pd or akamai pd help to get general help about all commands.
    
      Options:
    
-       -V, --version                                                     output the version number
-       -v, --verbose                                                     Verbose output, show logging on stdout
-       -s, --section <section>                                           Section name representing Client ID in .edgerc file, defaults to "credentials"
-       --record-to-file <filename>                                       Record REST communication to file
-       --record-errors                                                   Also record error responses
-       --replay-from-file <filename>                                     Use record file to replay REST communication. Used for offline testing
-       -h, --help                                                        output usage information
+       -V, --version                                       output the version number
+       -v, --verbose                                       Verbose output, show logging on stdout
+       -s, --section <section>                             Section name representing Client ID in .edgerc file, defaults to "credentials"
+       --record-to-file <filename>                         Record REST communication to file
+       --record-errors                                     Also record error responses
+       --replay-from-file <filename>                       Use record file to replay REST communication. Used for offline testing
+       -h, --help                                          output usage information
    
      Commands:
    
-       new-pipeline|np [options] [environments...]                       Create a new pipeline with provided attributes. This will also create one property for each environment.
-       set-default|sd [options]                                          Set the default pipeline and or the default section name from .edgerc
-       merge|m [options] <environment>                                   Merge template json and variable values into a PM/PAPI ruletree JSON document, stored in dist folder in the current pipeline folder
-       search|s <name>                                                   Search for properties by name
-       set-prefixes|sp <useprefix>                                       Set or unset use of prefixes for current user credentials and setup
-       set-ruleformat|srf <ruleformat>                                   Set ruleformat for current user credentials and setup
-       list-contracts|lc                                                 List contracts available to current user credentials and setup
-       list-products|lp [options]                                        List products available under provided contract ID and client ID available to current user credentials and setup
-       list-groups|lg                                                    List groups available to current user credentials and setup
-       list-cpcodes|lcp [options]                                        List cpcodes available to current user credentials and setup.
-       show-ruletree|sr [options] <environment>                          Fetch latest version of property rule tree for provided environment
-       save|sv [options] <environment>                                   Save rule tree and hostnames for provided environment. Edge hostnames are also created if needed.
-       create-edgehostnames|ceh [options] <environment>                  Check if any edge hostnames need to be created and proceed to create them.
-       list-edgehostnames|leh [options]                                  List edge hostnames available to current user credentials and setup (this could be a long list).
-       list-status|lstat [options]                                       Show status of pipeline
-       promote|pm [options] <targetEnvironment> <notificationEmails...>  Promote (activate) an environment. This command also executes the merge and save commands mentioned above by default.
-       check-promotion-status|cps [options] <environment>                Check status of promotion (activation) of an environment.
-       help [cmd]                                                        display help for [cmd]
+       new-pipeline|np [options] [environments...]         Create a new pipeline with provided attributes. This will also create one property for each environment.
+       set-default|sd [options]                            Set the default pipeline and or the default section name from .edgerc
+       merge|m [options] <environment>                     Merge template json and variable values into a PM/PAPI ruletree JSON document, stored in dist folder in the current pipeline folder
+       search|s <name>                                     Search for properties by name
+       set-prefixes|sp <useprefix>                         Set or unset use of prefixes for current user credentials and setup
+       set-ruleformat|srf <ruleformat>                     Set ruleformat for current user credentials and setup
+       list-contracts|lc                                   List contracts available to current user credentials and setup
+       list-products|lp [options]                          List products available under provided contract ID and client ID available to current user credentials and setup
+       list-groups|lg                                      List groups available to current user credentials and setup
+       list-cpcodes|lcp [options]                          List cpcodes available to current user credentials and setup.
+       show-ruletree|sr [options] <environment>            Fetch latest version of property rule tree for provided environment
+       save|sv [options] <environment>                     Save rule tree and hostnames for provided environment. Edge hostnames are also created if needed.
+       create-edgehostnames|ceh [options] <environment>    Check if any edge hostnames need to be created and proceed to create them.
+       list-edgehostnames|leh [options]                    List edge hostnames available to current user credentials and setup (this could be a long list).
+       list-status|lstat [options]                         Show status of pipeline
+       promote|pm [options] [targetEnvironment]            Promote (activate) an environment. This command also executes the merge and save commands mentioned above by default.
+       check-promotion-status|cps [options] <environment>  Check status of promotion (activation) of an environment.
+       help [cmd]                                          display help for [cmd]
    
    
 ## Most useful commands in order of assumed importance
@@ -56,10 +56,10 @@ a group Id, product Id and contract Id. These ids can be obtained by using the l
    
        --retry                        Assuming command failed last time during execution. Try to continue where it left off.
        -p, --pipeline <pipelineName>  Pipeline name
-       -g, --groupId <groupId>        Group ID
-       -c, --contractId <contractId>  Contract ID
-       -d, --productId <productId>    Product ID
-       -e, --propertyId [propertyId]  Use existing property as blue print for pipeline templates
+       -g, --groupId [groupId]        Group ID, optional if -e propertyId/Name is used
+       -c, --contractId [contractId]  Contract ID, optional if -e propertyId/Name is used
+       -d, --productId [productId]    Product ID, optional if -e propertyId/Name is used
+       -e, --propertyId [propertyId]  Use existing property as blue print for pipeline templates. Either pass property ID or exact property name. Akamai PD will lookup account information like group id, contract id and product id of the existing property and use the information for creating pipeline properties
        -n, --version [version]        Specify version of property, if omitted, use latest
        -h, --help                     output usage information
    
@@ -98,7 +98,7 @@ Store rule tree of provided environment. This will also perform validation.
 Promote (activate property of) an environment.  
 
    
-     Usage: promote|pm [options] <targetEnvironment> <notificationEmails...>
+     Usage: promote|pm [options] [targetEnvironment]
    
      Promote (activate) an environment. This command also executes the merge and save commands mentioned above by default.
    
@@ -106,6 +106,7 @@ Promote (activate property of) an environment.
    
        -p, --pipeline [pipelineName]  pipeline name
        -n, --network <network>        Network, either 'production' or 'staging', can be abbreviated to 'p' or 's'
+       -e, --emails <emails>          Comma separated list of email addresses. Optional if default emails were previously set with set-default
        -h, --help                     output usage information
    
    
@@ -137,6 +138,7 @@ Sets default pipeline and section name in devopsSettings.json. For all commands 
    
        -p, --pipeline <pipelineName>  Set default pipeline name
        -s, --section <section>        Set default section name from edgerc file
+       -e, --emails <emails>          Set default notification emails as comma separated list
        -h, --help                     output usage information
    
    

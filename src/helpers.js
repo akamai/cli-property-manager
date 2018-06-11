@@ -31,6 +31,15 @@ class HashMaker {
     }
 }
 
+const INTEGER = /^(0|[1-9][0-9]*)$/;
+
+const parseInteger = function(intString) {
+    if (INTEGER.test(intString)) {
+        return parseInt(intString)
+    }
+    return NaN;
+};
+
 const deepMerge = function(obj1, obj2) {
     _.each(obj2, function(value, key) {
         if (_.isObject(obj1[key]) && _.isObject(value)) {
@@ -47,14 +56,40 @@ const parseNumericResourceId = function(id, prefix, idName, errorId) {
     if (_.isString(prefix) && id.startsWith(prefix)) {
         parsedValue = id.slice(prefix.length);
     }
-    parsedValue = parseInt(parsedValue);
+    parsedValue = parseInteger(parsedValue);
     if (_.isNaN(parsedValue)) {
         throw new errors.ArgumentError(`'${id}' does not look like a valid ${idName}.`, errorId, id);
     }
     return parsedValue;
 };
 
+const parsePrefixableNumeric = function(prefix) {
+    return function(id) {
+        let parsedValue = id;
+        if (_.isString(prefix) && id.startsWith(prefix)) {
+            parsedValue = id.slice(prefix.length);
+        }
+        parsedValue = parseInteger(parsedValue);
+        if (_.isNaN(parsedValue)) {
+            parsedValue = null;
+        }
+        return parsedValue;
+    };
+};
+
+const prefixeableString = function(prefix) {
+    return function(id) {
+        let parsedValue = id;
+        if (_.isString(prefix) && id.startsWith(prefix)) {
+            parsedValue = id.slice(prefix.length);
+        }
+        return parsedValue;
+    };
+};
+
 module.exports = {
+    parseInteger: parseInteger,
+
     isArrayWithData: function(arrayData) {
         return _.isArray(arrayData) && arrayData.length > 0;
     },
@@ -62,6 +97,10 @@ module.exports = {
     parseGroupId: function(groupId) {
         return parseNumericResourceId(groupId, "grp_", "groupId", "illegal_group_id");
     },
+
+    parsePrefixableNumeric: parsePrefixableNumeric,
+
+    prefixeableString: prefixeableString,
 
     parsePropertyId: function(propertyId) {
         return parseNumericResourceId(propertyId, "prp_", "propertyId", "illegal_property_id");

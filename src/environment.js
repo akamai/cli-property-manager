@@ -644,7 +644,7 @@ class Environment {
         }
 
         let result = await this.getPAPI().activateProperty(envInfo.propertyId,
-            envInfo.latestVersionInfo.propertyVersion, network, emails);
+            envInfo.latestVersionInfo.propertyVersion, network, Array.from(emails));
         let activationId = Environment._extractActivationId(result);
         if (network === Network.STAGING) {
             envInfo.latestVersionInfo.stagingStatus = Status.PENDING;

@@ -13,7 +13,7 @@
 //  limitations under the License.
 
 
-global.td = require('testdouble');
+const td = require('testdouble');
 const chai = require('chai');
 const assert = chai.assert;
 const path = require('path');
@@ -107,7 +107,7 @@ describe('createNewProject integration tests', function() {
          }
 
          exists() {
-             return false;
+             return this.projectName === "existingProject";
          }
     }
 
@@ -271,6 +271,39 @@ describe('createNewProject integration tests', function() {
             });
         }, "Error: Duplicate environment name in argument list: qa");
     });
+
+    it('project exists', async function () {
+        return throwsAsync(function() {
+            return devops.createNewProject({
+                projectName: "existingProject", //causes TestProject.exists() to return true
+                productId: "Web_App_Accel",
+                contractId: "1-1TJZH5",
+                groupId: 61726,
+                environments: ["qa", "staging", "production"]
+            });
+        }, function(exception) {
+            let msg = exception.message;
+            let parts = msg.split("'");
+            assert.equal("Project folder ", parts[0]);
+            assert.isTrue(parts[1].endsWith("tests/existingProject"));
+            assert.equal(" already exists", parts[2]);
+        });
+    });
+
+    it('project too many environments', async function () {
+        return throwsAsync(function() {
+            return devops.createNewProject({
+                projectName: projectName,
+                productId: "Web_App_Accel",
+                contractId: "1-1TJZH5",
+                groupId: 61726,
+                environments: [
+                    "dev1", "dev2", "dev3", "qa1", "qa2", "qa3", "staging1", "stating2",
+                    "staging3", "staging4", "uat1", "uat2", "prod"
+                ]
+            });
+        }, "Error: Number of environments should not exceed 10");
+    });
 });
 
 
@@ -310,5 +343,36 @@ describe('getProject test', function() {
     it('getProject', function() {
         let project = devops.getProject("dummy", false);
         assert.isNotOk(project.exists());
+    });
+});
+
+describe('Promote test', function() {
+    let devops;
+    let projectClass;
+
+    beforeEach(function () {
+        projectClass = td.constructor(Project);
+        td.when(projectClass.prototype.exists()).thenReturn(true);
+        devops = createDevOps({
+            devopsHome,
+            projectClass
+        });
+    });
+
+    it('promote with command line email', function() {
+        let results = devops.promote("foobar", "qa", "staging", "foo@bar.com,spam@egg.com");
+        td.verify(projectClass.prototype.promote("qa", "staging", new Set(["foo@bar.com", "spam@egg.com"])));
+    });
+
+    it('promote with default emails', function() {
+        devops.devopsSettings.emails = ["foo@bar.com", "spam@egg.com"];
+        let results = devops.promote("foobar", "qa", "staging");
+        td.verify(projectClass.prototype.promote("qa", "staging", new Set(["foo@bar.com", "spam@egg.com"])));
+    });
+
+    it('promote with default and cli option emails', function() {
+        devops.devopsSettings.emails = ["foo@bar.com", "spam@egg.com"];
+        let results = devops.promote("foobar", "qa", "staging", "fee@baz.com,spom@ugg.com");
+        td.verify(projectClass.prototype.promote("qa", "staging", new Set(["foo@bar.com", "spam@egg.com", "fee@baz.com", "spom@ugg.com"])));
     });
 });

@@ -109,12 +109,8 @@ To create a new pipeline:
 4. If creating a pipeline using a specific product as a template, run this command:  `akamai pd np -c <contractId> -g <groupId> -d <productId> -p <pipelineName> <environmentName1 environmentName2...>`  
 <br> For example, if you want to base your pipeline on Ion, you'd enter a command like this: `akamai pd np -c 1-23ABC -g 12345 -d SPM -p MyPipeline123 qa prod`
 
-1. If creating a pipeline using an existing property as a template, complete these steps:
-
-    1. Run this command to retrieve the property’s ID: `akamai pd search <propertyName>`
-
-    1. Run this command to create the pipeline for an existing property:  `akamai pd new-project -c <contractId> -g <groupId> -d <productId> -p <pipelineName> -e <propertyId> <environment1_name environment2_name...>` 
-    <br>For example: `akamai pd new-project -c 1-23ABC -g 12345 -d SPM -p MyPipeline123 -e 123 qa prod`
+1. If creating a pipeline using an existing property as a template, run this command:  `akamai pd np -p <pipelineName> -e <propertyId or propertyName> <environment1_name environment2_name...>` 
+    <br>For example: `akamai pd np -p MyPipeline123 -e 123 qa prod`
 
 6. Verify the pipeline folder structure, which will look something like this:
 
@@ -214,9 +210,8 @@ This command takes the values in the templates and variable files, creates a new
 5. Verify that the updates made it to all environments in the pipeline: 
 `akamai pd lstat -p <pipelineName>`
 
-# Notice
-
-This document is provided for informational purposes only and shall not be construed as providing any 
-representation or guarantee as to the matters discussed. Akamai assumes no obligation to update or correct 
-any matters discussed in the document.
+# Known Bugs (will go away at some point during the beta)
+- Creating a new pipeline off an existing property requires the property id, group id, contract id, product id. These won't be required post beta
+- Product id lets you associate properties with products it is not based off during 'create pipeline' Make sure you pick the right product associated with your property here to not run into trouble late ("SPM" = Ion, "Dynamic Site Del" = DSD, "Site_Accel" = DSA)
+- For the .edgerc file, make sure you have a <credentials> section under which you access token resides
 

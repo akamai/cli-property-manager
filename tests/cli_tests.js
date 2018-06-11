@@ -309,7 +309,10 @@ describe('Devops-prov CLI create new project', function () {
                 contractId: "XYZ123",
                 groupId: 62234,
                 environments: ["foo", "bar"],
-                isInRetryMode: false
+                isInRetryMode: false,
+                propertyId: undefined,
+                propertyName: undefined,
+                propertyVersion: undefined
             }));
         });
     });
@@ -329,7 +332,10 @@ describe('Devops-prov CLI create new project', function () {
                 contractId: "XYZ123",
                 groupId: 62234,
                 environments: ["foo", "bar"],
-                isInRetryMode: true
+                isInRetryMode: true,
+                propertyId: undefined,
+                propertyName: undefined,
+                propertyVersion: undefined
             }));
         });
     });
@@ -350,7 +356,9 @@ describe('Devops-prov CLI create new project', function () {
                 groupId: 62234,
                 environments: ["foo", "bar"],
                 isInRetryMode: false,
-                propertyId: 3456
+                propertyId: 3456,
+                propertyName: undefined,
+                propertyVersion: undefined
             }));
         });
     });
@@ -371,7 +379,9 @@ describe('Devops-prov CLI create new project', function () {
                 groupId: 62234,
                 environments: ["foo", "bar"],
                 isInRetryMode: false,
-                propertyId: 3456
+                propertyId: 3456,
+                propertyName: undefined,
+                propertyVersion: undefined
             }));
         });
     });
@@ -393,24 +403,75 @@ describe('Devops-prov CLI create new project', function () {
                 environments: ["foo", "bar"],
                 isInRetryMode: false,
                 propertyId: 3456,
-                version: 4
+                propertyName: undefined,
+                propertyVersion: 4
             }));
         });
     });
 
-    it('create new project with bad propertyId', function () {
-        let testConsole = new TestConsole();
-        let cliArgs = createCommand("np", "-e", "foobarbaz", "-n", "4", "-p", "testproject2.com",
-            "-g", "grp_62234", "-c", "XYZ123", "-d", "NiceProduct", "foo", "bar");
+    it('create new project with propertyId with prefix no account info', function () {
+        let cliArgs = createCommand("np", "-e", "prp_3456", "-p", "testproject2.com", "foo", "bar");
 
         return mainTester(errorCatcher => {
             main(cliArgs, {
                 "AKAMAI_PD_PROJECT_HOME": __dirname
-            }, createDevOpsFun, errorCatcher, testConsole);
+            }, createDevOpsFun, errorCatcher);
         }, errorCatcher => {
-            assert.exists(errorCatcher);
-            assert.equal(errorCatcher.error,
-                "Error: 'foobarbaz' does not look like a valid propertyId.", errorCatcher.error.stack);
+            td.verify(devOpsClass.prototype.createNewProject({
+                projectName: "testproject2.com",
+                productId: undefined,
+                contractId: undefined,
+                groupId: undefined,
+                environments: ["foo", "bar"],
+                isInRetryMode: false,
+                propertyId: 3456,
+                propertyName: undefined,
+                propertyVersion: undefined
+            }));
+        });
+    });
+
+    it('create new project with property name no account info', function () {
+        let cliArgs = createCommand("np", "-e", "www.foobar.com", "-p", "testproject2.com", "foo", "bar");
+
+        return mainTester(errorCatcher => {
+            main(cliArgs, {
+                "AKAMAI_PD_PROJECT_HOME": __dirname
+            }, createDevOpsFun, errorCatcher);
+        }, errorCatcher => {
+            td.verify(devOpsClass.prototype.createNewProject({
+                projectName: "testproject2.com",
+                productId: undefined,
+                contractId: undefined,
+                groupId: undefined,
+                environments: ["foo", "bar"],
+                isInRetryMode: false,
+                propertyId: undefined,
+                propertyName: "www.foobar.com",
+                propertyVersion: undefined
+            }));
+        });
+    });
+
+    it('create new project with propertyId and version no account info', function () {
+        let cliArgs = createCommand("np", "-e", "3456", "-n", "4", "-p", "testproject2.com", "foo", "bar");
+
+        return mainTester(errorCatcher => {
+            main(cliArgs, {
+                "AKAMAI_PD_PROJECT_HOME": __dirname
+            }, createDevOpsFun, errorCatcher);
+        }, errorCatcher => {
+            td.verify(devOpsClass.prototype.createNewProject({
+                projectName: "testproject2.com",
+                productId: undefined,
+                contractId: undefined,
+                groupId: undefined,
+                environments: ["foo", "bar"],
+                isInRetryMode: false,
+                propertyId: 3456,
+                propertyName: undefined,
+                propertyVersion: 4
+            }));
         });
     });
 
@@ -444,6 +505,39 @@ describe('Devops-prov CLI create new project', function () {
             assert.exists(errorCatcher);
             assert.equal(errorCatcher.error,
                 "Error: Version without propertyId provided. Also need property ID.", errorCatcher.error.stack);
+        });
+    });
+
+    it('create new project with -e but no propertyId', function () {
+        let testConsole = new TestConsole();
+
+        let cliArgs = createCommand("np", "-p", "testproject2.com", "-e");
+
+        return mainTester(errorCatcher => {
+            main(cliArgs, {
+                "AKAMAI_PD_PROJECT_HOME": __dirname
+            }, createDevOpsFun, errorCatcher, testConsole);
+        }, errorCatcher => {
+            assert.exists(errorCatcher);
+            assert.equal(errorCatcher.error,
+                "Error: No property ID or name provided with -e option.", errorCatcher.error.stack);
+        });
+    });
+
+    //TODO: Fix this case "-c" shouldn't be the pipeline name.
+    it('create new project with non sensical options', function () {
+        let testConsole = new TestConsole();
+
+        let cliArgs = createCommand("np", "-p", "-s", "-e", "-c");
+
+        return mainTester(errorCatcher => {
+            main(cliArgs, {
+                "AKAMAI_PD_PROJECT_HOME": __dirname
+            }, createDevOpsFun, errorCatcher, testConsole);
+        }, errorCatcher => {
+            assert.exists(errorCatcher);
+            assert.equal(errorCatcher.error,
+                "Error: groupId needs to be provided as a number", errorCatcher.error.stack);
         });
     });
 });
@@ -611,7 +705,7 @@ describe('promotion tests', function () {
         td.when(devOpsClass.prototype.extractProjectName(td.matchers.isA(Object)))
             .thenReturn("testproject.com");
 
-        td.when(devOpsClass.prototype.promote("testproject.com", "qa", "PRODUCTION", ["test@foo.com"]))
+        td.when(devOpsClass.prototype.promote("testproject.com", "qa", "PRODUCTION", "test@foo.com"))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve({
                         envInfo: {
@@ -711,7 +805,7 @@ describe('promotion tests', function () {
 
     it('test promote', function () {
         testConsole = new TestConsole();
-        let cliArgs = createCommand("promote", "-n", "PRODUCTION", "qa", "test@foo.com");
+        let cliArgs = createCommand("promote", "-n", "PRODUCTION", "-e", "test@foo.com", "qa");
 
         return mainTester(errorReporter => {
             main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
@@ -723,7 +817,7 @@ describe('promotion tests', function () {
 
     it('test promote II', function () {
         testConsole = new TestConsole();
-        let cliArgs = createCommand("promote", "-n", "p", "qa", "test@foo.com");
+        let cliArgs = createCommand("promote", "-n", "p", "-e", "test@foo.com", "qa");
 
         return mainTester(errorReporter => {
             main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
@@ -735,7 +829,7 @@ describe('promotion tests', function () {
 
     it('test promote wrong network name', function () {
         testConsole = new TestConsole();
-        let cliArgs = createCommand("promote", "-n", "foo", "qa", "test@foo.com");
+        let cliArgs = createCommand("promote", "-n", "foo", "qa");
 
         return mainTester(errorReporter => {
             main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
