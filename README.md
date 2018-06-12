@@ -211,7 +211,5 @@ This command takes the values in the templates and variable files, creates a new
 `akamai pd lstat -p <pipelineName>`
 
 # Known Bugs (will go away at some point during the beta)
-- Creating a new pipeline off an existing property requires the property id, group id, contract id, product id. These won't be required post beta
 - Product id lets you associate properties with products it is not based off during 'create pipeline' Make sure you pick the right product associated with your property here to not run into trouble late ("SPM" = Ion, "Dynamic Site Del" = DSD, "Site_Accel" = DSA)
-- For the .edgerc file, make sure you have a <credentials> section under which you access token resides
 
