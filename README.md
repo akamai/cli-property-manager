@@ -74,8 +74,8 @@ Here’s how to install Promotional Deployment:
 `mkdir promotional_deployment`. <br> You’ll run Promotional Deployment CLI commands from this folder, which also contains the default values for the CLI and a separate subdirectory for each pipeline you create. 
 
 2. During the beta period, run this installation command: 
-`akamai install https://<githubusername>:<githubpasswd>@github.com/akamai/cli-promotional-deployment.git`
-<br>For example: `akamai install https://John123:password234@github.com/akamai/cli-promotional-deployment.git`
+`akamai install https://github.com/akamai/cli-promotional-deployment.git`
+
 <br>
 **Note:** After the beta, the installation command will be `akamai install promotional-deployment`.
 
