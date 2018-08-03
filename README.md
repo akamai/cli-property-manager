@@ -18,11 +18,21 @@
 
 # Overview 
 
-The Promotional Deployment CLI lets you promote changes to Akamai properties across your local environments without manually updating each property on each environment. 
+The Promotional Deployment CLI lets you leverage your configurations as code snippets and promote changes to Akamai properties across your local environments without manually updating each property on each environment. 
+
+It focuses on four primary benefits:
+1.	A CLI based interface ensures portability across any type of environment
+2.	Local configuration snippets enables many teams to own and work on different parts of their configuration file independently in parallel
+3.	A client side validation engine enables users to instantly validate their configuration syntax locally 
+4.	Client side tokenization enables you to tokenize any attribute within their configuration file, vary this between environments, and automate your entire configuration build process
 
 With this client-side application, you set up a pipeline, which is a linked and ordered chain of environments. A pipeline represents the order in which changes are deployed. A typical pipeline starts with local development environments, moves to local QA environments, then finishes with your production environment. The number of environments you deploy to depends on your organization’s particular needs.
 
 **Note:** For information about all available CLI commands, see the [Promotional Deployment CLI Command Help](docs/cli_command_help.md). 
+
+# Stay Up To Date
+To make sure you always use the latest version of the CLI, run this command: 
+akamai update promotional-deployment
 
 # Sample workflow
 
@@ -36,7 +46,7 @@ Here’s a typical workflow for Promotional Deployment pipelines once you instal
 
     * the names of each applicable environment. **Note:** The new pipeline adds one new Akamai property for each environment. The naming convention of the property is `<environment_name>.<pipeline_name>`.  
 
-    * (Optional) the ID of an existing property to use as a template for the pipeline. 
+    * (Optional) the ID of an existing property to use as a template for the pipeline. (this option obviates the need for any account specific information)
 
 2. In the pipeline’s environments folder, edit the `variableDefinitions.json` file to reflect the attributes shared across the pipeline. 
 
@@ -56,7 +66,9 @@ In order to start using Promotional Deployment, you have to complete these tasks
 
 * Verify you have a Unix-like shell environment, like those available with Mac OS X, Linux, and similar operating systems.
 
-* Set up your OPEN API by [authorizing your client](https://developer.akamai.com/introduction/Prov_Creds.html) and [configuring your credentials](https://developer.akamai.com/introduction/Conf_Client.html) for the [Property Manager API (PAPI)](https://developer.akamai.com/api/luna/papi/overview.html). 
+* Set up your credential files as described in the Get Started guide on developer.akamai.com.
+
+* Give grants for the Property Manager API. The section in your configuration file should be called 'papi' unless you would like to pass the section name in every command using the --section option.
 
 * Install the [Akamai CLI tool](https://github.com/akamai/cli).
 
@@ -189,23 +201,29 @@ Once you make changes to your pipeline, you can save and promote those changes t
 
 To save and promote changes:
 
-1. Make your configuration change within the desired snippet inside your templates folder. This folder contains JSON snippets for the top-level rules in your property’s configuration. 
+1. Make your configuration change within the desired snippet inside your templates folder. This folder contains JSON snippets for the top-level rules in your property’s configuration.
 
-2. Promote the change to the first environment in your pipeline: `akamai pd promote -p <pipelineName> -n <network> <environment_name> <notification_emails>`. 
+2. Save and validate your configuration change syntax instantly your templates folder using `akamai pd save -p <pipelineName> -n <network> <environment_name>`. 
+<br>
+For example: `akamai pd save -p MyPipeline123 -n PROD qa jsmith@example.com`
+<br>
+
+3. Promote the change to the first environment in your pipeline: `akamai pd promote -p <pipelineName> -n <network> <environment_name> <notification_emails>`. 
 <br> The `<network>` value corresponds to Akamai’s staging and production networks. You can enter `STAGING` or `PROD` for this value.
 <br>
 For example: `akamai pd promote -p MyPipeline123 -n STAGING qa jsmith@example.com`
 <br>
 This command takes the values in the templates and variable files, creates a new set of rules for the property, then saves and activates the property version on the selected Akamai network. 
 
-3. Once the activation is complete, run the following command to make sure the pipeline reflects the latest activation status: `akamai pd cps <environment_name>`
+4. Once the activation is complete, run the following command to make sure the pipeline reflects the latest activation status: `akamai pd cps <environment_name>`
 <br> **Note:** You should receive an email once activation is complete. Activation times vary, so you may want to wait several minutes before attempting to run this command.
 
-4. Repeat steps 2 and 3 until you promote your changes to all environments in the pipeline. 
+5. Repeat steps 2 and 3 until you promote your changes to all environments in the pipeline. 
 
-5. Verify that the updates made it to all environments in the pipeline: 
+6. Verify that the updates made it to all environments in the pipeline: 
 `akamai pd lstat -p <pipelineName>`
 
-# Known Bugs (will go away at some point during the beta)
+# Precautions
 - Product id lets you associate properties with products it is not based off during 'create pipeline' Make sure you pick the right product associated with your property here to not run into trouble late ("SPM" = Ion, "Dynamic Site Del" = DSD, "Site_Accel" = DSA)
 
+- If you have Advanced Behaviors in your existing configuration, and need to pull down this config as a template, all Advanced Behaviors need to be converted to Custom Behaviors before getting started with the pipeline
