@@ -223,6 +223,112 @@ This command takes the values in the templates and variable files, creates a new
 6. Verify that the updates made it to all environments in the pipeline: 
 `akamai pd lstat -p <pipelineName>`
 
+# Advanced Use Cases
+
+## Behaviors that vary across environments
+Since the Promotional Deployment CLI is a client only library, it lets you tokenize any attribute (default origins, CPCodes, H2 policy, Cloudlet policies device size, request cookies, etc) within your configuration file and make this different between your environments, For example, for testing purposes, you may want to have a behavior enabled on one environment, and disabled on another. 
+Say, for example, you have three test environments and you use the Forward Rewrite Cloudlet. You want to enable the Forward Rewrite behavior two environments and disable it on one. What do you need to do? 
+
+Like many behaviors, those for Forward Rewrite and Cloudlets have a boolean enabled field, which is essentially an on/off switch. Here’s an example:
+ 
+    {
+    "name": "forwardRewrite",
+      "options": {
+        "enabled": true,
+        "cloudletPolicy": {
+          "id": 12345,
+          "name": "some policy name"
+        }
+      }
+    }
+
+
+We need to change the value of enabled to a variable. We'll do this in 3 steps:
+
+
+Pick a variable name, like forwardRewriteEnabled, and add it to the variableDefinitions.json file:
+ 
+       
+    {
+        "definitions": {
+            "forwardRewriteEnabled": {
+                "type": "boolean",
+                "default": true
+            },
+    ...
+       }
+    }
+
+
+In the variables.json file for each environment, add a new JSON variable with a valid value. In this example, the variable needs a boolean value.
+ 
+    {
+    "forwardRewriteEnabled": false,
+    ...
+    } 
+
+
+In the property snippettemplate file, replace the boolean value with the variable expression using the env prefix, which represents the current environment:
+ 
+         {
+         "name": "forwardRewrite",
+            "options": {
+       "enabled": "${env.forwardRewriteEnabled}", //notice type string!
+        "cloudletPolicy": {
+          "id": 12345,
+          "name": "some policy name"
+        }
+      }
+    }
+
+
+Run the merge command to apply and validate your changes: akamai pd merge -p <pipelineName>
+Save your changes and create a new version of the property: akamai pd save -p <pipelineName> <environment_name>
+Promote the change to the first environment in your pipeline: akamai pd promote -p <pipelineName> -n <network> -e <notification_emails> <environment_name>.
+Repeat steps 5 and 6 for each additional environment in the pipeline. 
+
+# Parallel development with Property Snippets
+
+The Promotional Deployment CLI retrieves your configuration locally and breaks it into a series of property snippets. These can be found under the ‘Snippets’ directory inside your pipeline directory structure.
+
+Property snippets are client-side <includes> that enable different teams or developers to own different parts of the configuration file. By default, a configuration file is broken into pre-defined snippets but you can add, remove, and modify as needed.
+
+Adding a new snippet
+Assume you are looking to add a new snippet Catalog.json owned by your Catalog team. This team is looking to control timeouts for the Catalog App within your organization. This requires the following two steps:
+
+1. Have a Catalog.json file ready and set permissions so only the Catalog team can modify this. The JSON snippet for this will be:
+
+         {
+              "name": "Catalog",
+              "children": [],
+              "behaviors": [
+                 {
+                     "name": "timeout",
+                     "options": {
+                     	"value": "5s"
+                     } } ],
+             "criteria": [
+                 {
+                     "name": "path",
+                     "options": {
+                     	"matchOperator": "MATCHES_ONE_OF",
+                     	"values": [
+                         	"/catalog/*"
+                     	],
+                     	"matchCaseSensitive": false
+                     } } ],
+             "criteriaMustSatisfy": "all"
+         }
+
+2. Include this snippet in the main.json file found in your Snippets directory using “#include:Catalog.json”
+
+As a best practice, the Catalog team works on this Snippet locally and copies it over the Snippets directory whenever a new change is ready. This unblocks other teams from deploying live changes. Once copied over, the team validates the syntax for any new change using ‘akamai pd save -p <pipeline_name> -e <environment_name>
+
+The ‘children’ section of the main.json file can be used to add, remove, and control the order in which Snippets are executed. Sub-snippets can also be worked on by leveraging a ‘children’ section in individual include files. In our example above, the Catalog.json file can include a SubCatalog.json file with path match set to “/catalog/subcatalog/*”
+
+
+
+
 # Precautions
 - Product id lets you associate properties with products it is not based off during 'create pipeline' Make sure you pick the right product associated with your property here to not run into trouble late ("SPM" = Ion, "Dynamic Site Del" = DSD, "Site_Accel" = DSA)
 
