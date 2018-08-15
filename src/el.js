@@ -20,6 +20,7 @@ const logger = require("./logging")
 
 const expression_parser = require("./expression_parser");
 const errors = require("./errors");
+const helpers = require("./helpers");
 
 const INCLUDE_TOKEN = "#include:";
 
@@ -92,28 +93,43 @@ class EL {
      * @returns {*}
      */
     parseObject(obj) {
-        if (_.isArray(obj)) {
+        if (_.isArray(obj) || _.isObject(obj)) {
             _.each(obj, function(element, index, obj) {
                 if (_.isString(element)) {
                     this.parseString(element, result => {
                         obj[index] = result;
                     });
+                } else if (_.isObject(element)) {
+                    this.parseChild(element, obj, index);
                 } else {
                     this.parseObject(element);
                 }
             }, this);
-        } else if (_.isObject(obj)) {
-            _.each(obj, function(value, key, obj) {
-                if (_.isString(value)) {
-                    this.parseString(value, result => {
-                        obj[key] = result;
-                    });
-                } else {
-                    this.parseObject(value);
-                }
-            }, this);
         }
         return obj;
+    }
+
+    parseChild(child, parent, key) {
+        let includeObject = true;
+        let includeIf = child["#includeIf"];
+        if (includeIf !== undefined) {
+            delete child["#includeIf"];
+            this.parseString(includeIf, result => {
+                logger.info("got result: ", result);
+                if (result === false) {
+                    includeObject = false;
+                }
+            })
+        }
+        if (includeObject) {
+            this.parseObject(child);
+        } else {
+            if (_.isArray(parent)) {
+                parent.splice(key, 1);
+            } else {
+                delete parent[key];
+            }
+        }
     }
 
     resolvePath(path, templateInfo) {
@@ -121,12 +137,17 @@ class EL {
         let templateFilename = templateInfo.resourcePath;
         let variableFilenames = [];
         let pathElements = path.split("/");
+        let foundElements = [];
         for (let element of pathElements) {
-            let index = Number.parseInt(element);
-            if (Number.isNaN(index)) {
+            foundElements.push(element);
+            let index = helpers.parseInteger(element);
+            if (isNaN(index)) {
                 obj = obj[element];
             } else {
                 obj = obj[index];
+            }
+            if (obj === undefined) {
+                break;
             }
             if (_.isString(obj)) {
                 if (obj.startsWith(INCLUDE_TOKEN) && _.isFunction(this.loadFunction)) {
@@ -138,6 +159,7 @@ class EL {
                     let includeInfo = this.loadFunction(includeString);
                     obj = includeInfo.resource;
                     templateFilename = includeInfo.resourcePath;
+                    foundElements = [];
                 } else if (obj !== "") {
                     let context = new ElContext(this.defaultSource, this.overrideSource);
                     obj = expression_parser.parse(obj, {
@@ -153,6 +175,7 @@ class EL {
         return {
             template: templateFilename,
             variables: Array.from(variableFilenames),
+            location: foundElements.join('/'),
             value: obj
         }
     }

@@ -103,8 +103,8 @@ class Merger {
      * Check if variables are properly declared and have assigned value
      * TODO: check for declared and valued variables that aren't used anywhere
      * TODO: check if variable type agrees with option type (difficult)
-     * @param variableValues
-     * @param variableDefinitions
+     * @param variableValuesResources
+     * @param variableDefinitionsResources
      */
     checkVariables(variableValuesResources, variableDefinitionsResources) {
         let variableValues = variableValuesResources.resource;

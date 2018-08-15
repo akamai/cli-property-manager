@@ -26,6 +26,9 @@ const createOverlayUtils = function(baseUtils, callback, classOnly = false) {
                 super.writeJsonFile(path, data);
             }
         }
+        fileExists(path) {
+            return callback(path, super.fileExists(path), "exists");
+        }
     }
     if (classOnly) {
         return OverlayUtils;

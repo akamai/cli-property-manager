@@ -19,12 +19,12 @@ const assert = chai.assert;
 const path = require('path');
 
 const logger = require("../src/logging")
-    .consoleLogging()
     .createLogger("devops-prov.devops_tests");
 
 const devopsHome = __dirname;
 
 const helpers = require('../src/helpers');
+const Utils = require('../src/utils');
 const createDevOps = require('../src/factory');
 const VerifyUtils = require('./verify-utils');
 const OpenClient = require('../src/openclient');
@@ -93,9 +93,9 @@ describe('getRuleTree tests', function() {
 });
 
 
-describe('createNewProject integration tests', function() {
+describe('createPipeline integration tests', function() {
     let utils;
-    let projectName = "testproject.com";
+    let projectName = "new.testproject.com";
     let devops;
 
     class TestProject extends Project {
@@ -113,28 +113,13 @@ describe('createNewProject integration tests', function() {
 
     before(function () {
         //these changes represent user edits after project creation.
-        utils = createOverlayUtils(VerifyUtils, function (path, data) {
-            if (path.endsWith("variableDefinitions.json")) {
-                data.definitions.cpCode.default = 98765;
-            }
-            if (path.endsWith("/environments/staging/variables.json")) {
-                data.cpCode = 654321;
-            }
-            if (path.endsWith("/environments/qa/hostnames.json")) {
-                data.push({
-                    cnameFrom: "qa.securesite.com",
-                    cnameTo: "qa.securesite.com.edgekey.net",
-                    cnameType: "EDGE_HOSTNAME",
-                    edgeHostnameId: null
-                });
-            }
-            return data;
-        });
-
-        let testRuleTree = utils.readJsonFile(path.join(__dirname, "testdata", "testruletree.waa.json"));
-        let existingRuleTree = utils.readJsonFile(
+        utils = new VerifyUtils(pretendEmpty = true);
+        utils.touch(path.join(__dirname, "..", "resources", "template.converter.data.json"));
+        let regularUtils = new Utils();
+        let testRuleTree = regularUtils.readJsonFile(path.join(__dirname, "testdata", "testruletree.waa.json"));
+        let existingRuleTree = regularUtils.readJsonFile(
             path.join(__dirname, "testproject.com", "dist", "qa.testproject.com.papi.json"));
-        let testData = utils.readJsonFile(path.join(__dirname, "testdata", "createProjectData.json"));
+        let testData = regularUtils.readJsonFile(path.join(__dirname, "testdata", "createProjectData.json"));
         let papiClass = td.constructor(PAPI);
         td.when(papiClass.prototype.getClientSettings())
             .thenReturn(new Promise((resolve, reject) => {
@@ -144,17 +129,17 @@ describe('createNewProject integration tests', function() {
                     });
                 })
             );
-        td.when(papiClass.prototype.createProperty("qa.testproject.com", "Web_App_Accel", "1-1TJZH5", 61726))
+        td.when(papiClass.prototype.createProperty("qa." + projectName, "Web_App_Accel", "1-1TJZH5", 61726))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.qa.create);
                 })
             );
-        td.when(papiClass.prototype.createProperty("staging.testproject.com", "Web_App_Accel", "1-1TJZH5", 61726))
+        td.when(papiClass.prototype.createProperty("staging." + projectName, "Web_App_Accel", "1-1TJZH5", 61726))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.staging.create);
                 })
             );
-        td.when(papiClass.prototype.createProperty("prod.testproject.com", "Web_App_Accel", "1-1TJZH5", 61726))
+        td.when(papiClass.prototype.createProperty("prod." + projectName, "Web_App_Accel", "1-1TJZH5", 61726))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.prod.create);
                 })
@@ -221,46 +206,57 @@ describe('createNewProject integration tests', function() {
         devops = createDevOps({
             devopsHome : devopsHome,
             papiClass: papiClass,
-            projectClass: TestProject
+            projectClass: TestProject,
+            version: "0.1.10"
         });
     });
 
-    it('createNewProject with correct params', async function() {
-        await devops.createNewProject({
+    it('createPipeline with correct params', async function() {
+        await devops.createPipeline({
             projectName: projectName,
             productId: "Web_App_Accel",
             contractId: "1-1TJZH5",
-            groupId: 61726,
-            environments: [
-                "qa",
-                "staging",
-                "prod"
-            ]
-        });
-    });
-
-    it('createNewProject with propertyId', async function() {
-        await devops.createNewProject({
-            projectName: projectName,
-            productId: "Web_App_Accel",
-            contractId: "1-1TJZH5",
-            groupId: 61726,
+            groupIds: [61726],
             environments: [
                 "qa",
                 "staging",
                 "prod"
             ],
+            environmentGroupIds: {
+                qa: 61726,
+                staging: 61726,
+                prod: 61726
+            }
+        });
+    });
+
+    it('createPipeline with propertyId', async function() {
+        await devops.createPipeline({
+            projectName: projectName,
+            environments: [
+                "qa",
+                "staging",
+                "prod"
+            ],
+            groupIds: [],
+            environmentGroupIds: {
+            },
             propertyId: 76543
         });
     });
 
-    it('createNewProject with duplicate environments', async function() {
+    it('createPipeline with duplicate environments', async function() {
         return throwsAsync(function() {
-            return devops.createNewProject({
+            return devops.createPipeline({
                 projectName: projectName,
                 productId: "Web_App_Accel",
                 contractId: "1-1TJZH5",
-                groupId: 61726,
+                groupIds: [61726],
+                environmentGroupIds: {
+                    qa: 61726,
+                    staging: 61726,
+                    prod: 61726
+                },
                 environments: [
                     "qa",
                     "staging",
@@ -274,11 +270,11 @@ describe('createNewProject integration tests', function() {
 
     it('project exists', async function () {
         return throwsAsync(function() {
-            return devops.createNewProject({
+            return devops.createPipeline({
                 projectName: "existingProject", //causes TestProject.exists() to return true
                 productId: "Web_App_Accel",
                 contractId: "1-1TJZH5",
-                groupId: 61726,
+                groupIds: [61726],
                 environments: ["qa", "staging", "production"]
             });
         }, function(exception) {
@@ -292,11 +288,11 @@ describe('createNewProject integration tests', function() {
 
     it('project too many environments', async function () {
         return throwsAsync(function() {
-            return devops.createNewProject({
+            return devops.createPipeline({
                 projectName: projectName,
                 productId: "Web_App_Accel",
                 contractId: "1-1TJZH5",
-                groupId: 61726,
+                groupIds: [61726],
                 environments: [
                     "dev1", "dev2", "dev3", "qa1", "qa2", "qa3", "staging1", "stating2",
                     "staging3", "staging4", "uat1", "uat2", "prod"
@@ -346,6 +342,183 @@ describe('getProject test', function() {
     });
 });
 
+describe('email validation test', function(){
+    let devops;
+    beforeEach(function () {
+        devops = createDevOps({
+            devopsHome
+        });
+        fakeUpdateDevopsSettings = td.func(["updateDevopsSettings"]);
+        devops.updateDevopsSettings = fakeUpdateDevopsSettings;
+    });
+
+    it('validate single valid email', function() {
+        emailParam = "somebody@somewhere.com";
+        emailArray = emailParam.split(",");
+        devops.setDefaultEmails(emailParam);
+        assert.deepEqual(devops.devopsSettings.emails, emailArray)
+    });
+
+    it('validate single valid email ignoring comma', function() {
+        emailParam = ",somebody@somewhere.com";
+        emailArray = emailParam.split(",");
+        devops.setDefaultEmails(emailParam);
+        assert.deepEqual(devops.devopsSettings.emails, emailArray);
+
+        emailParam = ",somebody@somewhere.com,";
+        emailArray = emailParam.split(",");
+        devops.setDefaultEmails(emailParam);
+        assert.deepEqual(devops.devopsSettings.emails, emailArray);
+
+        emailParam = "somebody@somewhere.com,";
+        emailArray = emailParam.split(",");
+        devops.setDefaultEmails(emailParam);
+        assert.deepEqual(devops.devopsSettings.emails, emailArray)
+    });
+
+    it('validate multiple valid email', function() {
+        emailParam = "somebody@somewhere.com,someotherperson@somewhere.com";
+        emailArray = emailParam.split(",");
+        devops.setDefaultEmails(emailParam);
+        assert.deepEqual(devops.devopsSettings.emails, emailArray)
+    });
+
+    it('validate multiple valid email ignoring commas', function() {
+        emailParam = ",somebody@somewhere.com,someotherperson@somewhere.com";
+        emailArray = emailParam.split(",");
+        devops.setDefaultEmails(emailParam);
+        assert.deepEqual(devops.devopsSettings.emails, emailArray);
+
+        emailParam = ",somebody@somewhere.com,someotherperson@somewhere.com,";
+        emailArray = emailParam.split(",");
+        devops.setDefaultEmails(emailParam);
+        assert.deepEqual(devops.devopsSettings.emails, emailArray);
+
+        emailParam = "somebody@somewhere.com,someotherperson@somewhere.com,";
+        emailArray = emailParam.split(",");
+        devops.setDefaultEmails(emailParam);
+        assert.deepEqual(devops.devopsSettings.emails, emailArray)
+    });
+
+    it('validate single invalid email', function() {
+        emailParam = "somebodywhere.com";
+        emailArray = emailParam.split(",");
+        expectedErrorString = 'The email \'somebodywhere.com\' is not valid.';
+        assert.throws(() => {
+            devops.setDefaultEmails(emailParam);
+        }, expectedErrorString);
+    });
+    it('validate single invalid email ignoring commas', function() {
+        emailParam = ",somebodywhere.com";
+        emailArray = emailParam.split(",");
+        expectedErrorString = 'The email \'somebodywhere.com\' is not valid.';
+
+        assert.throws(() => {
+            devops.setDefaultEmails(emailParam);
+        }, expectedErrorString);
+
+        emailParam = ",somebodywhere.com,";
+        emailArray = emailParam.split(",");
+        assert.throws(() => {
+            devops.setDefaultEmails(emailParam);
+        }, expectedErrorString);
+
+        emailParam = "somebodywhere.com,";
+        emailArray = emailParam.split(",");
+        assert.throws(() => {
+            devops.setDefaultEmails(emailParam);
+        }, expectedErrorString);
+    });
+
+
+    it('validate multiple invalid email', function() {
+        emailParam = "somebodywhere.com,abcdefghijklmnopqrstuvwxyz";
+        emailArray = emailParam.split(",");
+        expectedErrorString = 'The emails \'somebodywhere.com,abcdefghijklmnopqrstuvwxyz\' are not valid.';
+
+        assert.throws(() => {
+            devops.setDefaultEmails(emailParam);
+        }, expectedErrorString);
+    });
+
+    it('validate multiple invalid email ignoring commas', function() {
+        emailParam = ",somebodywhere.com,abcdefghijklmnopqrstuvwxyz";
+        emailArray = emailParam.split(",");
+        expectedErrorString = 'The emails \'somebodywhere.com,abcdefghijklmnopqrstuvwxyz\' are not valid.';
+
+        assert.throws(() => {
+            devops.setDefaultEmails(emailParam);
+        }, expectedErrorString);
+
+        emailParam = ",somebodywhere.com,abcdefghijklmnopqrstuvwxyz,";
+        emailArray = emailParam.split(",");
+        assert.throws(() => {
+            devops.setDefaultEmails(emailParam);
+        }, expectedErrorString);
+
+        emailParam = "somebodywhere.com,abcdefghijklmnopqrstuvwxyz,";
+        emailArray = emailParam.split(",");
+        assert.throws(() => {
+            devops.setDefaultEmails(emailParam);
+        }, expectedErrorString);
+
+    });
+
+    it('validate valid and invalid email', function() {
+        emailParam = "somebodywhere.com,jachin@akamai.com";
+        emailArray = emailParam.split(",");
+        expectedErrorString = 'The emails \'somebodywhere.com\' are not valid.';
+
+        assert.throws(() => {
+            devops.setDefaultEmails(emailParam);
+        }, );
+    });
+
+    it('validate valid and invalid email ignoring commas', function() {
+        emailParam = ",somebodywhere.com,jachin@akamai.com";
+        emailArray = emailParam.split(",");
+        expectedErrorString = 'The email \'somebodywhere.com\' is not valid.';
+
+        assert.throws(() => {
+            devops.setDefaultEmails(emailParam);
+        }, expectedErrorString);
+
+        emailParam = ",somebodywhere.com,jachin@akamai.com,";
+        emailArray = emailParam.split(",");
+        assert.throws(() => {
+            devops.setDefaultEmails(emailParam);
+        }, expectedErrorString);
+
+        emailParam = "somebodywhere.com,jachin@akamai.com,";
+        emailArray = emailParam.split(",");
+        assert.throws(() => {
+            devops.setDefaultEmails(emailParam);
+        }, expectedErrorString);
+    });
+
+    it('validate email ignoring spaces', function() {
+        emailParam = " somebodywhere.com,jachin@akamai.com ";
+        emailArray = emailParam.split(",");
+        expectedErrorString = 'The email \'somebodywhere.com\' is not valid.';
+
+        assert.throws(() => {
+            devops.setDefaultEmails(emailParam);
+        }, expectedErrorString);
+
+        emailParam = " ,somebodywhere.com , jachin@akamai.com,";
+        emailArray = emailParam.split(",");
+        assert.throws(() => {
+            devops.setDefaultEmails(emailParam);
+        }, expectedErrorString);
+
+        emailParam = " somebodywhere.com ,jachin@akamai.com,";
+        emailArray = emailParam.split(",");
+        assert.throws(() => {
+            devops.setDefaultEmails(emailParam);
+        }, expectedErrorString);
+    });
+});
+
 describe('Promote test', function() {
     let devops;
     let projectClass;
@@ -360,19 +533,26 @@ describe('Promote test', function() {
     });
 
     it('promote with command line email', function() {
-        let results = devops.promote("foobar", "qa", "staging", "foo@bar.com,spam@egg.com");
-        td.verify(projectClass.prototype.promote("qa", "staging", new Set(["foo@bar.com", "spam@egg.com"])));
+        devops.promote("foobar", "qa", "staging", "foo@bar.com,spam@egg.com", "Message", true);
+        td.verify(projectClass.prototype.promote("qa", "staging", new Set(["foo@bar.com", "spam@egg.com"]), "Message", true));
     });
 
     it('promote with default emails', function() {
         devops.devopsSettings.emails = ["foo@bar.com", "spam@egg.com"];
-        let results = devops.promote("foobar", "qa", "staging");
-        td.verify(projectClass.prototype.promote("qa", "staging", new Set(["foo@bar.com", "spam@egg.com"])));
+        devops.promote("foobar", "qa", "staging", undefined, "Message", false);
+        td.verify(projectClass.prototype.promote("qa", "staging", new Set(["foo@bar.com", "spam@egg.com"]), "Message", false));
     });
 
     it('promote with default and cli option emails', function() {
         devops.devopsSettings.emails = ["foo@bar.com", "spam@egg.com"];
-        let results = devops.promote("foobar", "qa", "staging", "fee@baz.com,spom@ugg.com");
-        td.verify(projectClass.prototype.promote("qa", "staging", new Set(["foo@bar.com", "spam@egg.com", "fee@baz.com", "spom@ugg.com"])));
+        devops.promote("foobar", "qa", "staging", "fee@baz.com,spom@ugg.com", "Message", true);
+        td.verify(projectClass.prototype.promote("qa", "staging",
+            new Set(["foo@bar.com", "spam@egg.com", "fee@baz.com", "spom@ugg.com"]), "Message", true));
     });
+
+    it('promote with bad default and and a bad cli option emails', function() {
+        devops.devopsSettings.emails = ["a ", "spam@egg.com"];
+        assert.throws(() => {
+            devops.promote("foobar", "qa", "staging", ", b,spom@ugg.com");
+        }, "The emails 'b,a' are not valid.");    });
 });

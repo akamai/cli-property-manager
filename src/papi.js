@@ -133,8 +133,8 @@ class PAPI {
         return this.openClient.get(url);
     }
 
-    storePropertyVersionHostnames(propertyId, propertyVersion, hostnames) {
-        let url = `/papi/v0/properties/${propertyId}/versions/${propertyVersion}/hostnames`;
+    storePropertyVersionHostnames(propertyId, propertyVersion, hostnames, contractId, groupId) {
+        let url = `/papi/v0/properties/${propertyId}/versions/${propertyVersion}/hostnames?contractId=${contractId}&groupId=${groupId}`;
         return this.openClient.put(url, hostnames);
     }
 
@@ -153,13 +153,13 @@ class PAPI {
         return this.openClient.post(url, createRequestBody);
     }
 
-    activateProperty(propertyId, propertyVersion, network, notifyEmails) {
+    activateProperty(propertyId, propertyVersion, network, notifyEmails, message) {
         const url = `/papi/v0/properties/${propertyId}/activations`;
         const acknowledgeAllWarnings = true;
         const complianceRecord = {
             noncomplianceReason: "NO_PRODUCTION_TRAFFIC"
         };
-        const note = "Akamai PD Activation";
+        const note = message || "Akamai PD Activation";
         return this.openClient.post(url, {
             propertyVersion,
             network,

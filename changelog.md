@@ -10,4 +10,5 @@
 ## Bugs
 * Lstat info is misleading/false
 * 'promote' not working since CLI prepends ctrl_ in PAPI call
+* Manually set credentials to [papi] in devopsSettings.json file and [papi] do not exists in .edgerc file
 * Fix the error on np -e without giving property-id or giving Invalid property-id

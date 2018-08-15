@@ -18,7 +18,6 @@ const assert = chai.assert;
 const _ = require("underscore");
 
 const logger = require("../src/logging")
-    .consoleLogging()
     .createLogger("devops-prov.testutils");
 
 const throwsAsync = async function (fn, expectation) {
@@ -46,6 +45,16 @@ const throwsAsync = async function (fn, expectation) {
     }
 };
 
+const whiteSpaceRegex = /\s+/g;
+const eatWhiteSpaces = function(text) {
+    return text.replace(whiteSpaceRegex, " ");
+};
+
+const equalIgnoreWhiteSpaces = function(actual, expected, message) {
+    assert.equal(eatWhiteSpaces(actual), eatWhiteSpaces(expected), message);
+};
+
+
 module.exports = {
-    throwsAsync
+    throwsAsync, eatWhiteSpaces, equalIgnoreWhiteSpaces
 };

@@ -4,11 +4,15 @@
     "edgeGridConfig": {
         "section": "credentials"
     },
-    "groupId": 61726,
     "environments": [
         "qa",
         "staging",
         "prod"
     ],
-    "name": "testproject.com"
+    "name": "testproject.com",
+    "groupIds": [
+        61726
+    ],
+    "isSecure": false,
+    "version": "0.1.10"
 }

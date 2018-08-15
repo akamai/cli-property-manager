@@ -28,9 +28,16 @@ const Network = {
 
 const Status = {
     ACTIVE: "ACTIVE",
+    INACTIVE: "INACTIVE",
     PENDING: "PENDING",
     FAILED: "FAILED",
-    ABORTED: "ABORTED"
+    ABORTED: "ABORTED",
+    DEACTIVATED: "DEACTIVATED"
+};
+
+const EdgeDomains = {
+    EDGE_SUITE: ".edgesuite.net",
+    EDGE_KEY: ".edgekey.net"
 };
 
 /**
@@ -55,13 +62,14 @@ class EdgeHostnameManager {
      * @returns {Promise.<void>}
      */
     async createEdgeHostnames(hostnames) {
+        let envInfo = this.environment.getEnvironmentInfo();
         for (let hostname of hostnames) {
             try {
                 if (hostname.edgeHostnameId) {
                     logger.info(`cnameId for '${hostname.cnameFrom}' is already set to: ${hostname.edgeHostnameId}`);
                     continue;
                 }
-                await this.createEdgeHostname(hostname)
+                await this.createEdgeHostname(hostname, envInfo)
             } catch (error) {
                 this.errors.push(error);
             }
@@ -70,7 +78,6 @@ class EdgeHostnameManager {
             //we found or created edgehostnames, so let's write the edgehostname ids to disk
             this.environment.storeHostnames(hostnames);
         }
-        let envInfo = this.environment.getEnvironmentInfo();
         envInfo.lastSaveHostnameErrors = this.errors;
         this.environment.storeEnvironmentInfo(envInfo);
         return {
@@ -80,10 +87,19 @@ class EdgeHostnameManager {
         };
     }
 
-    async createEdgeHostname(hostname) {
+    async createEdgeHostname(hostname, envInfo) {
+        if (hostname.cnameTo === null) {
+            this.errors.push({
+                message: `hostname.cnameTo can not be set to null`,
+                messageId: "null_hostname_cnameTo",
+                edgehostname: null
+            });
+            return;
+        }
+
         if (!_.isObject(this.existingEdgehostnames)) {
             this.existingEdgehostnames = {};
-            let edgehostnames = await this.papi.listEdgeHostnames(this.projectInfo.contractId, this.projectInfo.groupId);
+            let edgehostnames = await this.papi.listEdgeHostnames(this.projectInfo.contractId, envInfo.groupId);
             for (let item of edgehostnames.edgeHostnames.items) {
                 this.existingEdgehostnames[item.edgeHostnameDomain] = item;
             }
@@ -100,35 +116,53 @@ class EdgeHostnameManager {
             return;
         }
 
-        if (!hostname.cnameTo.endsWith(".edgesuite.net")) {
+        //currently papi doesn't support creation of edgekey.net hostnames. So there is some dead code ahead.
+        if (hostname.cnameTo.endsWith(EdgeDomains.EDGE_SUITE)) {
+            let edgeDomain;
+            if (hostname.cnameTo.endsWith(EdgeDomains.EDGE_SUITE)) {
+                edgeDomain = "edgesuite.net";
+            } else {
+                edgeDomain = "edgekey.net";
+            }
+            let prefix = hostname.cnameTo.slice(0, hostname.cnameTo.length - (edgeDomain.length + 1));
+
+            let createReq = {
+                productId: this.projectInfo.productId,
+                ipVersionBehavior: "IPV6_COMPLIANCE",
+                domainPrefix: prefix,
+                domainSuffix: edgeDomain //TODO: allow creation of other domains as well.
+            };
+            if (edgeDomain === "edgekey.net") {
+                createReq.secure = true;
+                if (!hostname.slotNumber) {
+                    this.errors.push({
+                        message: `Need 'slotNumber' of hostname in order to create secure edge hostname`,
+                        messageId: "missing_slot_number",
+                        edgehostname: hostname.cnameTo
+                    });
+                    return;
+                }
+                createReq.slotNumber = hostname.slotNumber;
+            }
+            let result = await this.papi.createEdgeHostname(this.projectInfo.contractId, envInfo.groupId, createReq);
+            logger.info("Got create edgehostname result:", result);
+            hostname.edgeHostnameId = Environment._extractEdgeHostnameId(result);
+            this.hostnamesCreated.push({
+                name: hostname.cnameTo,
+                id: hostname.edgeHostnameId
+            });
+        } else {
             this.errors.push({
-                message: `'${hostname.cnameTo}' is not a supported edge hostname for creation, needs to be under 'edgesuite.net' domain`,
+                message: `'${hostname.cnameTo}' is not a supported edge hostname for creation, only edge hostnames under 'edgesuite.net' domain can be created. Please create manually`,
                 messageId: "unsupported_edgehostname",
                 edgehostname: hostname.cnameTo
             });
-            return;
         }
-
-        let prefix = hostname.cnameTo.slice(0, hostname.cnameTo.length - ".edgesuite.net".length);
-
-        let createReq = {
-            productId: this.projectInfo.productId,
-            ipVersionBehavior: "IPV6_COMPLIANCE",
-            domainPrefix: prefix,
-            domainSuffix: "edgesuite.net" //TODO: allow for other domains as well.
-        };
-        let result = await this.papi.createEdgeHostname(this.projectInfo.contractId, this.projectInfo.groupId, createReq);
-        logger.info("Got create edgehostname result:", result);
-        hostname.edgeHostnameId = Environment._extractEdgeHostnameId(result);
-        this.hostnamesCreated.push({
-            name: hostname.cnameTo,
-            id: hostname.edgeHostnameId
-        });
     }
 }
 
 /**
- * represents environment in a devops pipeline
+ * represents environment in a Akamai PD pipeline
  */
 class Environment {
     /**
@@ -140,7 +174,6 @@ class Environment {
         this.project = dependencies.project;
         this.name = envName;
         this.getPAPI = dependencies.getPAPI;
-        this.getTemplate = dependencies.getTemplate;
         this.getMerger = dependencies.getMerger;
         this.shouldProcessPapiErrors = dependencies.shouldProcessPapiErrors || false;
         this.propertyName = envName + "." + this.project.getName();
@@ -149,26 +182,28 @@ class Environment {
 
     /**
      * Creates the property associated with this environment using PAPI
-     * and stores the information in $DEVOPS_PROJECT_HOME/<pipeline_name>/<environment_name>/envInfo.json
+     * and stores the information in $AKAMAI_PD_PROJECT_HOME/<pipeline_name>/<environment_name>/envInfo.json
      * @param {boolean} isInRetryMode - true if in retry mode.
      * @returns {Promise.<void>}
      */
-    async create(isInRetryMode) {
+    async create(createPipelineInfo) {
         let envInfo = this.getEnvironmentInfo();
         if (!envInfo) {
             envInfo = {
                 name: this.name,
-                propertyName: this.propertyName
+                propertyName: this.propertyName,
+                groupId: createPipelineInfo.environmentGroupIds[this.name],
+                isSecure: createPipelineInfo.secureOption || false
             };
         }
-        if (isInRetryMode && envInfo.propertyId) {
+        if (createPipelineInfo.isInRetryMode && envInfo.propertyId) {
             logger.info(`property '${this.propertyName}' already exists and is tied to environment '${this.name}'`);
         } else {
             logger.info(`creating property '${this.propertyName}' tied to environment '${this.name}'`);
             let projectInfo = this.project.getProjectInfo();
             //TODO: handle case where create property worked but we never got the data back.
             let propData = await this.getPAPI().createProperty(this.propertyName,
-                projectInfo.productId, projectInfo.contractId, projectInfo.groupId);
+                projectInfo.productId, projectInfo.contractId, envInfo.groupId);
             logger.info("propData: ", propData);
             envInfo.propertyId = Environment._extractPropertyId(propData);
         }
@@ -177,8 +212,22 @@ class Environment {
             let versionInfo = await this.getPAPI().latestPropertyVersion(envInfo.propertyId);
             envInfo.latestVersionInfo = helpers.clone(versionInfo.versions.items[0]);
             logger.info("envInfo: ", envInfo);
-            this.project.storeEnvironmentInfo(envInfo);
+            this.storeEnvironmentInfo(envInfo);
         }
+        this.createHostnamesFile();
+    }
+
+    createHostnamesFile() {
+        const domain = this.project.projectName;
+        const edgeDomain = this.getEnvironmentInfo().isSecure ? EdgeDomains.EDGE_KEY : EdgeDomains.EDGE_SUITE;
+
+        let hostnames = [{
+            "cnameFrom": this.name + "." + domain,
+            "cnameTo": this.name + "." + domain + edgeDomain,
+            "cnameType": "EDGE_HOSTNAME",
+            "edgeHostnameId": null
+        }];
+        this.project.storeEnvironmentHostnames(this.name, hostnames);
     }
 
     /**
@@ -247,7 +296,16 @@ class Environment {
     isActive(network) {
         this.checkValidNetwork(network);
         let envInfo = this.getEnvironmentInfo();
-        return _.isObject(envInfo["activeIn_" + network + "_Info"]);
+        //if its pending, obviously its not active
+        //if there is no activeIn or latest version, then nothing is active
+        if (this.isPendingPromotion(network) ||
+            !_.isObject(envInfo["activeIn_" + network + "_Info"]) ||
+            !_.isObject(envInfo.latestVersionInfo)) {
+            return false;
+        }
+
+        //The 'latest info' and 'active in' objects should match
+        return (_.isEqual(envInfo["activeIn_" + network + "_Info"], envInfo.latestVersionInfo));
     }
 
     isLocked() {
@@ -255,21 +313,27 @@ class Environment {
         if (!_.isObject(latest)) {
             return false;
         }
-        return latest.productionStatus === Status.ACTIVE || latest.stagingStatus === Status.ACTIVE ||
-            latest.productionStatus === Status.PENDING || latest.stagingStatus === Status.PENDING;
+        return latest.productionStatus !== Status.INACTIVE || latest.stagingStatus !== Status.INACTIVE;
     }
 
-    isPendingPromotion() {
+    isPendingPromotion(network) {
         let pendingActivations = this.getEnvironmentInfo().pendingActivations;
         if (!_.isObject(pendingActivations)) {
             return false;
         }
-        return _.isNumber(pendingActivations.STAGING) || _.isNumber(pendingActivations.PRODUCTION);
+        if (!network) {
+            return _.isNumber(pendingActivations.STAGING) || _.isNumber(pendingActivations.PRODUCTION);
+        } else {
+            this.checkValidNetwork(network);
+            return _.isNumber(pendingActivations[network]);
+        }
     }
 
     isDirty() {
         let hostnamesHash = helpers.createHash(this.getHostnames());
         let envInfo = this.getEnvironmentInfo();
+        //need to make the hash of the environment, to be sure we are checking against the latest "saved"
+        this.merge(false);
         return ((!envInfo.lastSavedHash || envInfo.lastSavedHash !== envInfo.environmentHash) ||
             (!envInfo.lastSavedHostnamesHash || envInfo.lastSavedHostnamesHash !== hostnamesHash));
     }
@@ -304,39 +368,12 @@ class Environment {
         }
     }
 
-    /**
-     * Retrieve product specific converter rule to convert PAPI ruletree into template and variable defs.
-     * @returns {*}
-     */
-    loadTemplateConverterRules() {
-        return this.project.loadAndSubstituteProjectResourceData("template.converter.data.json", {
-            environment: this
-        });
-    }
-
-    /**
-     * Create template from ruleTree
-     * @param ruleTree {object}
-     * @param isNewProperty {boolean} is this for a new property, defaults to true
-     * @param variableValuesOnly {boolean} do we only want variables values but not the definitions (because they already exist)
-     */
-    createTemplate(ruleTree, isNewProperty = true, variableValuesOnly = false) {
+    setupEnvRuleFormat(ruleTree) {
+        let envInfo = this.getEnvironmentInfo();
         if (_.isString(ruleTree.ruleFormat) && ruleTree.ruleFormat !== "latest") {
-            let envInfo = this.getEnvironmentInfo();
             envInfo.suggestedRuleFormat = ruleTree.ruleFormat;
             this.storeEnvironmentInfo(envInfo);
         }
-        let productId = this.project.getProjectInfo().productId;
-        let template = this.getTemplate(ruleTree, this.loadTemplateConverterRules(), productId, isNewProperty);
-        let templateData = template.process();
-        if (!variableValuesOnly) {
-            this.project.storeTemplate("main.json", templateData.main);
-            _.each(templateData.templates, (value, key) => {
-                this.project.storeTemplate(key, value);
-            }, this);
-            this.project.storeVariableDefinitions(templateData.variables);
-        }
-        this.project.storeEnvironmentVariableValues(templateData.envVariables, this.name);
     }
 
     /**
@@ -405,6 +442,22 @@ class Environment {
                 let path = error.location.slice(1); //get rid of the '/' part
                 error.location = this.resolvePath(path);
             }
+            if (error.added) {
+                for (let added of error.added) {
+                    if (added.location) {
+                        let path = added.location.slice(2); //get rid of the '#/' part
+                        added.location = this.resolvePath(path);
+                    }
+                }
+            }
+            if (error.removed) {
+                for (let removed of error.removed) {
+                    if (removed.location) {
+                        let path = removed.location.slice(2); //get rid of the '#/' part
+                        removed.location = this.resolvePath(path);
+                    }
+                }
+            }
         }
     }
 
@@ -462,7 +515,7 @@ class Environment {
     }
 
     /**
-     * Merge tempate with environment specific variables.
+     * Merge template with environment specific variables.
      * @returns {Promise.<void>}
      */
     async merge(validate = true) {
@@ -523,8 +576,6 @@ class Environment {
     async _checkLatestVersion(envInfo) {
         let latest = envInfo.latestVersionInfo;
         if (this.isLocked()) {
-            this._checkForPending(envInfo, Network.STAGING);
-            this._checkForPending(envInfo, Network.PRODUCTION);
             let newVersionData = await this.getPAPI().createNewPropertyVersion(envInfo.propertyId, latest.propertyVersion, latest.etag);
             let versionId = Environment._extractVersionId(newVersionData);
             let versionInfo = await this.getPAPI().getPropertyVersion(envInfo.propertyId, versionId);
@@ -556,14 +607,23 @@ class Environment {
             await this._checkLatestVersion(envInfo);
         }
         if (!envInfo.lastSavedHash || envInfo.lastSavedHash !== envInfo.environmentHash) {
-            let response = await papi.storePropertyVersionRules(envInfo.propertyId,
-                envInfo.latestVersionInfo.propertyVersion, ruleTree, envInfo.suggestedRuleFormat);
-            envInfo.latestVersionInfo.etag = response.etag;
-            envInfo.lastSavedHash = envInfo.environmentHash;
-            envInfo.lastValidatedHash = envInfo.environmentHash;
-            results.storedRules = true;
-            this.processValidationResults(envInfo, response, results);
-            this.storeEnvironmentInfo(envInfo);
+            try {
+                let response = await papi.storePropertyVersionRules(envInfo.propertyId,
+                    envInfo.latestVersionInfo.propertyVersion, ruleTree, envInfo.suggestedRuleFormat);
+                envInfo.latestVersionInfo.etag = response.etag;
+                envInfo.lastSavedHash = envInfo.environmentHash;
+                envInfo.lastValidatedHash = envInfo.environmentHash;
+                results.storedRules = true;
+                this.processValidationResults(envInfo, response, results);
+                this.storeEnvironmentInfo(envInfo);
+            } catch (error) {
+                if (error instanceof errors.RestApiError) {
+                    this.processValidationResults(envInfo, error.args[1], results);
+                    this.storeEnvironmentInfo(envInfo);
+                } else {
+                    throw error;
+                }
+            }
         }
         const hostnames = this.getHostnames();
         let hostnamesHash = helpers.createHash(hostnames);
@@ -572,7 +632,7 @@ class Environment {
             this.checkForLastSavedHostnameErrors(envInfo, results);
             if (results.edgeHostnames.errors.length === 0) {
                 await papi.storePropertyVersionHostnames(envInfo.propertyId,
-                    envInfo.latestVersionInfo.propertyVersion, hostnames);
+                    envInfo.latestVersionInfo.propertyVersion, hostnames, this.project.getProjectInfo().contractId, envInfo.groupId);
                 results.storedHostnames = true;
             }
             hostnamesHash = helpers.createHash(hostnames);
@@ -616,15 +676,18 @@ class Environment {
                 "activation_pending_error", network, envInfo.pendingActivations[network]);
         }
     }
+
     /**
      * Promote environment to Akamai network by activating the underlying property
      * @param network {string} needs to be exactly "STAGING" or "PRODUCTION"
      * @param emails {list<string>} list of email addresses
+     * @param message {string} promotion message sent to the activation backend
      * @return {Promise.<{envInfo: *, pending: {network: *, activationId: Number}}>}
      */
-    async promote(network, emails) {
+    async promote(network, emails, message) {
         this.checkValidNetwork(network);
         let envInfo = this.getEnvironmentInfo();
+        await this.checkPromotions();
         this._checkForPending(envInfo, network);
         await this.save();
         this.checkForLastSavedValidationResults(envInfo);
@@ -644,7 +707,7 @@ class Environment {
         }
 
         let result = await this.getPAPI().activateProperty(envInfo.propertyId,
-            envInfo.latestVersionInfo.propertyVersion, network, Array.from(emails));
+            envInfo.latestVersionInfo.propertyVersion, network, Array.from(emails), message);
         let activationId = Environment._extractActivationId(result);
         if (network === Network.STAGING) {
             envInfo.latestVersionInfo.stagingStatus = Status.PENDING;
@@ -676,7 +739,8 @@ class Environment {
     }
 
     _statusIsFinal(status) {
-        return status === Status.ACTIVE || status === Status.FAILED || status === Status.ABORTED;
+        return status === Status.ACTIVE || status === Status.FAILED ||
+            status === Status.ABORTED || status === Status.DEACTIVATED || status === Status.INACTIVE;
     }
 
     getPromotionStatus() {

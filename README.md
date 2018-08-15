@@ -18,21 +18,11 @@
 
 # Overview 
 
-The Promotional Deployment CLI lets you leverage your configurations as code snippets and promote changes to Akamai properties across your local environments without manually updating each property on each environment. 
-
-It focuses on four primary benefits:
-1.	A CLI based interface ensures portability across any type of environment
-2.	Local configuration snippets enables many teams to own and work on different parts of their configuration file independently in parallel
-3.	A client side validation engine enables users to instantly validate their configuration syntax locally 
-4.	Client side tokenization enables you to tokenize any attribute within their configuration file, vary this between environments, and automate your entire configuration build process
+The Promotional Deployment CLI lets you promote changes to Akamai properties across your local environments without manually updating each property on each environment. 
 
 With this client-side application, you set up a pipeline, which is a linked and ordered chain of environments. A pipeline represents the order in which changes are deployed. A typical pipeline starts with local development environments, moves to local QA environments, then finishes with your production environment. The number of environments you deploy to depends on your organization’s particular needs.
 
 **Note:** For information about all available CLI commands, see the [Promotional Deployment CLI Command Help](docs/cli_command_help.md). 
-
-# Stay Up To Date
-To make sure you always use the latest version of the CLI, run this command: 
-akamai update promotional-deployment
 
 # Sample workflow
 
@@ -46,7 +36,7 @@ Here’s a typical workflow for Promotional Deployment pipelines once you instal
 
     * the names of each applicable environment. **Note:** The new pipeline adds one new Akamai property for each environment. The naming convention of the property is `<environment_name>.<pipeline_name>`.  
 
-    * (Optional) the ID of an existing property to use as a template for the pipeline. (this option obviates the need for any account specific information)
+    * (Optional) the ID of an existing property to use as a template for the pipeline. 
 
 2. In the pipeline’s environments folder, edit the `variableDefinitions.json` file to reflect the attributes shared across the pipeline. 
 
@@ -66,9 +56,7 @@ In order to start using Promotional Deployment, you have to complete these tasks
 
 * Verify you have a Unix-like shell environment, like those available with Mac OS X, Linux, and similar operating systems.
 
-* Set up your credential files as described in the Get Started guide on developer.akamai.com.
-
-* Give grants for the Property Manager API. The section in your configuration file should be called 'papi' unless you would like to pass the section name in every command using the --section option.
+* Set up your OPEN API by [authorizing your client](https://developer.akamai.com/introduction/Prov_Creds.html) and [configuring your credentials](https://developer.akamai.com/introduction/Conf_Client.html) for the [Property Manager API (PAPI)](https://developer.akamai.com/api/luna/papi/overview.html). 
 
 * Install the [Akamai CLI tool](https://github.com/akamai/cli).
 
@@ -85,7 +73,11 @@ Here’s how to install Promotional Deployment:
 1. Create a project folder under your user home directory: `mkdir <folder_name>`. For example: 
 `mkdir promotional_deployment`. <br> You’ll run Promotional Deployment CLI commands from this folder, which also contains the default values for the CLI and a separate subdirectory for each pipeline you create. 
 
-2. Run this promotional deployment package installation command: `akamai install promotional-deployment`.
+2. During the beta period, run this installation command: 
+`akamai install https://<githubusername>:<githubpasswd>@github.com/akamai/cli-promotional-deployment.git`
+<br>For example: `akamai install https://John123:password234@github.com/akamai/cli-promotional-deployment.git`
+<br>
+**Note:** After the beta, the installation command will be `akamai install promotional-deployment`.
 
 3. Verify that the CLI is set up for your OPEN API permissions:
 
@@ -201,135 +193,26 @@ Once you make changes to your pipeline, you can save and promote those changes t
 
 To save and promote changes:
 
-1. Make your configuration change within the desired snippet inside your templates folder. This folder contains JSON snippets for the top-level rules in your property’s configuration.
+1. Make your configuration change within the desired snippet inside your templates folder. This folder contains JSON snippets for the top-level rules in your property’s configuration. 
 
-2. Save and validate your configuration change syntax instantly your templates folder using `akamai pd save -p <pipelineName> -n <network> <environment_name>`. 
-<br>
-For example: `akamai pd save -p MyPipeline123 -n PROD qa jsmith@example.com`
-<br>
-
-3. Promote the change to the first environment in your pipeline: `akamai pd promote -p <pipelineName> -n <network> <environment_name> <notification_emails>`. 
+2. Promote the change to the first environment in your pipeline: `akamai pd promote -p <pipelineName> -n <network> <environment_name> <notification_emails>`. 
 <br> The `<network>` value corresponds to Akamai’s staging and production networks. You can enter `STAGING` or `PROD` for this value.
 <br>
 For example: `akamai pd promote -p MyPipeline123 -n STAGING qa jsmith@example.com`
 <br>
 This command takes the values in the templates and variable files, creates a new set of rules for the property, then saves and activates the property version on the selected Akamai network. 
 
-4. Once the activation is complete, run the following command to make sure the pipeline reflects the latest activation status: `akamai pd cps <environment_name>`
+3. Once the activation is complete, run the following command to make sure the pipeline reflects the latest activation status: `akamai pd cs <environment_name>`
 <br> **Note:** You should receive an email once activation is complete. Activation times vary, so you may want to wait several minutes before attempting to run this command.
 
-5. Repeat steps 2 and 3 until you promote your changes to all environments in the pipeline. 
+4. Repeat steps 2 and 3 until you promote your changes to all environments in the pipeline. 
 
-6. Verify that the updates made it to all environments in the pipeline: 
+5. Verify that the updates made it to all environments in the pipeline: 
 `akamai pd lstat -p <pipelineName>`
 
-# Advanced Use Cases
+# Notice
 
-## Behaviors that vary across environments
-Since the Promotional Deployment CLI is a client only library, it lets you tokenize any attribute (default origins, CPCodes, H2 policy, Cloudlet policies device size, request cookies, etc) within your configuration file and make this different between your environments, For example, for testing purposes, you may want to have a behavior enabled on one environment, and disabled on another. 
-Say, for example, you have three test environments and you use the Forward Rewrite Cloudlet. You want to enable the Forward Rewrite behavior two environments and disable it on one. What do you need to do? 
+This document is provided for informational purposes only and shall not be construed as providing any 
+representation or guarantee as to the matters discussed. Akamai assumes no obligation to update or correct 
+any matters discussed in the document.
 
-Like many behaviors, those for Forward Rewrite and Cloudlets have a boolean enabled field, which is essentially an on/off switch. Here’s an example:
- 
-    {
-    "name": "forwardRewrite",
-      "options": {
-        "enabled": true,
-        "cloudletPolicy": {
-          "id": 12345,
-          "name": "some policy name"
-        }
-      }
-    }
-
-
-We need to change the value of enabled to a variable. We'll do this in 3 steps:
-
-
-Pick a variable name, like forwardRewriteEnabled, and add it to the variableDefinitions.json file:
- 
-       
-    {
-        "definitions": {
-            "forwardRewriteEnabled": {
-                "type": "boolean",
-                "default": true
-            },
-    ...
-       }
-    }
-
-
-In the variables.json file for each environment, add a new JSON variable with a valid value. In this example, the variable needs a boolean value.
- 
-    {
-    "forwardRewriteEnabled": false,
-    ...
-    } 
-
-
-In the property snippettemplate file, replace the boolean value with the variable expression using the env prefix, which represents the current environment:
- 
-         {
-         "name": "forwardRewrite",
-            "options": {
-       "enabled": "${env.forwardRewriteEnabled}", //notice type string!
-        "cloudletPolicy": {
-          "id": 12345,
-          "name": "some policy name"
-        }
-      }
-    }
-
-
-Run the merge command to apply and validate your changes: akamai pd merge -p <pipelineName>
-Save your changes and create a new version of the property: akamai pd save -p <pipelineName> <environment_name>
-Promote the change to the first environment in your pipeline: akamai pd promote -p <pipelineName> -n <network> -e <notification_emails> <environment_name>.
-Repeat steps 5 and 6 for each additional environment in the pipeline. 
-
-# Parallel development with Property Snippets
-
-The Promotional Deployment CLI retrieves your configuration locally and breaks it into a series of property snippets. These can be found under the ‘Snippets’ directory inside your pipeline directory structure.
-
-Property snippets are client-side <includes> that enable different teams or developers to own different parts of the configuration file. By default, a configuration file is broken into pre-defined snippets but you can add, remove, and modify as needed.
-
-Adding a new snippet
-Assume you are looking to add a new snippet Catalog.json owned by your Catalog team. This team is looking to control timeouts for the Catalog App within your organization. This requires the following two steps:
-
-1. Have a Catalog.json file ready and set permissions so only the Catalog team can modify this. The JSON snippet for this will be:
-
-         {
-              "name": "Catalog",
-              "children": [],
-              "behaviors": [
-                 {
-                     "name": "timeout",
-                     "options": {
-                     	"value": "5s"
-                     } } ],
-             "criteria": [
-                 {
-                     "name": "path",
-                     "options": {
-                     	"matchOperator": "MATCHES_ONE_OF",
-                     	"values": [
-                         	"/catalog/*"
-                     	],
-                     	"matchCaseSensitive": false
-                     } } ],
-             "criteriaMustSatisfy": "all"
-         }
-
-2. Include this snippet in the main.json file found in your Snippets directory using “#include:Catalog.json”
-
-As a best practice, the Catalog team works on this Snippet locally and copies it over the Snippets directory whenever a new change is ready. This unblocks other teams from deploying live changes. Once copied over, the team validates the syntax for any new change using ‘akamai pd save -p <pipeline_name> -e <environment_name>
-
-The ‘children’ section of the main.json file can be used to add, remove, and control the order in which Snippets are executed. Sub-snippets can also be worked on by leveraging a ‘children’ section in individual include files. In our example above, the Catalog.json file can include a SubCatalog.json file with path match set to “/catalog/subcatalog/*”
-
-
-
-
-# Precautions
-- Product id lets you associate properties with products it is not based off during 'create pipeline' Make sure you pick the right product associated with your property here to not run into trouble late ("SPM" = Ion, "Dynamic Site Del" = DSD, "Site_Accel" = DSA)
-
-- If you have Advanced Behaviors in your existing configuration, and need to pull down this config as a template, all Advanced Behaviors need to be converted to Custom Behaviors before getting started with the pipeline

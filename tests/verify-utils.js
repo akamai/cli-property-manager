@@ -24,27 +24,62 @@ const logger = require("./../src/logging")
 const Utils = require("../src/utils");
 
 class VerifyUtils extends Utils {
-    constructor() {
+    constructor(pretendEmtpy=false) {
         super();
+        this.pretendEmpty = pretendEmtpy;
+        this.fileCache = {};
     }
 
-    writeFile(fullpath, data) {
-        if (fs.existsSync(fullpath)) {
-            let expected = super.readFile(fullpath);
+    touch(path) {
+        this.fileCache[path] = true;
+    }
+
+    readJsonFile(path) {
+        if (this.pretendEmpty) {
+            if (this.fileCache[path] === undefined) {
+                throw new Error(`File '${path}' does not exist!`)
+            }
+        }
+        return super.readJsonFile(path);        
+    }
+
+    fileExists(path) {
+        if (this.pretendEmpty) {
+            if (this.fileCache[path] === undefined) {
+                return false;
+            }
+        }
+        return fs.existsSync(path);
+    }
+
+    readFile(path) {
+        if (this.pretendEmpty) {
+            if (this.fileCache[path] === undefined) {
+                throw new Error(`File '${path}' does not exist!`)
+            }
+        }
+        return fs.readFileSync(path, 'utf8');
+    }
+
+    writeFile(path, data) {
+        if (fs.existsSync(path)) {
+            let expected = super.readFile(path);
             assert.deepEqual(data, expected);
+            this.fileCache[path] = true;
         } else {
-            super.writeFile(fullpath, data);
-            assert.fail(true, false, `file: '${fullpath}' didn't exist, wrote it.`)
+            super.writeFile(path, data);
+            assert.fail(true, false, `file: '${path}' didn't exist, wrote it.`)
         }
     }
 
-    writeJsonFile(fullpath, data) {
-        if (fs.existsSync(fullpath)) {
-            let expected = super.readJsonFile(fullpath);
+    writeJsonFile(path, data) {
+        if (fs.existsSync(path)) {
+            this.fileCache[path] = true;
+            let expected = super.readJsonFile(path);
             assert.deepEqual(data, expected);
         } else {
-            super.writeJsonFile(fullpath, data);
-            assert.fail(true, false, `file: '${fullpath}' didn't exist, wrote it.`)
+            super.writeJsonFile(path, data);
+            assert.fail(true, false, `file: '${path}' didn't exist, wrote it.`)
         }
     }
 
@@ -52,6 +87,8 @@ class VerifyUtils extends Utils {
         if (!fs.existsSync(path)) {
             super.mkdir(path);
             assert.fail(true, false, `directory: '${path}' didn't exist, created it.`)
+        } else {
+            this.fileCache[path] = true;
         }
     }
 }

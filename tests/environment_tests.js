@@ -13,15 +13,15 @@
 //  limitations under the License.
 
 
-global.td = require('testdouble');
+const td = require('testdouble');
 const path = require('path');
 const chai = require('chai');
 const assert = chai.assert;
 
 const logger = require("../src/logging")
-    .consoleLogging()
     .createLogger("devops-prov.environment_tests");
-const throwsAsync = require("./testutils").throwsAsync;
+
+const {throwsAsync, equalIgnoreWhiteSpaces} = require("./testutils");
 
 const VerifyUtils = require('./verify-utils');
 const RoUtils = require('./ro-utils');
@@ -32,6 +32,7 @@ const Template = require('../src/template');
 const EL = require('../src/el');
 const errors = require('../src/errors');
 const helpers = require('../src/helpers');
+
 
 describe('Environment static function tests', function () {
     it('_extractPropertyId should be able to extract the propertyId ', function () {
@@ -77,12 +78,438 @@ describe('Environment static function tests', function () {
 
 });
 
+describe('Environment method unit tests', function() {
+    let papi;
+    let project;
+    let env;
+    let projectName = "unitTests.com";
+    before(function () {
+        project = td.object(['storeEnvironmentInfo', 'loadEnvironmentInfo', 'loadEnvironmentHostnames', 'getProjectInfo', 'getName']);
+        td.when(project.getProjectInfo()).thenReturn({
+            name: projectName,
+            productId: "WAA",
+            contractId: "BAZ234",
+            groupId: 666,
+            environments: ["qa", "stag", "prod"]
+        });
+        td.when(project.getName()).thenReturn(projectName);
+
+        papi = td.object(['createProperty', 'latestPropertyVersion']);
+        td.when(papi.createProperty("testenv." + projectName, "WAA", "BAZ234", 666)).thenReturn({
+            "propertyLink": "/papi/v0/properties/prp_410651?groupId=grp_61726&contractId=ctr_1-1TJZH5"
+        });
+        td.when(papi.latestPropertyVersion(410651)).thenReturn({
+            "propertyId": "410651",
+            "propertyName": "jmtestdevops1",
+            "accountId": "1-1TJZFB",
+            "contractId": "1-1TJZH5",
+            "groupId": "61726",
+            "assetId": "10501028",
+            "versions": {
+                "items": [
+                    {
+                        "propertyVersion": 1,
+                        "updatedByUser": "jpws7ubcv5jjsv37",
+                        "updatedDate": "2017-11-07T19:45:55Z",
+                        "productionStatus": "INACTIVE",
+                        "stagingStatus": "INACTIVE",
+                        "etag": "42f95e8b3cd22579a09cd68f27a477f53cfd2f5e",
+                        "productId": "Web_App_Accel",
+                        "ruleFormat": "latest"
+                    }
+                ]
+            }
+        });
+    });
+
+
+    it('environment is not pending', function () {
+        env = new Environment('qa', {
+            project: project,
+            getPAPI: function() {
+                return papi;
+            },
+            getTemplate: function(pmData, rules) {
+                return new Template(pmData, rules)
+            }
+        });
+
+        td.when(project.loadEnvironmentInfo("qa")).thenReturn({
+            "name": "qaa",
+            "propertyName": "qa.james-12",
+            "propertyId": 472716
+        });
+
+        assert.equal(env.isPendingPromotion(),false);
+    });
+
+    it('environment is pending', function () {
+        env = new Environment('qa', {
+            project: project,
+            getPAPI: function() {
+                return papi;
+            },
+            getTemplate: function(pmData, rules) {
+                return new Template(pmData, rules)
+            }
+        });
+
+        td.when(project.loadEnvironmentInfo("qa")).thenReturn({
+            "name": "qa",
+            "propertyName": "qa.james-12",
+            "propertyId": 472716,
+            "pendingActivations": {
+                "STAGING": 5867427
+            }
+        });
+
+        assert.equal(env.isPendingPromotion(), true);
+        assert.equal(env.isPendingPromotion("STAGING"), true);
+        assert.equal(env.isPendingPromotion("PRODUCTION"), false);
+
+        env = new Environment('stag', {
+            project: project,
+            getPAPI: function() {
+                return papi;
+            },
+            getTemplate: function(pmData, rules) {
+                return new Template(pmData, rules)
+            }
+        });
+
+        td.when(project.loadEnvironmentInfo("stag")).thenReturn({
+            "name": "stag",
+            "propertyName": "qa.james-12",
+            "propertyId": 472716,
+            "pendingActivations": {
+                "PRODUCTION": 5867427
+            }
+        });
+
+        assert.equal(env.isPendingPromotion(), true);
+        assert.equal(env.isPendingPromotion("PRODUCTION"), true);
+        assert.equal(env.isPendingPromotion("STAGING"), false);
+
+    });
+
+    it('environment is active', function () {
+        env = new Environment('qa', {
+            project: project,
+            getPAPI: function() {
+                return papi;
+            },
+            getTemplate: function(pmData, rules) {
+                return new Template(pmData, rules)
+            }
+        });
+
+        td.when(project.loadEnvironmentInfo("qa")).thenReturn({
+            "name": "qa",
+            "propertyName": "qa.james-12",
+            "propertyId": 472716,
+            "latestVersionInfo": {
+                "propertyVersion": 18,
+                "updatedByUser": "gemv4gsgtxnhgza3",
+                "updatedDate": "2018-06-19T16:58:50Z",
+                "productionStatus": "INACTIVE",
+                "stagingStatus": "ACTIVE",
+                "etag": "381adc2d64d98ff5a05f76812c849e75cb15a2a2",
+                "productId": "prd_Web_App_Accel",
+                "ruleFormat": "v2018-02-27"
+            },
+            "activeIn_STAGING_Info": {
+                "propertyVersion": 18,
+                "updatedByUser": "gemv4gsgtxnhgza3",
+                "updatedDate": "2018-06-19T16:58:50Z",
+                "productionStatus": "INACTIVE",
+                "stagingStatus": "ACTIVE",
+                "etag": "381adc2d64d98ff5a05f76812c849e75cb15a2a2",
+                "productId": "prd_Web_App_Accel",
+                "ruleFormat": "v2018-02-27"
+            },
+            "activeIn_PRODUCTION_Info": {
+                "propertyVersion": 18,
+                "updatedByUser": "gemv4gsgtxnhgza3",
+                "updatedDate": "2018-06-19T16:58:50Z",
+                "productionStatus": "INACTIVE",
+                "stagingStatus": "ACTIVE",
+                "etag": "381adc2d64d98ff5a05f76812c849e75cb15a2a2",
+                "productId": "prd_Web_App_Accel",
+                "ruleFormat": "v2018-02-27"
+            }
+        });
+
+        assert.equal(env.isActive("PRODUCTION"), true);
+        assert.equal(env.isActive("STAGING"), true);
+    });
+
+    it('environment is not active because of no active items', function () {
+        env = new Environment('qa', {
+            project: project,
+            getPAPI: function() {
+                return papi;
+            },
+            getTemplate: function(pmData, rules) {
+                return new Template(pmData, rules)
+            }
+        });
+
+        td.when(project.loadEnvironmentInfo("qa")).thenReturn({
+            "name": "qa",
+            "propertyName": "qa.james-12",
+            "propertyId": 472716
+        });
+
+        assert.equal(env.isActive("PRODUCTION"), false);
+        assert.equal(env.isActive("STAGING"), false);
+    });
+
+    it('environment is not active because items are pending', function () {
+        env = new Environment('qa', {
+            project: project,
+            getPAPI: function() {
+                return papi;
+            },
+            getTemplate: function(pmData, rules) {
+                return new Template(pmData, rules)
+            }
+        });
+
+        td.when(project.loadEnvironmentInfo("qa")).thenReturn({
+            "name": "qa",
+            "propertyName": "qa.james-12",
+            "propertyId": 472716,
+            "latestVersionInfo": {
+                "propertyVersion": 18,
+                "updatedByUser": "gemv4gsgtxnhgza3",
+                "updatedDate": "2018-06-19T16:58:50Z",
+                "productionStatus": "INACTIVE",
+                "stagingStatus": "ACTIVE",
+                "etag": "381adc2d64d98ff5a05f76812c849e75cb15a2a2",
+                "productId": "prd_Web_App_Accel",
+                "ruleFormat": "v2018-02-27"
+            },
+            "activeIn_STAGING_Info": {
+                "propertyVersion": 18,
+                "updatedByUser": "gemv4gsgtxnhgza3",
+                "updatedDate": "2018-06-19T16:58:50Z",
+                "productionStatus": "INACTIVE",
+                "stagingStatus": "ACTIVE",
+                "etag": "381adc2d64d98ff5a05f76812c849e75cb15a2a2",
+                "productId": "prd_Web_App_Accel",
+                "ruleFormat": "v2018-02-27"
+            },
+            "activeIn_PRODUCTION_Info": {
+                "propertyVersion": 4,
+                "updatedByUser": "gemv4gsgtxnhgza3",
+                "updatedDate": "2018-06-12T15:43:35Z",
+                "productionStatus": "ACTIVE",
+                "stagingStatus": "DEACTIVATED",
+                "etag": "677646b7fa5aefe24dcf9ee54b21f79cdc46aac2",
+                "productId": "prd_Web_App_Accel",
+                "ruleFormat": "v2018-02-27"
+            },"pendingActivations": {
+                "PRODUCTION": 5867427
+            }
+        });
+
+        assert.equal(env.isActive("PRODUCTION"), false);
+        assert.equal(env.isActive("STAGING"), true);
+
+        env = new Environment('stag', {
+            project: project,
+            getPAPI: function() {
+                return papi;
+            },
+            getTemplate: function(pmData, rules) {
+                return new Template(pmData, rules)
+            }
+        });
+
+        td.when(project.loadEnvironmentInfo("stag")).thenReturn({
+            "name": "stag",
+            "propertyName": "qa.james-12",
+            "propertyId": 472716,
+            "latestVersionInfo": {
+                "propertyVersion": 4,
+                "updatedByUser": "gemv4gsgtxnhgza3",
+                "updatedDate": "2018-06-12T15:43:35Z",
+                "productionStatus": "ACTIVE",
+                "stagingStatus": "DEACTIVATED",
+                "etag": "677646b7fa5aefe24dcf9ee54b21f79cdc46aac2",
+                "productId": "prd_Web_App_Accel",
+                "ruleFormat": "v2018-02-27"
+            },
+            "activeIn_STAGING_Info": {
+                "propertyVersion": 18,
+                "updatedByUser": "gemv4gsgtxnhgza3",
+                "updatedDate": "2018-06-19T16:58:50Z",
+                "productionStatus": "INACTIVE",
+                "stagingStatus": "ACTIVE",
+                "etag": "381adc2d64d98ff5a05f76812c849e75cb15a2a2",
+                "productId": "prd_Web_App_Accel",
+                "ruleFormat": "v2018-02-27"
+            },
+            "activeIn_PRODUCTION_Info": {
+                "propertyVersion": 4,
+                "updatedByUser": "gemv4gsgtxnhgza3",
+                "updatedDate": "2018-06-12T15:43:35Z",
+                "productionStatus": "ACTIVE",
+                "stagingStatus": "DEACTIVATED",
+                "etag": "677646b7fa5aefe24dcf9ee54b21f79cdc46aac2",
+                "productId": "prd_Web_App_Accel",
+                "ruleFormat": "v2018-02-27"
+            },
+            "pendingActivations": {
+                "STAGING": 5867427
+            }
+        });
+
+        assert.equal(env.isActive("PRODUCTION"), true);
+        assert.equal(env.isActive("STAGING"), false);
+
+    });
+
+    it('environment is not active because items saved but not promoted', function () {
+        env = new Environment('qa', {
+            project: project,
+            getPAPI: function() {
+                return papi;
+            },
+            getTemplate: function(pmData, rules) {
+                return new Template(pmData, rules)
+            }
+        });
+
+        td.when(project.loadEnvironmentInfo("qa")).thenReturn({
+            "name": "qa",
+            "propertyName": "qa.james-12",
+            "propertyId": 472716,
+            "latestVersionInfo": {
+                "propertyVersion": 19,
+                "updatedByUser": "gemv4gsgtxnhgza3",
+                "updatedDate": "2018-06-19T16:58:50Z",
+                "productionStatus": "INACTIVE",
+                "stagingStatus": "INACTIVE",
+                "etag": "abcbababababab",
+                "productId": "prd_Web_App_Accel",
+                "ruleFormat": "v2018-02-27"
+            },
+            "activeIn_STAGING_Info": {
+                "propertyVersion": 18,
+                "updatedByUser": "gemv4gsgtxnhgza3",
+                "updatedDate": "2018-06-19T16:58:50Z",
+                "productionStatus": "INACTIVE",
+                "stagingStatus": "ACTIVE",
+                "etag": "381adc2d64d98ff5a05f76812c849e75cb15a2a2",
+                "productId": "prd_Web_App_Accel",
+                "ruleFormat": "v2018-02-27"
+            },
+            "activeIn_PRODUCTION_Info": {
+                "propertyVersion": 4,
+                "updatedByUser": "gemv4gsgtxnhgza3",
+                "updatedDate": "2018-06-12T15:43:35Z",
+                "productionStatus": "ACTIVE",
+                "stagingStatus": "DEACTIVATED",
+                "etag": "677646b7fa5aefe24dcf9ee54b21f79cdc46aac2",
+                "productId": "prd_Web_App_Accel",
+                "ruleFormat": "v2018-02-27"
+            }
+        });
+
+        assert.equal(env.isActive("PRODUCTION"), false);
+        assert.equal(env.isActive("STAGING"), false);
+
+        env = new Environment('stag', {
+            project: project,
+            getPAPI: function() {
+                return papi;
+            },
+            getTemplate: function(pmData, rules) {
+                return new Template(pmData, rules)
+            }
+        });
+
+        td.when(project.loadEnvironmentInfo("stag")).thenReturn({
+            "name": "stag",
+            "propertyName": "qa.james-12",
+            "propertyId": 472716,
+            "latestVersionInfo": {
+                "propertyVersion": 19,
+                "updatedByUser": "gemv4gsgtxnhgza3",
+                "updatedDate": "2018-06-12T15:43:35Z",
+                "productionStatus": "INACTIVE",
+                "stagingStatus": "INACTIVE",
+                "etag": "ababcbba",
+                "productId": "prd_Web_App_Accel",
+                "ruleFormat": "v2018-02-27"
+            },
+            "activeIn_STAGING_Info": {
+                "propertyVersion": 18,
+                "updatedByUser": "gemv4gsgtxnhgza3",
+                "updatedDate": "2018-06-19T16:58:50Z",
+                "productionStatus": "INACTIVE",
+                "stagingStatus": "ACTIVE",
+                "etag": "381adc2d64d98ff5a05f76812c849e75cb15a2a2",
+                "productId": "prd_Web_App_Accel",
+                "ruleFormat": "v2018-02-27"
+            },
+            "activeIn_PRODUCTION_Info": {
+                "propertyVersion": 4,
+                "updatedByUser": "gemv4gsgtxnhgza3",
+                "updatedDate": "2018-06-12T15:43:35Z",
+                "productionStatus": "ACTIVE",
+                "stagingStatus": "DEACTIVATED",
+                "etag": "677646b7fa5aefe24dcf9ee54b21f79cdc46aac2",
+                "productId": "prd_Web_App_Accel",
+                "ruleFormat": "v2018-02-27"
+            }
+        });
+
+        assert.equal(env.isActive("PRODUCTION"), false);
+        assert.equal(env.isActive("STAGING"), false);
+    });
+
+    it('environment is not dirty', function () {
+        env = new Environment('qa', {
+            project: project,
+            getPAPI: function() {
+                return papi;
+            },
+            getTemplate: function(pmData, rules) {
+                return new Template(pmData, rules)
+            }
+        });
+
+        var merge = td.function("merge");
+        env.merge = merge;
+        td.when(project.loadEnvironmentInfo("qa")).thenReturn({
+            "name": "qa",
+            "propertyName": "qa.james-12",
+            "propertyId": 472716,
+            "environmentHash": "8355744c4e4b866c697a11d825bdf8659069a791ac95b8e55e71cea79cced42e",
+            "lastSavedHash": "8355744c4e4b866c697a11d825bdf8659069a791ac95b8e55e71cea79cced42e",
+            "lastSavedHostnamesHash": "6cc43f858fbb763301637b5af970e2a46b46f461f27e5a0f41e009c59b827b25"
+
+        });
+        //the "hostname" abc will eventually be hashed, and should match the "lastSavedHostnamesHash"
+        td.when(project.loadEnvironmentHostnames(td.matchers.anything())).thenReturn("abc");
+
+        assert.equal(env.isDirty(),false);
+        td.verify(env.merge(false));
+
+    });
+
+
+
+});
+
 describe('Create environment tests', function () {
     let papi;
     let project;
     let projectName = "awesomeproject.com";
     before(function () {
-        project = td.object(['storeEnvironmentInfo', 'loadEnvironmentInfo', 'getProjectInfo', 'getName']);
+        project = td.object(['storeEnvironmentInfo', 'storeEnvironmentHostnames', 'loadEnvironmentInfo', 'getProjectInfo', 'getName']);
         td.when(project.getProjectInfo()).thenReturn({
             name: projectName,
             productId: "WAA",
@@ -131,7 +558,13 @@ describe('Create environment tests', function () {
                 return new Template(pmData, rules)
             }
         });
-        await env.create();
+        await env.create({
+            isInRetryMode: false,
+            environmentGroupIds: {
+                testenv: 666
+            },
+            secureOption: false
+        });
         td.verify(project.storeEnvironmentInfo(td.matchers.contains({
             name: "testenv",
             propertyId: 410651,
@@ -149,7 +582,7 @@ describe('Create environment tests', function () {
         })));
     });
 
-    it('create Environment template', function () {
+    it('create Environment template', async function () {
         let utils = createOverlayUtils(VerifyUtils, function (path, data) {
             if (path.endsWith("variableDefinitions.json")) {
                 data.definitions.cpCode.default = 98765;
@@ -167,7 +600,14 @@ describe('Create environment tests', function () {
             },
             getEL: function (context, loadFunction) {
                 return new EL(context, loadFunction)
+            },
+            getEnvironment: function(name, dependencies) {
+                return env;
+            },
+            getTemplate: function(pmData, rules) {
+                return new Template(pmData, rules)
             }
+
         });
         myProject.projectInfo = {
             productId: "Web_App_Accel"
@@ -176,15 +616,172 @@ describe('Create environment tests', function () {
             project: myProject,
             getPAPI: function () {
                 return papi;
-            },
-            getTemplate: function(pmData, rules) {
-                return new Template(pmData, rules)
             }
         });
         let testRuleTree = utils.readJsonFile(path.join(__dirname, "testdata", "testruletree.waa.json"));
-        env.createTemplate(testRuleTree);
+        await myProject.setupPropertyTemplate(testRuleTree);
     });
 });
+
+describe('create edgehostname tests', function () {
+    let papi, project, devOps, qaEnvironment;
+    let utils = new RoUtils();
+
+    before(function () {
+        devOps = {
+            "devopsHome": __dirname
+        };
+        papi = td.object(['createEdgeHostname', 'listEdgeHostnames']);
+        td.when(papi.createEdgeHostname("1-1TJZH5", 61726, td.matchers.isA(Object))).thenReturn(    {
+                edgeHostnameLink: '/papi/v0/edgehostnames/2683119?contractId=1-1TJZH5&groupId=61726'
+            }
+        );
+
+        let edgeHostnames = utils.readJsonFile(path.join(__dirname, "testdata", "edgeHostnames.json"));
+        td.when(papi.listEdgeHostnames("1-1TJZH5", 61726)).thenReturn(edgeHostnames);
+
+        project = new Project("hostnameTests.com", {
+            devops: devOps,
+            getUtils: function () {
+                return utils;
+            }
+        });
+
+        qaEnvironment = new Environment('qa', {
+            project: project,
+            shouldProcessPapiErrors: true,
+            getPAPI: function () {
+                return papi;
+            }
+        });
+    });
+
+    it('createEdgeHostnames all tests', async function () {
+        let reportData = await qaEnvironment.createEdgeHostnames(qaEnvironment.getHostnames());
+        assert.deepEqual(reportData, {
+            "errors": [
+                {
+                    "edgehostname": null,
+                    "message": "hostname.cnameTo can not be set to null",
+                    "messageId": "null_hostname_cnameTo",
+                },
+                {
+                    "edgehostname": "qa.notfound.com.edgekey.net",
+                    "message": "'qa.notfound.com.edgekey.net' is not a supported edge hostname for creation, only edge hostnames under 'edgesuite.net' domain can be created. Please create manually",
+                    "messageId": "unsupported_edgehostname",
+                }
+            ],
+            "hostnamesCreated": [
+                {
+                    "id": 2683119,
+                    "name": "qa.testproject.com.edgesuite.net"
+                }
+            ],
+            "hostnamesFound": [
+                {
+                    "id": 2922843,
+                    "name": "qa.securesite.com.edgekey.net"
+                }
+            ]
+        });
+        let hostnames = utils.readJsonFile(path.join(__dirname, "hostnameTests.com/environments/qa/hostnames.json"));
+        assert.strictEqual(hostnames[0].edgeHostnameId, 2683119);
+        assert.strictEqual(hostnames[1].edgeHostnameId, 2922843);
+    });
+});
+
+
+describe('Environment save with errors test', function () {
+    let papi, merger, project, devOps, qaEnvironment;
+    let utils = new RoUtils();
+
+    before(function () {
+        devOps = {
+            "devopsHome": __dirname
+        };
+
+        project = new Project("testproject.com", {
+            devops: devOps,
+            getUtils: function () {
+                return utils;
+            }
+        });
+
+        merger = td.object(['merge', 'resolvePath']);
+
+        td.when(merger.merge("main.json")).thenReturn({
+            "hash": "33e96e8ff7288ead357e4e866da601cddb3c73e23e9e495665e001b7e1c32d31",
+            "ruleTreeHash": "6ac5ef477dbdc1abbc1c8957a0b6faef28f9d21b2f92e5771f29391da00a7744",
+            "ruleTree": utils.readJsonFile(path.join(__dirname, "testproject.com", "dist", "qa.testproject.com.papi.json"))
+        });
+
+        td.when(merger.resolvePath("rules/behaviors/1/options/value/id", "main.json")).thenReturn({
+            template: "templates/main.json",
+            variables: [
+                "environments/qa/variables.json"
+            ],
+            location: "rules/behaviors/1/options/value/id",
+            value: "9876543"
+        });
+
+        papi = td.object(['storePropertyVersionRules']);
+
+        td.when(papi.storePropertyVersionRules(411089, 1, td.matchers.isA(Object), td.matchers.anything()))
+            .thenThrow(new errors.RestApiError("error message", "api_client_error", 400, {
+                "type": "https://problems.luna.akamaiapis.net/papi/v0/json-schema-invalid",
+                "title": "Input does not match schema",
+                "status": 400,
+                "detail": "Your input has a syntax problem.  Please double check against the schema.",
+                "instance": "https://akaa-tatppzhhc4l6xvmi-baxl5ufbibzjxtmb.luna-dev.akamaiapis.net/papi/v0/properties/470629/versions/1/rules#6054d222-c3a8-4b44-94ac-3d24c40a446f",
+                "schemaLink": "/papi/v0/schemas/products/prd_Web_App_Accel/v2018-02-27",
+                "errors": [
+                    {
+                        "location" : "/rules/behaviors/1/options/value/id",
+                        "schemaLocation" : "/definitions/catalog/option_types/cpcode/properties/id",
+                        "detail" : "instance type (string) does not match any allowed primitive type (allowed: [\"integer\",\"number\"])",
+                        "foundType" : "string",
+                        "allowedTypes" : [ "integer", "number" ]
+                    }
+                ]
+            }));
+
+
+        qaEnvironment = new Environment('qa', {
+            project: project,
+            shouldProcessPapiErrors: true,
+            getPAPI: function () {
+                return papi;
+            },
+            getMerger: function () {
+                return merger;
+            }
+        });
+    });
+
+
+    it('save test with exception', async function () {
+        let results = await qaEnvironment.save();
+        assert.deepEqual(results.validationErrors, [
+        {
+            location: {
+                template: "templates/main.json",
+                variables: [
+                    "environments/qa/variables.json"
+                ],
+                location: "rules/behaviors/1/options/value/id",
+                value: "9876543"
+            },
+            schemaLocation: "/definitions/catalog/option_types/cpcode/properties/id",
+            detail: "instance type (string) does not match any allowed primitive type (allowed: [\"integer\",\"number\"])",
+            foundType: "string",
+            allowedTypes: [
+                "integer",
+                    "number"
+                ]
+        }]);
+    });
+});
+
 
 /**
  * These tests need to be run in the order they show up in the code.
@@ -322,15 +919,15 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
             }
         });
 
-        td.when(papi.activateProperty(411089, 1, "STAGING", ['foo@bar.com'])).thenReturn({
+        td.when(papi.activateProperty(411089, 1, "STAGING", ['foo@bar.com'], "Message")).thenReturn({
             "activationLink" : "/papi/v0/properties/411089/activations/5355264"
         });
 
-        td.when(papi.activateProperty(411089, 1, "PRODUCTION", ['foo@bar.com'])).thenReturn({
+        td.when(papi.activateProperty(411089, 1, "PRODUCTION", ['foo@bar.com'], "Message")).thenReturn({
             "activationLink" : "/papi/v0/properties/411089/activations/5355557"
         });
 
-        td.when(papi.activateProperty(411089, 2, "PRODUCTION", ['foo@bar.com'])).thenReturn({
+        td.when(papi.activateProperty(411089, 2, "PRODUCTION", ['foo@bar.com'], "Message")).thenReturn({
             "activationLink" : "/papi/v0/properties/411089/activations/5355558"
         });
 
@@ -560,7 +1157,7 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
     });
 
     it('promote test staging', async function () {
-        let result = await qaEnvironment.promote("STAGING", ['foo@bar.com']);
+        let result = await qaEnvironment.promote("STAGING", ['foo@bar.com'], "Message");
         assert.deepEqual(result.pending, {
             network: "STAGING",
             activationId: 5355264
@@ -569,8 +1166,10 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
         assert.equal(envInfo.pendingActivations['STAGING'], 5355264);
         assert.deepEqual(envInfo, {
             name: "qa",
+            groupId: 61726,
             propertyName: "qa.testproject.com",
             propertyId: 411089,
+            isSecure: false,
             environmentHash: "33e96e8ff7288ead357e4e866da601cddb3c73e23e9e495665e001b7e1c32d31",
             lastSavedHash: "33e96e8ff7288ead357e4e866da601cddb3c73e23e9e495665e001b7e1c32d31",
             lastSavedHostnamesHash: "687372a29ed8ec68ae9977f6c6386ddbb8b9cb74ddbb76d2c97322d15bc27979",
@@ -651,8 +1250,10 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
         envInfo = utils.readJsonFile(path.join(__dirname, "testproject.com/environments/qa/envInfo.json"));
         assert.deepEqual(envInfo, {
             name: 'qa',
+            groupId: 61726,
             propertyName: 'qa.testproject.com',
             propertyId: 411089,
+            isSecure: false,
             environmentHash: "33e96e8ff7288ead357e4e866da601cddb3c73e23e9e495665e001b7e1c32d31",
             lastSavedHash: "33e96e8ff7288ead357e4e866da601cddb3c73e23e9e495665e001b7e1c32d31",
             lastSavedHostnamesHash: "687372a29ed8ec68ae9977f6c6386ddbb8b9cb74ddbb76d2c97322d15bc27979",
@@ -687,7 +1288,7 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
     });
 
     it('check production promotion failed activation test', async function () {
-        let promotionResult = await qaEnvironment.promote("PRODUCTION", ['foo@bar.com']);
+        let promotionResult = await qaEnvironment.promote("PRODUCTION", ['foo@bar.com'], "Message");
         assert.deepEqual(promotionResult.pending, {
             network: "PRODUCTION",
             activationId: 5355557
@@ -727,8 +1328,10 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
         envInfo = utils.readJsonFile(path.join(__dirname, "testproject.com/environments/qa/envInfo.json"));
         assert.deepEqual(envInfo, {
             name: 'qa',
+            groupId: 61726,
             propertyName: 'qa.testproject.com',
             propertyId: 411089,
+            isSecure: false,
             environmentHash: "33e96e8ff7288ead357e4e866da601cddb3c73e23e9e495665e001b7e1c32d31",
             lastSavedHash: "33e96e8ff7288ead357e4e866da601cddb3c73e23e9e495665e001b7e1c32d31",
             lastSavedHostnamesHash: "687372a29ed8ec68ae9977f6c6386ddbb8b9cb74ddbb76d2c97322d15bc27979",
@@ -765,7 +1368,7 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
         qaEnvironment.getEnvironmentInfo().latestVersionInfo.propertyVersion = 2;
         qaEnvironment.getEnvironmentInfo().latestVersionInfo.stagingStatus = "INACTIVE";
 
-        let result = await qaEnvironment.promote("PRODUCTION", ['foo@bar.com']);
+        let result = await qaEnvironment.promote("PRODUCTION", ['foo@bar.com'], "Message");
         assert.deepEqual(result.pending, {
             network: "PRODUCTION",
             activationId: 5355558
@@ -774,8 +1377,10 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
         assert.equal(envInfo.pendingActivations['PRODUCTION'], 5355558);
         assert.deepEqual(envInfo, {
             name: "qa",
+            groupId: 61726,
             propertyName: "qa.testproject.com",
             propertyId: 411089,
+            isSecure: false,
             environmentHash: "33e96e8ff7288ead357e4e866da601cddb3c73e23e9e495665e001b7e1c32d31",
             lastSavedHash: "33e96e8ff7288ead357e4e866da601cddb3c73e23e9e495665e001b7e1c32d31",
             lastSavedHostnamesHash: "687372a29ed8ec68ae9977f6c6386ddbb8b9cb74ddbb76d2c97322d15bc27979",
@@ -811,12 +1416,14 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
     });
 
     it('promote test production already active', async function () {
+        //The promote function now first immediately checksPromotion status in PAPI before checking if its pending
         return throwsAsync(function() {
-            return qaEnvironment.promote("PRODUCTION", ['foo@bar.com']);
-        }, "Error: Activation for 'PRODUCTION' network already pending");
+            return qaEnvironment.promote("PRODUCTION", ['foo@bar.com'], "Message");
+        }, "Error: Latest version already active in 'PRODUCTION' network");
     });
 
     it('check production promotion status test', async function () {
+        //The promotion updates is now blank, since the previous call "promote" now does a check promotions
         let results = await qaEnvironment.checkPromotions();
         assert.deepEqual(results, {
             "promotionStatus": {
@@ -824,30 +1431,16 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
                 "activeInStagingVersion": 1,
                 "latestVersion": 2
             },
-            "promotionUpdates": {
-                "PRODUCTION": {
-                    "activationId": "5355558",
-                    "activationType": "ACTIVATE",
-                    "network": "PRODUCTION",
-                    "note": "   ",
-                    "notifyEmails": [
-                        "j@m.com"
-                    ],
-                    "propertyId": "411089",
-                    "propertyName": "qa.devopsdemolive.com",
-                    "propertyVersion": 2,
-                    "status": "ACTIVE",
-                    "submitDate": "2018-01-26T18:26:38Z",
-                    "updateDate": "2018-01-26T18:26:56Z",
-                }
-            }
+            "promotionUpdates": {}
         });
 
         envInfo = utils.readJsonFile(path.join(__dirname, "testproject.com/environments/qa/envInfo.json"));
         assert.deepEqual(envInfo, {
             name: 'qa',
+            groupId: 61726,
             propertyName: 'qa.testproject.com',
             propertyId: 411089,
+            isSecure: false,
             environmentHash: "33e96e8ff7288ead357e4e866da601cddb3c73e23e9e495665e001b7e1c32d31",
             lastSavedHash: "33e96e8ff7288ead357e4e866da601cddb3c73e23e9e495665e001b7e1c32d31",
             lastSavedHostnamesHash: "687372a29ed8ec68ae9977f6c6386ddbb8b9cb74ddbb76d2c97322d15bc27979",
@@ -887,13 +1480,15 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
                 ruleFormat: 'latest'
             }
         });
-        assert.equal(qaEnvironment.isActive("STAGING"), true);
+        //This is now false, since the latest item is property version 2,
+        // implying that a change was saved but NOT promoted to staging
+        assert.equal(qaEnvironment.isActive("STAGING"), false);
         assert.equal(qaEnvironment.isActive("PRODUCTION"), true);
     });
 
     it('promote test production already active', async function () {
         return throwsAsync(function() {
-            return qaEnvironment.promote("PRODUCTION", ['foo@bar.com']);
+            return qaEnvironment.promote("PRODUCTION", ['foo@bar.com'], "Message");
         }, "Error: Latest version already active in 'PRODUCTION' network");
     });
 
@@ -1048,6 +1643,135 @@ describe('Environment merge and save new version after activation', function () 
         await qaEnvironment.merge();
         let results = await qaEnvironment.save();
         let envInfo = utils.readJsonFile(envInfoPath);
+        assert.equal(envInfo.latestVersionInfo.propertyVersion, 2);
+        assert.equal(envInfo.lastSavedHash, "33e96e8ff7288ead357e4e866da601cddb3c73e23e9e495665e001b7e1c32d31");
+        assert.equal(envInfo.lastSavedHostnamesHash, "687372a29ed8ec68ae9977f6c6386ddbb8b9cb74ddbb76d2c97322d15bc27979");
+    });
+});
+
+describe('Environment merge and save new version after abort', function () {
+    let papi, merger, project, devOps, qaEnvironment;
+    let utils = new RoUtils();
+
+    before(function () {
+        devOps = {
+            "devopsHome": __dirname
+        };
+
+        project = new Project("testproject.com", {
+            devops: devOps,
+            getUtils: function () {
+                return utils;
+            }
+        });
+
+        merger = td.object(['merge']);
+
+        td.when(merger.merge("main.json")).thenReturn({
+            "hash": "33e96e8ff7288ead357e4e866da601cddb3c73e23e9e495665e001b7e1c32d31",
+            "ruleTreeHash": "6ac5ef477dbdc1abbc1c8957a0b6faef28f9d21b2f92e5771f29391da00a7744",
+            "ruleTree": utils.readJsonFile(path.join(__dirname, "testproject.com", "dist", "qa.testproject.com.papi.json"))
+        });
+
+        papi = td.object(['validatePropertyVersionRules', 'setRuleFormat', 'storePropertyVersionHostnames',
+            'getPropertyVersion', 'listEdgeHostnames', 'storePropertyVersionRules', 'createNewPropertyVersion']);
+
+        let edgeHostnames = utils.readJsonFile(path.join(__dirname, "testdata", "edgeHostnames.json"));
+
+        td.when(papi.listEdgeHostnames("1-1TJZH5", 61726)).thenReturn(edgeHostnames);
+
+        td.when(papi.createNewPropertyVersion(411089, 1, "7cf327786d5a73aa6340452a064fb77589f750b0")).thenReturn(
+            {"versionLink" : "/papi/v0/properties/429569/versions/2"}
+        );
+
+        td.when(papi.getPropertyVersion(411089, 2)).thenReturn({
+            "propertyId": "411089",
+            "propertyName": "jmtestdevops1",
+            "accountId": "1-1TJZFB",
+            "contractId": "1-1TJZH5",
+            "groupId": "61726",
+            "assetId": "10501028",
+            "versions": {
+                "items": [
+                    {
+                        "propertyVersion": 2,
+                        "updatedByUser": "jpws7ubcv5jjsv37",
+                        "updatedDate": "2017-11-07T19:45:55Z",
+                        "productionStatus": "INACTIVE",
+                        "stagingStatus": "INACTIVE",
+                        "etag": "7cf327786d5a73aa6340452a064fb77589f750b0",
+                        "productId": "Web_App_Accel",
+                        "ruleFormat": "latest"
+                    }
+                ]
+            }
+        });
+
+        td.when(papi.storePropertyVersionRules(411089, 2, td.matchers.isA(Object), td.matchers.anything())).thenReturn({
+            "propertyVersion": 2,
+            "updatedByUser": "jpws7ubcv5jjsv37",
+            "updatedDate": "2017-11-13T21:49:05Z",
+            "productionStatus": "INACTIVE",
+            "stagingStatus": "INACTIVE",
+            "etag": "7cf327786d5a73aa6340452a064fb77589f750b0",
+            "productId": "Web_App_Accel",
+            "ruleFormat": "latest"
+        });
+
+
+        qaEnvironment = new Environment('qa', {
+            project: project,
+            getPAPI: function () {
+                return papi;
+            },
+            getMerger: function () {
+                return merger;
+            }
+        });
+
+
+        let hostnamesPath = path.join(__dirname, "testproject.com/environments/qa/hostnames.json");
+        let hostnames = utils.readJsonFile(hostnamesPath);
+        hostnames[0].edgeHostnameId = 2683119;
+        utils.writeJsonFile(hostnamesPath, hostnames);
+
+    });
+
+    it('save test, create new version after staging aborted', async function () {
+        let envInfoPath;
+        envInfoPath = path.join(__dirname, "testproject.com/environments/qa/envInfo.json");
+        let envInfo = utils.readJsonFile(envInfoPath);
+        envInfo.latestVersionInfo.stagingStatus = "ABORTED";
+        utils.writeJsonFile(envInfoPath, envInfo);
+
+        let ruleTree = utils.readJsonFile(path.join(__dirname, "testdata", "testruletree.waa.json"));
+        ruleTree.errors = [];
+        td.when(papi.validatePropertyVersionRules(411089, 2, td.matchers.isA(Object), td.matchers.anything())).thenReturn(
+            ruleTree
+        );
+        await qaEnvironment.merge();
+        let results = await qaEnvironment.save();
+        envInfo = utils.readJsonFile(envInfoPath);
+        assert.equal(envInfo.latestVersionInfo.propertyVersion, 2);
+        assert.equal(envInfo.lastSavedHash, "33e96e8ff7288ead357e4e866da601cddb3c73e23e9e495665e001b7e1c32d31");
+        assert.equal(envInfo.lastSavedHostnamesHash, "687372a29ed8ec68ae9977f6c6386ddbb8b9cb74ddbb76d2c97322d15bc27979");
+    });
+
+    it('save test, create new version after production aborted', async function () {
+        let envInfoPath;
+        envInfoPath = path.join(__dirname, "testproject.com/environments/qa/envInfo.json");
+        let envInfo = utils.readJsonFile(envInfoPath);
+        envInfo.latestVersionInfo.productionStatus = "ABORTED";
+        utils.writeJsonFile(envInfoPath, envInfo);
+
+        let ruleTree = utils.readJsonFile(path.join(__dirname, "testdata", "testruletree.waa.json"));
+        ruleTree.errors = [];
+        td.when(papi.validatePropertyVersionRules(411089, 2, td.matchers.isA(Object), td.matchers.anything())).thenReturn(
+            ruleTree
+        );
+        await qaEnvironment.merge();
+        let results = await qaEnvironment.save();
+        envInfo = utils.readJsonFile(envInfoPath);
         assert.equal(envInfo.latestVersionInfo.propertyVersion, 2);
         assert.equal(envInfo.lastSavedHash, "33e96e8ff7288ead357e4e866da601cddb3c73e23e9e495665e001b7e1c32d31");
         assert.equal(envInfo.lastSavedHostnamesHash, "687372a29ed8ec68ae9977f6c6386ddbb8b9cb74ddbb76d2c97322d15bc27979");

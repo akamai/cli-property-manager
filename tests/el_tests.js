@@ -13,13 +13,12 @@
 //  limitations under the License.
 
 
-global.td = require('testdouble');
+const td = require('testdouble');
 const chai = require('chai');
 const assert = chai.assert;
 const _ = require('underscore');
 
 const logger = require("../src/logging")
-    .consoleLogging()
     .createLogger("devops-prov.el_tests");
 
 const EL = require("../src/el");
@@ -27,7 +26,7 @@ const EL = require("../src/el");
 describe('Expression Language Tests', function () {
     let el;
 
-    before(function () {
+    beforeEach(function () {
         let loadFunction = function(fileName) {
             return {
                 resource: {
@@ -185,6 +184,104 @@ describe('Expression Language Tests', function () {
         }, "Undefined variable: 'badKey'");
     });
 
+    it('EL conditional include tests', function () {
+        assert.deepEqual(el.parseObject([
+            {
+                "foo": "bar",
+                "options": {
+                    "bar": "foo",
+                    "id": 1234
+                }
+            },
+            {
+                "#includeIf": "${level1.level2.isBad}",
+                "name": "some name",
+                "foobar": "boo"
+            }
+        ]), [
+            {
+                "foo": "bar",
+                "options": {
+                    "bar": "foo",
+                    "id": 1234
+                }
+            },
+            {
+                "name": "some name",
+                "foobar": "boo"
+            }
+        ]);
+        el.overrideSource.resource.level1.level2.isBad = false;
+        assert.deepEqual(el.parseObject([
+            {
+                "foo": "bar",
+                "options": {
+                    "bar": "foo",
+                    "id": 1234
+                }
+            },
+            {
+                "#includeIf": "${level1.level2.isBad}",
+                "name": "some name",
+                "foobar": "boo"
+            }
+        ]), [
+            {
+                "foo": "bar",
+                "options": {
+                    "bar": "foo",
+                    "id": 1234
+                }
+            }
+        ]);
+        el.overrideSource.resource.level1.level2.isBad = true;
+        assert.deepEqual(el.parseObject({
+                "foo": "bar",
+                "options": {
+                    "bar": "foo",
+                    "id": 1234,
+                    "optional": {
+                        "#includeIf": "${level1.level2.isBad}",
+                        "name": "some name",
+                        "foobar": "boo"
+                    }
+                }
+            }),
+            {
+                "foo": "bar",
+                "options": {
+                    "bar": "foo",
+                    "id": 1234,
+                    "optional": {
+                        "name": "some name",
+                        "foobar": "boo"
+                    }
+                }
+            }
+        );
+        el.overrideSource.resource.level1.level2.isBad = false;
+        assert.deepEqual(el.parseObject({
+                "foo": "bar",
+                "options": {
+                    "bar": "foo",
+                    "id": 1234,
+                    "optional": {
+                        "#includeIf": "${level1.level2.isBad}",
+                        "name": "some name",
+                        "foobar": "boo"
+                    }
+                }
+            }),
+            {
+                "foo": "bar",
+                "options": {
+                    "bar": "foo",
+                    "id": 1234
+                }
+            }
+        );
+    });
+
     it('EL resolve path tests', function () {
         assert.deepEqual(el.resolvePath("list/2/some/0", {
             resource: {
@@ -197,6 +294,7 @@ describe('Expression Language Tests', function () {
             resourcePath: "main.json"
         }), {
             template: "some.json",
+            location: "some/0",
             variables: [],
             value: "or"
         });
@@ -212,6 +310,7 @@ describe('Expression Language Tests', function () {
             resourcePath: "main.json"
         }), {
             template: "some.json",
+            location: "some/2",
             variables: ["overrides.json"],
             value: "blubb"
         });
@@ -231,6 +330,7 @@ describe('Expression Language Tests', function () {
             }, resourcePath: "main.json"
         }), {
             template: "main.json",
+            location: "lobs/0/subs/0",
             variables: ["overrides.json"],
             value: true
         });
@@ -247,6 +347,7 @@ describe('Expression Language Tests', function () {
             }, resourcePath: "main.json"
         }), {
             template: "main.json",
+            location: "lobs/0/subs/0",
             variables: ["defaults.json", "overrides.json"],
             value: "2+3 = 5 is true"
         });

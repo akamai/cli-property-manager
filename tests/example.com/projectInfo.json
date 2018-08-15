@@ -1,10 +1,13 @@
 {
   "productId": "Web_App_Accel",
   "contractId": "1-1TJZH5",
-  "groupId": 61726,
+  "groupIds": [
+    61726
+  ],
   "environments": [
     "staging",
     "prod"
   ],
-  "name": "example.com"
+  "name": "example.com",
+  "version": "0.1.10"
 }

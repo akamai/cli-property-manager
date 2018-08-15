@@ -1,7 +1,9 @@
 {
   "name": "staging",
+  "groupId": 61726,
   "propertyName": "staging.testproject.com",
   "propertyId": 411090,
+  "isSecure": false,
   "environmentHash": "012c5a4a21d0b39216a5af80e78bf731f0354d51672338adbede86432a697a64",
   "lastValidatedHash": "012c5a4a21d0b39216a5af80e78bf731f0354d51672338adbede86432a697a64",
   "ruleTreeHash": "2744fa78eb04033bc18cfa7c4496d95b2af7ee15195dcca93606e9bf4a74405b",

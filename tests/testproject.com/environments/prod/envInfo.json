@@ -1,7 +1,9 @@
 {
   "name": "prod",
+  "groupId": 61726,
   "propertyName": "prod.testproject.com",
   "propertyId": 411091,
+  "isSecure": false,
   "environmentHash": "ddc71e346d217bcb717870b63b8ba3c515fd3d65faeb2626db0f6fd01ce54664",
   "lastValidatedHash": "ddc71e346d217bcb717870b63b8ba3c515fd3d65faeb2626db0f6fd01ce54664",
   "ruleTreeHash": "621bac67d0294c0b774aa64cd478120cb2457b89e11cc789cae94914f61e93ea",

@@ -13,7 +13,7 @@
 //  limitations under the License.
 
 
-global.td = require('testdouble');
+const td = require('testdouble');
 const chai = require('chai');
 const assert = chai.assert;
 
@@ -23,7 +23,6 @@ const ReplayClient = require('../src/replayclient');
 const throwsAsync = require("./testutils").throwsAsync;
 
 const logger = require("../src/logging")
-    .consoleLogging()
     .createLogger("devops-prov.restclient_tests");
 
 

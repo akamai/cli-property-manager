@@ -13,7 +13,7 @@
 //  limitations under the License.
 
 
-global.td = require('testdouble');
+const td = require('testdouble');
 const chai = require('chai');
 const assert = chai.assert;
 const _ = require('underscore');

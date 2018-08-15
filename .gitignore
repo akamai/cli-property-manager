@@ -5,3 +5,4 @@ node_modules
 stuff/
 dist/
 .nyc_output/
+devops.log

@@ -20,6 +20,7 @@ const edgerc = require('./edgegrid/edgerc');
 const errors = require('./errors');
 const helpers = require('./helpers');
 const logger = require("./logging").createLogger("devops-prov");
+const emailValidator = require("email-validator");
 
 /**
  * Class representing high-level functionality within the SDK.
@@ -31,6 +32,8 @@ class DevOps {
         this.getProject = dependencies.getProject;
         this.getPAPI = dependencies.getPAPI;
         this.utils = dependencies.getUtils();
+        this.version = dependencies.version;
+        this.pollingIntervalMs = 60000;
     }
 
     /**
@@ -74,53 +77,64 @@ class DevOps {
     /**
      * Creates a whole new Project (devops pipeline). Async since a bunch of REST calls are being made
      *
-     * @param createProjectInfo
+     * @param createPipelineInfo
      * @returns {Promise.<*>}
      */
-    async createNewProject(createProjectInfo) {
+    async createPipeline(createPipelineInfo) {
+        logger.info("creating new project with info:", helpers.jsonStringify(createPipelineInfo));
         let ruleTree;
-        let project = this.getProject(createProjectInfo.projectName, false);
+        let project = this.getProject(createPipelineInfo.projectName, false);
         if (project.exists()) {
-            if (createProjectInfo.isInRetryMode) {
+            if (createPipelineInfo.isInRetryMode) {
                 logger.info(`Project folder '${project.projectFolder}' already exists, ignore`);
             } else {
                 throw new errors.ArgumentError(`Project folder '${project.projectFolder}' already exists`,
                     "project_folder_already_exists", project.projectFolder);
             }
         }
-        project.validateEnvironmentNames(createProjectInfo.environments);
-        if (_.isString(createProjectInfo.propertyName) && !_.isNumber(createProjectInfo.propertyId)) {
-            let results = await this.getPAPI().findProperty(createProjectInfo.propertyName);
+        project.validateEnvironmentNames(createPipelineInfo.environments);
+        if (_.isString(createPipelineInfo.propertyName) && !_.isNumber(createPipelineInfo.propertyId)) {
+            let results = await this.getPAPI().findProperty(createPipelineInfo.propertyName);
             if (results.versions.items.length === 0) {
-                throw new errors.ArgumentError(`Can't find any versions for property '${createProjectInfo.propertyName}'`);
+                throw new errors.ArgumentError(`Can't find any versions for property '${createPipelineInfo.propertyName}'`);
             }
-            createProjectInfo.propertyId = helpers.parsePropertyId(results.versions.items[0].propertyId);
+            createPipelineInfo.propertyId = helpers.parsePropertyId(results.versions.items[0].propertyId);
         }
-        if (_.isNumber(createProjectInfo.propertyId)) {
-            logger.info(`Attempting to load rule tree for property id: ${createProjectInfo.propertyId} and version: ${createProjectInfo.propertyVersion}`);
-            let propertyInfo = await project.getPropertyInfo(createProjectInfo.propertyId, createProjectInfo.propertyVersion);
-            ruleTree = await project.getPropertyRuleTree(createProjectInfo.propertyId, propertyInfo.propertyVersion);
-            if (!createProjectInfo.groupId) {
-                createProjectInfo.groupId = helpers.parseGroupId(propertyInfo.groupId);
+        if (_.isNumber(createPipelineInfo.propertyId)) {
+            logger.info(`Attempting to load rule tree for property id: ${createPipelineInfo.propertyId} and version: ${createPipelineInfo.propertyVersion}`);
+            let propertyInfo = await project.getPropertyInfo(createPipelineInfo.propertyId, createPipelineInfo.propertyVersion);
+            ruleTree = await project.getPropertyRuleTree(createPipelineInfo.propertyId, propertyInfo.propertyVersion);
+            if (!_.isArray(createPipelineInfo.groupIds) || createPipelineInfo.groupIds.length === 0) {
+                let defaultGroupId = helpers.parseGroupId(propertyInfo.groupId);
+                createPipelineInfo.groupIds = [defaultGroupId];
+                _.each(createPipelineInfo.environments, function(name) {
+                    let groupId = createPipelineInfo.environmentGroupIds[name];
+                    if (groupId === undefined) {
+                        createPipelineInfo.environmentGroupIds[name] = defaultGroupId;
+                    }
+                });
             }
-            if (!createProjectInfo.contractId) {
-                createProjectInfo.contractId = propertyInfo.contractId;
+            if (!createPipelineInfo.contractId) {
+                createPipelineInfo.contractId = propertyInfo.contractId;
             }
-            if (!createProjectInfo.productId) {
-                createProjectInfo.productId = propertyInfo.productId;
+            if (!createPipelineInfo.productId) {
+                createPipelineInfo.productId = propertyInfo.productId;
             }
+            if (!_.isBoolean(createPipelineInfo.secureOption)) {
+                createPipelineInfo.secureOption = ruleTree.rules.options.is_secure;
+            }
+        } else {
+            createPipelineInfo.secureOption = createPipelineInfo.secureOption || false;
         }
-        logger.info(`creating new pipeline '${createProjectInfo.projectName}' ` +
-            ` with productId: '${createProjectInfo.productId}', ` +
-            `contractId: '${createProjectInfo.contractId}, groupId: '${createProjectInfo.groupId}'`);
+        logger.info('Creating new pipeline with data: ', helpers.jsonStringify(createPipelineInfo));
 
         if (!project.exists()) {
-            project.createProjectFolders(createProjectInfo);
+            project.createProjectFolders(createPipelineInfo);
         }
-        for (let name of createProjectInfo.environments) {
-            logger.info(`Creating environment: '${name}'`);
-            let env = project.getEnvironment(name);
-            await env.create(createProjectInfo.isInRetryMode);
+        for (let envName of createPipelineInfo.environments) {
+            logger.info(`Creating environment: '${envName}'`);
+            let env = project.getEnvironment(envName);
+            await env.create(createPipelineInfo);
         }
         await project.setupPropertyTemplate(ruleTree);
         return project;
@@ -129,12 +143,12 @@ class DevOps {
     /**
      * Create project template based on newly created properties (uses first environment property).
      * Uses PAPI formatted rule try to generate template.
-     * @param createProjectInfo
+     * @param createPipelineInfo
      * @returns {Promise.<void>}
      */
-    setupTemplate(createProjectInfo) {
-        let project = this.getProject(createProjectInfo.projectName);
-        return project.setupPropertyTemplate(createProjectInfo.propertyId, createProjectInfo.version);
+    setupTemplate(createPipelineInfo) {
+        let project = this.getProject(createPipelineInfo.projectName);
+        return project.setupPropertyTemplate(createPipelineInfo.propertyId, createPipelineInfo.version);
     }
 
     /**
@@ -176,10 +190,23 @@ class DevOps {
      */
     setDefaultEmails(emails) {
         let emailsArr = emails.split(",");
-        logger.info(`Setting default notification emails to '${emails}`);
+        this.checkEmails(emailsArr);
+        logger.info(`Setting default notification emails to '${emails}'`);
         this.devopsSettings.emails = emailsArr;
         this.updateDevopsSettings({
             emails: emailsArr
+        });
+    }
+
+    /**
+     * Set the default output format, allowed values: table, json
+     * @param format
+     */
+    setDefaultFormat(format) {
+        logger.info(`Setting default format to '${format}'`);
+        this.devopsSettings.format = format;
+        this.updateDevopsSettings({
+            outputFormat: format
         });
     }
 
@@ -255,7 +282,7 @@ class DevOps {
      * @param network {String} "STAGING" or "PRODUCTION"
      * @param emails {Array<String>}
      */
-    promote(projectName, environmentName, network, emails) {
+    promote(projectName, environmentName, network, emails, message, force) {
         const project = this.getProject(projectName);
         let emailSet = new Set([]);
         if (_.isString(emails) && emails.length > 0) {
@@ -269,12 +296,59 @@ class DevOps {
                 emailSet.add(e)
             }
         }
-        if (emailSet.size === 0) {
-            throw new errors.ArgumentError("No notification emails passed")
-        }
+        this.checkEmails(emailSet);
         logger.info("emails for promote: ", emailSet);
 
-        return project.promote(environmentName, network, emailSet);
+        return project.promote(environmentName, network, emailSet, message, force);
+    }
+
+    checkEmails(emails) {
+        let cleanEmails = [];
+
+        if (_.isSet(emails)) {
+            cleanEmails = this.trimEachItem(Array.from(emails));
+        } else if (_.isArray(emails)) {
+            cleanEmails = this.trimEachItem(emails);
+        }
+
+        //this is a useful check...  promote used to do this only
+        if (_.isObject(cleanEmails) && cleanEmails.length === 0) {
+            throw new errors.ArgumentError("No notification emails provided", "no_email_provided")
+        }
+        //use an array to track all broken emails
+        let invalidEmailArray = [];
+        for (let email of cleanEmails) {
+            if (!emailValidator.validate(email) && email) {
+                invalidEmailArray.push(email);
+            }
+        }
+
+        let invalidEmails = invalidEmailArray.join(",");
+        if (invalidEmails) {
+            let invalid_email_message = `The email '${invalidEmails}' is not valid.`;
+            if (invalidEmailArray.length > 1) {
+                invalid_email_message = `The emails '${invalidEmails}' are not valid.`;
+            }
+            throw new errors.ArgumentError(invalid_email_message, "invalid_email_addresses")
+        }
+
+        return invalidEmailArray.length === 0;
+    }
+
+    /*
+     * Trim each item in the array
+     * @param arry {Array<String>}
+     */
+    trimEachItem(arry) {
+        let cleanArry = [];
+        //Clean up extra spaces, and remove "white space only"
+        for (let entry of arry) {
+            let cleaned = entry.trim();
+            if (cleaned !== '') {
+                cleanArry.push(cleaned);
+            }
+        }
+        return cleanArry;
     }
 
     /**

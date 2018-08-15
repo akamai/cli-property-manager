@@ -20,7 +20,7 @@
 
 class ExitError extends Error {}
 
-class DevOpsError extends Error {
+class AkamaiPDError extends Error {
     constructor(message, messageId, ...args) {
         super(message);
         this.messageId = messageId;
@@ -28,56 +28,61 @@ class DevOpsError extends Error {
     }
 }
 
-class RestApiError extends DevOpsError {
+class JSONParserError extends AkamaiPDError {
     constructor(message, messageId, ...args) {
         super(message, messageId, ...args);
     }
 }
 
-
-class ArgumentError extends DevOpsError {
+class RestApiError extends AkamaiPDError {
     constructor(message, messageId, ...args) {
         super(message, messageId, ...args);
     }
 }
 
-class DependencyError extends DevOpsError {
+class ArgumentError extends AkamaiPDError {
     constructor(message, messageId, ...args) {
         super(message, messageId, ...args);
     }
 }
 
-class UnusedVariableError extends DevOpsError {
+class DependencyError extends AkamaiPDError {
     constructor(message, messageId, ...args) {
         super(message, messageId, ...args);
     }
 }
 
-class UndefinedVariableError extends DevOpsError {
+class UnusedVariableError extends AkamaiPDError {
     constructor(message, messageId, ...args) {
         super(message, messageId, ...args);
     }
 }
 
-class UnknownTypeError extends DevOpsError {
+class UndefinedVariableError extends AkamaiPDError {
     constructor(message, messageId, ...args) {
         super(message, messageId, ...args);
     }
 }
 
-class ValidationError extends DevOpsError {
+class UnknownTypeError extends AkamaiPDError {
     constructor(message, messageId, ...args) {
         super(message, messageId, ...args);
     }
 }
 
-class PendingActivationError extends DevOpsError {
+class ValidationError extends AkamaiPDError {
+    constructor(message, messageId, ...args) {
+        super(message, messageId, ...args);
+    }
+}
+
+class PendingActivationError extends AkamaiPDError {
     constructor(message, messageId, network, id) {
         super(message, messageId, network, id);
     }
 }
 
-class AlreadyActiveError extends DevOpsError {
+class AlreadyActiveError extends AkamaiPDError {
     constructor(message, messageId, network, id) {
         super(message, messageId, network, id);
     }
@@ -85,7 +90,8 @@ class AlreadyActiveError extends DevOpsError {
 
 module.exports = {
     ExitError,
-    DevOpsError,
+    AkamaiPDError,
+    JSONParserError,
     RestApiError,
     DependencyError,
     ArgumentError,

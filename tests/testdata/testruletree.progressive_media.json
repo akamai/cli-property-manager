@@ -1,107 +1,150 @@
 {
-  "accountId" : "act_1-1TJZFB",
-  "contractId" : "ctr_1-1TJZH5",
-  "groupId" : "grp_15225",
-  "propertyId" : "prp_453075",
-  "propertyName" : "qa.testprogressive_media.com",
-  "propertyVersion" : 1,
-  "etag" : "b50cb29a0e021877dac6d9114f0ae4e7bce76bf6",
-  "rules" : {
-    "name" : "default",
-    "children" : [ {
-      "name" : "Media File Retrieval Optimization",
-      "children" : [ ],
-      "behaviors" : [ {
-        "name" : "mediaFileRetrievalOptimization",
-        "options" : {
-          "enabled" : true
+  "accountId": "act_1-1TJZFB",
+  "contractId": "ctr_1-1TJZH5",
+  "groupId": "grp_15225",
+  "propertyId": "prp_453075",
+  "propertyName": "qa.testprogressive_media.com",
+  "propertyVersion": 1,
+  "etag": "b50cb29a0e021877dac6d9114f0ae4e7bce76bf6",
+  "rules": {
+    "name": "default",
+    "children": [
+      {
+        "name": "Media File Retrieval Optimization",
+        "children": [],
+        "behaviors": [
+          {
+            "name": "mediaFileRetrievalOptimization",
+            "options": {
+              "enabled": true
+            }
+          }
+        ],
+        "criteria": [
+          {
+            "name": "fileExtension",
+            "options": {
+              "matchCaseSensitive": false,
+              "matchOperator": "IS_ONE_OF",
+              "values": [
+                "exe",
+                "bz2",
+                "dmg",
+                "gz",
+                "iso",
+                "mov",
+                "pkg",
+                "tar",
+                "tgz",
+                "wmv",
+                "wma",
+                "zip",
+                "webp",
+                "jxr",
+                "hdp",
+                "wdp"
+              ]
+            }
+          }
+        ],
+        "criteriaMustSatisfy": "all"
+      },
+      {
+        "name": "Content Compression",
+        "children": [],
+        "behaviors": [
+          {
+            "name": "gzipResponse",
+            "options": {
+              "behavior": "ALWAYS"
+            }
+          }
+        ],
+        "criteria": [
+          {
+            "name": "contentType",
+            "options": {
+              "matchCaseSensitive": false,
+              "matchOperator": "IS_ONE_OF",
+              "matchWildcard": true,
+              "values": [
+                "text/html*",
+                "text/css*",
+                "application/x-javascript*"
+              ]
+            }
+          }
+        ],
+        "criteriaMustSatisfy": "all"
+      }
+    ],
+    "behaviors": [
+      {
+        "name": "origin",
+        "options": {
+          "originType": "NET_STORAGE"
         }
-      } ],
-      "criteria" : [ {
-        "name" : "fileExtension",
-        "options" : {
-          "matchCaseSensitive" : false,
-          "matchOperator" : "IS_ONE_OF",
-          "values" : [ "exe", "bz2", "dmg", "gz", "iso", "mov", "pkg", "tar", "tgz", "wmv", "wma", "zip", "webp", "jxr", "hdp", "wdp" ]
+      },
+      {
+        "name": "cpCode",
+        "options": {}
+      },
+      {
+        "name": "randomSeek",
+        "options": {
+          "flv": true,
+          "maximumSize": "200MB",
+          "mp4": true
         }
-      } ],
-      "criteriaMustSatisfy" : "all"
-    }, {
-      "name" : "Content Compression",
-      "children" : [ ],
-      "behaviors" : [ {
-        "name" : "gzipResponse",
-        "options" : {
-          "behavior" : "ALWAYS"
+      },
+      {
+        "name": "report",
+        "options": {
+          "logAcceptLanguage": false,
+          "logCookies": "OFF",
+          "logCustomLogField": false,
+          "logHost": false,
+          "logReferer": false,
+          "logUserAgent": true
         }
-      } ],
-      "criteria" : [ {
-        "name" : "contentType",
-        "options" : {
-          "matchCaseSensitive" : false,
-          "matchOperator" : "IS_ONE_OF",
-          "matchWildcard" : true,
-          "values" : [ "text/html*", "text/css*", "application/x-javascript*" ]
+      },
+      {
+        "name": "caching",
+        "options": {
+          "behavior": "MAX_AGE",
+          "mustRevalidate": false,
+          "ttl": "365d"
         }
-      } ],
-      "criteriaMustSatisfy" : "all"
-    } ],
-    "behaviors" : [ {
-      "name" : "origin",
-      "options" : {
-        "originType" : "NET_STORAGE"
+      },
+      {
+        "name": "tieredDistribution",
+        "options": {
+          "enabled": true,
+          "tieredDistributionMap": "CH2"
+        }
+      },
+      {
+        "name": "cacheKeyQueryParams",
+        "options": {
+          "behavior": "IGNORE_ALL"
+        }
       }
-    }, {
-      "name" : "cpCode",
-      "options" : { }
-    }, {
-      "name" : "randomSeek",
-      "options" : {
-        "flv" : true,
-        "maximumSize" : "200MB",
-        "mp4" : true
-      }
-    }, {
-      "name" : "report",
-      "options" : {
-        "logAcceptLanguage" : false,
-        "logCookies" : "OFF",
-        "logCustomLogField" : false,
-        "logHost" : false,
-        "logReferer" : false,
-        "logUserAgent" : true
-      }
-    }, {
-      "name" : "caching",
-      "options" : {
-        "behavior" : "MAX_AGE",
-        "mustRevalidate" : false,
-        "ttl" : "365d"
-      }
-    }, {
-      "name" : "tieredDistribution",
-      "options" : {
-        "enabled" : true,
-        "tieredDistributionMap" : "CH2"
-      }
-    }, {
-      "name" : "cacheKeyQueryParams",
-      "options" : {
-        "behavior" : "IGNORE_ALL"
-      }
-    } ],
-    "options" : {
-      "is_secure" : false
+    ],
+    "options": {
+      "is_secure": false
     }
   },
-  "errors" : [ {
-    "type" : "https://problems.luna.akamaiapis.net/papi/v0/validation/attribute_required",
-    "errorLocation" : "#/rules/behaviors/0/options/netStorage",
-    "detail" : "The NetStorage Account option on the `Origin Server` behavior is required."
-  }, {
-    "type" : "https://problems.luna.akamaiapis.net/papi/v0/validation/attribute_required",
-    "errorLocation" : "#/rules/behaviors/1/options/value",
-    "detail" : "The Content Provider Code option on the `Content Provider Code` behavior is required."
-  } ],
-  "ruleFormat" : "v2018-02-27"
+  "errors": [
+    {
+      "type": "https://problems.luna.akamaiapis.net/papi/v0/validation/attribute_required",
+      "errorLocation": "#/rules/behaviors/0/options/netStorage",
+      "detail": "The NetStorage Account option on the `Origin Server` behavior is required."
+    },
+    {
+      "type": "https://problems.luna.akamaiapis.net/papi/v0/validation/attribute_required",
+      "errorLocation": "#/rules/behaviors/1/options/value",
+      "detail": "The Content Provider Code option on the `Content Provider Code` behavior is required."
+    }
+  ],
+  "ruleFormat": "v2018-02-27"
 }

@@ -15,7 +15,6 @@
 
 /**
  * akamai pd command line tool calling into SDK classes and methods.
- *
  */
 
 
@@ -65,6 +64,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         let clientType = "regular";
         let recordFilename = null;
         let recordErrors = false;
+        let outputFormat;
         let section;
         if (options.parent) {
             let parentOptions = options.parent;
@@ -83,6 +83,9 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
             if (parentOptions.recordErrors) {
                 recordErrors = parentOptions.recordErrors;
             }
+            if (parentOptions.format) {
+                outputFormat = parentOptions.format;
+            }
             section = parentOptions.section;
         }
         logging.log4jsLogging(useVerboseLogging(options));
@@ -99,7 +102,9 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
             clientType,
             recordFilename,
             recordErrors,
-            section
+            section,
+            version,
+            outputFormat
         });
     };
 
@@ -108,7 +113,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         reportError = overrideErrorReporter;
     } else {
         reportError = function(error, verbose) {
-            if (error instanceof errors.DevOpsError) {
+            if (error instanceof errors.AkamaiPDError) {
                 if (verbose) {
                     consoleLogger.error(`Promotional Deployment Error: '${error.messageId}' occurred: \n`, error.stack);
                     if (_.isArray(error.args) && error.args.length > 0) {
@@ -138,11 +143,12 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         let pipelineName = options.pipeline;
         let section = options.section || options.parent.section;
         let emails = options.emails;
-        if (!pipelineName && !section && !emails) {
-            throw new errors.DependencyError("Need at least one option! Use akamai pd -p <pipeline name> or akamai pd -s <section>.",
+        let format = options.format || options.parent.format;
+        if (!pipelineName && !section && !emails && !format) {
+            throw new errors.DependencyError("Need at least one option! Use akamai pd -p <pipeline name>, " +
+                ", akamai pd -e <emails>, akamai pd -s <section> or akamai pd -f <format>.",
                 "missing_option");
         }
-
         if (section) {
             devops.setDefaultSection(section);
         }
@@ -152,13 +158,50 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         if (emails) {
             devops.setDefaultEmails(emails);
         }
+        if (format) {
+            const formatRe = /^(json|table)$/i;
+            if (format.match(formatRe)) {
+                devops.setDefaultFormat(format.toLowerCase());
+            } else {
+                throw new errors.ArgumentError("Only 'json' or 'table' are allowed as format string", "illegal_format", format);
+            }
+        }
+    };
+
+    const renderOutput = function(columnNames, keysNames, values, format) {
+        let output;
+        if (format === "json") {
+            output = helpers.jsonStringify(_.object(keysNames, values));
+        } else {
+            let data = _.filter(_.zip(keysNames, values), item => {
+                return item[1];
+            });
+            data.unshift(columnNames);
+            output = AsciiTable.table(data, 180);
+        }
+        consoleLogger.info(output)
+    };
+
+    const showDefaults = function(devops) {
+        let settings = devops.devopsSettings;
+
+        let savedSettings = settings.__savedSettings || {};
+        let values = [
+            _.isObject(savedSettings.edgeGridConfig) ? savedSettings.edgeGridConfig.section : undefined,
+            savedSettings.defaultProject,
+            _.isArray(savedSettings.emails) ? savedSettings.emails.join(", ") : undefined,
+            savedSettings.outputFormat
+        ];
+        let columnNames = ["Option Name", "Value"];
+        let keys = ["section", "defaultProject", "emails", "format"];
+        renderOutput(columnNames, keys, values, settings.outputFormat);
     };
 
     /**
      * Creates a new devops pipeline (devops pipeline)
      * @type {Function}
      */
-    const createNewProject = function(devops, environments, options) {
+    const createPipeline = function(devops, environments, options) {
         let projectName = options.pipeline;
         if (!projectName || _.isBoolean(projectName)) {
             throw new errors.DependencyError("Missing pipeline option! Use akamai pd -p <pipeline name> ...",
@@ -192,10 +235,9 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
                     "missing_property_id");
             }
         }
-
-        let groupId = options.groupId;
-        if (!(propertyId || propertyName || groupId)) {
-            throw new errors.DependencyError("groupId needs to be provided as a number", "missing_group_id");
+        let groupIds = options.groupIds;
+        if (!(propertyId || propertyName) && groupIds.length === 0) {
+            throw new errors.DependencyError("At least one groupId needs to be provided as a number", "missing_group_ids");
         }
         let contractId = options.contractId;
         if (!(propertyId || propertyName || contractId)) {
@@ -206,18 +248,49 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
             throw new errors.DependencyError("productId needs to be provided", "missing_product_id");
         }
         let isInRetryMode = options.retry || false;
-        let createPropertyInfo = {
+        let dryRun = options.dryRun || false;
+        let environmentGroupIds = {};
+        if (_.isArray(environments) && _.isArray(groupIds)) {
+            if (groupIds.length > 1) {
+                if (environments.length !== groupIds.length) {
+                    throw new errors.ArgumentError(`Number of environments: ${environments.length} and number of groupIds:` +
+                        `${groupIds.length} don't match`, "environments_group_ids_mismatch", environments.length, groupIds.length);
+                } else {
+                    environmentGroupIds = _.object(environments, groupIds);
+                }
+            } else {
+                let groupId;
+                if (groupIds.length === 1) {
+                    groupId = groupIds[0];
+                }
+                _.each(environments, envName => {
+                    environmentGroupIds[envName] = groupId;
+                });
+            }
+        }
+        let createPipelineInfo = {
             projectName,
             productId,
             contractId,
-            groupId,
             propertyId,
+            groupIds,
             propertyName,
             propertyVersion,
             environments,
+            environmentGroupIds,
             isInRetryMode
         };
-        return devops.createNewProject(createPropertyInfo);
+        if (_.isBoolean(options.secure)) {
+            createPipelineInfo.secureOption = options.secure;
+        }
+        if (_.isBoolean(options.insecure)) {
+            createPipelineInfo.secureOption = !options.insecure;
+        }
+        if (dryRun) {
+            consoleLogger.info("create pipeline info: ", helpers.jsonStringify(createPipelineInfo));
+        } else {
+            return devops.createPipeline(createPipelineInfo);
+        }
     };
 
     /**
@@ -227,25 +300,29 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
     const search = function(devops, name) {
         return devops.getPAPI().findProperty(name).then(data => {
             let versions = data["versions"]["items"];
-            versions = _.map(versions, function(version) {
-                return [
-                    version["accountId"],
-                    version["contractId"],
-                    version["assetId"],
-                    version["groupId"],
-                    version["propertyId"],
-                    version["propertyName"],
-                    version["propertyVersion"],
-                    version["updatedByUser"],
-                    version["updatedDate"],
-                    version["productionStatus"],
-                    version["stagingStatus"]
-                ];
-            });
-            versions.unshift(["Account ID", "Contract ID", "Asset ID", "Group ID", "Property ID", "Property Name",
-                "Property Version", "Updated By User", "Update Date", "Production Status", "Staging Status"
-            ]);
-            consoleLogger.info(AsciiTable.table(versions, 30));
+            if (devops.devopsSettings.outputFormat === 'table') {
+                versions = _.map(versions, function(version) {
+                    return [
+                        version["accountId"],
+                        version["contractId"],
+                        version["assetId"],
+                        version["groupId"],
+                        version["propertyId"],
+                        version["propertyName"],
+                        version["propertyVersion"],
+                        version["updatedByUser"],
+                        version["updatedDate"],
+                        version["productionStatus"],
+                        version["stagingStatus"]
+                    ];
+                });
+                versions.unshift(["Account ID", "Contract ID", "Asset ID", "Group ID", "Property ID", "Property Name",
+                    "Property Version", "Updated By User", "Update Date", "Production Status", "Staging Status"
+                ]);
+                consoleLogger.info(AsciiTable.table(versions, 60));
+            } else {
+                consoleLogger.info(helpers.jsonStringify(versions));
+            }
         });
     };
 
@@ -274,12 +351,16 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
     const listContracts = function(devops) {
         return devops.listContracts().then(data => {
             let contracts = data["contracts"]["items"];
-            contracts = _.map(contracts, function(ctr) {
-                return [ctr["contractId"], ctr["contractTypeName"]];
+            if (devops.devopsSettings.outputFormat === 'table') {
+                contracts = _.map(contracts, function(ctr) {
+                    return [ctr["contractId"], ctr["contractTypeName"]];
 
-            });
-            contracts.unshift(["Contract ID", "Contract Type Name"]);
-            consoleLogger.info(AsciiTable.table(contracts, 30));
+                });
+                contracts.unshift(["Contract ID", "Contract Type Name"]);
+                consoleLogger.info(AsciiTable.table(contracts, 50));
+            } else {
+                consoleLogger.info(helpers.jsonStringify(contracts));
+            }
         });
     };
 
@@ -289,24 +370,32 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
      */
     const listStatus = function(devops, options) {
         return devops.getProject(devops.extractProjectName(options)).getStatus().then(envData => {
-            let envTable = [
-                ["Environment Name"],
-                ["Property Name"],
-                ["Latest Version"],
-                ["Production Version"],
-                ["Staging Version"],
-                ["Rule Format"]
-            ];
+            if (devops.devopsSettings.outputFormat === 'table') {
+                let envTable = [
+                    ["Environment Name"],
+                    ["Property Name"],
+                    ["Latest Version"],
+                    ["Production Version"],
+                    ["Staging Version"],
+                    ["Rule Format"]
+                ];
 
-            _.each(envData, function(ctr) {
-                envTable[0].push(ctr.envName);
-                envTable[1].push(ctr.propertyName);
-                envTable[2].push(ctr.latestVersion);
-                envTable[3].push(_.isNumber(ctr.productionVersion) ? ctr.productionVersion : "N/A");
-                envTable[4].push(_.isNumber(ctr.stagingVersion) ? ctr.stagingVersion : "N/A");
-                envTable[5].push(ctr.ruleFormat);
-            });
-            consoleLogger.info(AsciiTable.table(envTable, 80));
+                _.each(envData, function(ctr) {
+                    envTable[0].push(ctr.envName);
+                    envTable[1].push(ctr.propertyName);
+                    envTable[2].push(ctr.latestVersion);
+                    envTable[3].push(_.isNumber(ctr.productionVersion) ? ctr.productionVersion : "N/A");
+                    envTable[4].push(_.isNumber(ctr.stagingVersion) ? ctr.stagingVersion : "N/A");
+                    envTable[5].push(ctr.ruleFormat);
+                });
+                consoleLogger.info(AsciiTable.table(envTable, 80));
+            } else {
+                _.each(envData, function(ctr) {
+                    ctr.productionVersion = _.isNumber(ctr.productionVersion) ? ctr.productionVersion : "N/A";
+                    ctr.stagingVersion = _.isNumber(ctr.stagingVersion) ? ctr.stagingVersion : "N/A";
+                });
+                consoleLogger.info(helpers.jsonStringify(envData));
+            }
         });
     };
 
@@ -321,11 +410,15 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         }
         return devops.listProducts(contractId).then(data => {
             let products = data["products"]["items"];
-            products = _.map(products, function(prod) {
-                return [prod["productName"], prod["productId"]];
-            });
-            products.unshift(["Product Name", "Product ID"]);
-            consoleLogger.info(AsciiTable.table(products, 30));
+            if (devops.devopsSettings.outputFormat === 'table') {
+                products = _.map(products, function(prod) {
+                    return [prod["productName"], prod["productId"]];
+                });
+                products.unshift(["Product Name", "Product ID"]);
+                consoleLogger.info(AsciiTable.table(products, 30));
+            } else {
+                consoleLogger.info(helpers.jsonStringify(products));
+            }
         });
     };
 
@@ -336,17 +429,21 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
     const listGroups = function(devops) {
         return devops.listGroups().then(data => {
             let groups = data["groups"]["items"];
-            groups = _.map(groups, function(group) {
-                let contractIdArr = group["contractIds"];
-                let contractIds = "";
-                if (_.isArray(contractIdArr)) {
-                    contractIds = contractIdArr.join(", ")
-                }
-                let parentGroup = group['parentGroupId'] || "";
-                return [group["groupName"], group["groupId"], parentGroup, contractIds];
-            });
-            groups.unshift(["Group Name", "Group ID", "Parent Group ID", "Contract IDs"]);
-            consoleLogger.info(AsciiTable.table(groups, 30));
+            if (devops.devopsSettings.outputFormat === 'table') {
+                groups = _.map(groups, function(group) {
+                    let contractIdArr = group["contractIds"];
+                    let contractIds = "";
+                    if (_.isArray(contractIdArr)) {
+                        contractIds = contractIdArr.join(", ")
+                    }
+                    let parentGroup = group['parentGroupId'] || "";
+                    return [group["groupName"], group["groupId"], parentGroup, contractIds];
+                });
+                groups.unshift(["Group Name", "Group ID", "Parent Group ID", "Contract IDs"]);
+                consoleLogger.info(AsciiTable.table(groups, 30));
+            } else {
+                consoleLogger.info(helpers.jsonStringify(groups));
+            }
         });
     };
 
@@ -367,16 +464,20 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
 
         return devops.listCpcodes(contractId, groupId).then(data => {
             let cpcodes = data["cpcodes"]["items"];
-            cpcodes = _.map(cpcodes, function(cp) {
-                return [
-                    cp["cpcodeId"],
-                    cp["cpcodeName"],
-                    cp["productIds"].join(", "),
-                    cp["createdDate"]
-                ];
-            });
-            cpcodes.unshift(["ID", "Name", "Product IDs", "Creation Date"]);
-            consoleLogger.info(AsciiTable.table(cpcodes, 30));
+            if (devops.devopsSettings.outputFormat === 'table') {
+                cpcodes = _.map(cpcodes, function(cp) {
+                    return [
+                        cp["cpcodeId"],
+                        cp["cpcodeName"],
+                        cp["productIds"].join(", "),
+                        cp["createdDate"]
+                    ];
+                });
+                cpcodes.unshift(["ID", "Name", "Product IDs", "Creation Date"]);
+                consoleLogger.info(AsciiTable.table(cpcodes, 30));
+            } else {
+                consoleLogger.info(helpers.jsonStringify(cpcodes));
+            }
         });
     };
 
@@ -406,19 +507,29 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
             validate = options.validate;
         }
         return devops.merge(devops.extractProjectName(options), env, validate).then(data => {
-            let mergeData = [
-                ["Action", "Result"],
-                ["changes detected", data.changesDetected ? "yes" : "no"],
-                ["rule tree stored in", data.fileName],
-                ["hash", data.hash],
-                ["validation performed", data.validationPerformed ? "yes" : "no"],
-                ["validation warnings", helpers.isArrayWithData(data.validationWarnings) ? "yes" : "no"],
-                ["validation errors", helpers.isArrayWithData(data.validationErrors) ? "yes" : "no"]
-            ];
-
-            consoleLogger.info(AsciiTable.table(mergeData, 200));
-
-            reportActionErrors(data);
+            if (devops.devopsSettings.outputFormat === 'table') {
+                let mergeData = [
+                    ["Action", "Result"],
+                    ["changes detected", data.changesDetected ? "yes" : "no"],
+                    ["rule tree stored in", data.fileName],
+                    ["hash", data.hash],
+                    ["validation performed", data.validationPerformed ? "yes" : "no"],
+                    ["validation warnings", helpers.isArrayWithData(data.validationWarnings) ? "yes" : "no"],
+                    ["validation errors", helpers.isArrayWithData(data.validationErrors) ? "yes" : "no"]
+                ];
+                consoleLogger.info(AsciiTable.table(mergeData, 200));
+                reportActionErrors(data);
+            } else {
+                let mergeData = {
+                    changesDetected: data.changesDetected ? "yes" : "no",
+                    ruletreeStoredIn: data.fileName,
+                    hash: data.hash,
+                    validationPerformed: data.validationPerformed ? "yes" : "no",
+                    validationWarnings: data.validationWarnings,
+                    validationErrors: data.validationErrors
+                };
+                consoleLogger.info(helpers.jsonStringify(mergeData));
+            }
         });
     };
 
@@ -428,27 +539,28 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
      */
     const save = function(devops, envName, options) {
         return devops.save(devops.extractProjectName(options), envName).then(data => {
-            let saveData = [
-                ["Action", "Result"],
-                ["stored rule tree", data.storedRules ? "yes" : "no"],
-                ["edge hostnames created", helpers.isArrayWithData(data.edgeHostnames.hostnamesCreated) ? "yes" : "no"],
-                ["stored hostnames", data.storedHostnames ? "yes" : "no"],
-                ["validation warnings", helpers.isArrayWithData(data.validationWarnings) ? "yes" : "no"],
-                ["validation errors", helpers.isArrayWithData(data.validationErrors) ? "yes" : "no"]
-            ];
-
-            consoleLogger.info(AsciiTable.table(saveData));
-
-            reportActionErrors(data);
+            if (devops.devopsSettings.outputFormat === 'table') {
+                let saveData = [
+                    ["Action", "Result"],
+                    ["stored rule tree", data.storedRules ? "yes" : "no"],
+                    ["edge hostnames created", helpers.isArrayWithData(data.edgeHostnames.hostnamesCreated) ? "yes" : "no"],
+                    ["stored hostnames", data.storedHostnames ? "yes" : "no"],
+                    ["validation warnings", helpers.isArrayWithData(data.validationWarnings) ? "yes" : "no"],
+                    ["validation errors", helpers.isArrayWithData(data.validationErrors) ? "yes" : "no"]
+                ];
+                consoleLogger.info(AsciiTable.table(saveData));
+                reportActionErrors(data);
+            } else {
+                let saveData = {
+                    storedRuletree: data.storedRules ? "yes" : "no",
+                    edgeHostnamesCreated: helpers.isArrayWithData(data.edgeHostnames.hostnamesCreated) ? "yes" : "no",
+                    storedHostnames: data.storedHostnames ? "yes" : "no",
+                    validationWarnings: data.validationWarnings,
+                    validationErrors: data.validationErrors
+                };
+                consoleLogger.info(helpers.jsonStringify(saveData));
+            }
         });
-    };
-
-    /**
-     * create edge hostnames. TODO: remove
-     * @type {Function}
-     */
-    const createEdgeHostnames = function(devops, envName, options) {
-        return devops.createEdgeHostnames(devops.extractProjectName(options), envName);
     };
 
     const STAGING = new Set(['S', 'ST', 'STAG', 'STAGING']);
@@ -481,46 +593,165 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
      * promote environment to staging or production network.
      * @type {Function}
      */
-    const promote = function(devops, envName, options) {
+    const promote = async function(devops, envName, options) {
         let network = checkNetworkName(options);
-        let emails = options.emails;
         let projectName = devops.extractProjectName(options);
-        return devops.promote(projectName, envName, network, emails).then(data => {
-            let pending = data.pending;
+        let data = await devops.promote(projectName, envName, network, options.emails, options.message, options.force);
+        let pending = data.pending;
+        if (devops.devopsSettings.outputFormat === 'table') {
+            consoleLogger.info("Following activations are now pending:");
             data = [
                 ["Environment", "Network", "Activation Id"],
                 [envName, pending.network, pending.activationId]
             ];
-            consoleLogger.info("Following activations are now pending:");
             consoleLogger.info(AsciiTable.table(data, 30));
-        });
+        } else {
+            data = {
+                environment: envName,
+                network: pending.network,
+                activationId: pending.activationId
+            };
+            consoleLogger.info(helpers.jsonStringify(data));
+        }
+        if (options.waitForActivate) {
+            return checkPromotions(devops, envName, options);
+        }
     };
 
     const fallbackValue = function(value, fallback) {
         return (value === null || value === undefined) ? fallback : value;
     };
 
-    const checkPromotions = function(devops, envName, options) {
-        return devops.checkPromotions(devops.extractProjectName(options), envName).then(data => {
+    const checkPromotions = async function(devops, envName, options) {
+        //checkPromotionsLogic has logic to report if not waiting
+        let resultObject = await checkPromotionsLogic(devops, envName, options);
+        if (options.waitForActivate) {
+            let dateStart = new Date();
+            resultObject.dateStart = dateStart;
+            return reportOrWait(resultObject)
+        }
+        return resultObject;
+    };
+
+    async function delayedCheck(devops, envName, options, dateStart) {
+        let resultObject = await checkPromotionsLogic(devops, envName, options, dateStart);
+        reportOrWait(resultObject);
+    }
+
+    const checkPromotionsLogic = async function(devops, envName, options, dateStart) {
+        //Mostly intact 'non-waiting' check and report logic from before
+        try {
+            let data = await devops.checkPromotions(devops.extractProjectName(options), envName);
             let results = _.map(data.promotionUpdates, function(activation, network) {
                 return [envName, network, activation.activationId, activation.status];
             });
-            if (results.length > 0) {
-                results.unshift(["Environment", "Network", "Activation Id", "Status"]);
-                consoleLogger.info("Activation status report: ");
-                consoleLogger.info(AsciiTable.table(results, 40));
-            } else {
-                let promotionStatus = data.promotionStatus;
-                let results = [
-                    [envName, "staging", fallbackValue(promotionStatus.activeInStagingVersion, "No version is active")],
-                    [envName, "production", fallbackValue(promotionStatus.activeInProductionVersion, "No version is active")],
-                ];
-                consoleLogger.info(`There is currently no promotion pending. `);
-                consoleLogger.info(`Current activation status of '${envName}' environment by network: `);
-                results.unshift(["Environment", "Network", "Active Version"]);
-                consoleLogger.info(AsciiTable.table(results, 40));
+            if (!options.waitForActivate) {
+                if (results.length > 0) {
+                    reportPromotionActiveStatus(results, devops.devopsSettings.outputFormat);
+                } else {
+                    reportNoPromotionPending(data, envName, devops.devopsSettings.outputFormat);
+                }
             }
-        });
+            return {
+                results,
+                data,
+                devops,
+                envName,
+                dateStart,
+                options
+            };
+        } catch (error) {
+            return {
+                error,
+                devops
+            };
+        }
+    };
+
+    const isActivationPending = function(status, logStatus) {
+        if (status === "PENDING" || status === "ZONE_1" || status === "ZONE_2" ||
+            status === "ZONE_3" || status === "NEW" || status === "PENDING_DEACTIVATION" ||
+            status === "PENDING_CANCELLATION") {
+            if (logStatus) {
+                consoleLogger.info(`...activation status is ${status}...`);
+            }
+            return true;
+        }
+        return false;
+    };
+
+    const reportOrWait = function(resultObject) {
+        let results = resultObject.results,
+            devops = resultObject.devops,
+            envName = resultObject.envName,
+            options = resultObject.options,
+            dateStart = resultObject.dateStart,
+            data = resultObject.data,
+            error = resultObject.error;
+        let outputFormat = devops.devopsSettings.outputFormat;
+        if (error) {
+            reportError(error, verbose);
+        } else if (results.length === 0) {
+            reportNoPromotionPending(data, envName, outputFormat, true);
+        } else if (isActivationPending(results[0][3], outputFormat === 'table')) {
+            if (outputFormat === 'table') {
+                consoleLogger.info("...Waiting for active status..."); //we don't want to confused json parsers with text output
+                consoleLogger.info("...Checking promotions...");
+            }
+            setTimeout(delayedCheck, devops.pollingIntervalMs, devops, envName, options, dateStart);
+        } else {
+            let secondsSince = (new Date() - dateStart) / 1000;
+            reportPromotionActiveStatus(results, outputFormat, secondsSince);
+        }
+    };
+
+    const reportPromotionActiveStatus = function(results, format, secondsSince) {
+        if (format === 'table') {
+            if (_.isNumber(secondsSince)) {
+                consoleLogger.info(`${secondsSince} seconds since command ran`);
+            }
+            results.unshift(["Environment", "Network", "Activation Id", "Status"]);
+            consoleLogger.info("Activation status report:");
+            consoleLogger.info(AsciiTable.table(results, 40));
+        } else {
+            let keyNames = ['environment', 'network', 'activationId', "status"];
+            results = {
+                message: "Activation status report",
+                data: _.map(results, res => {
+                    return _.object(keyNames, res);
+                })
+            };
+            if (_.isNumber(secondsSince)) {
+                results.durationSeconds = secondsSince;
+            }
+            consoleLogger.info(helpers.jsonStringify(results));
+        }
+    };
+
+    const reportNoPromotionPending = function(data, envName, format, didWait) {
+        let promotionStatus = data.promotionStatus;
+        let results = [
+            [envName, "staging", fallbackValue(promotionStatus.activeInStagingVersion, "No version is active")],
+            [envName, "production", fallbackValue(promotionStatus.activeInProductionVersion, "No version is active")],
+        ];
+        if (format === 'table') {
+            if (didWait) {
+                consoleLogger.info(`'wait' option unnecessary.  Most likely the promotion was already checked on.`);
+            }
+            consoleLogger.info(`There is currently no promotion pending.`);
+            consoleLogger.info(`Current activation status of '${envName}' environment by network:`);
+            results.unshift(["Environment", "Network", "Active Version"]);
+            consoleLogger.info(AsciiTable.table(results, 40));
+        } else {
+            let keyNames = ['environment', 'network', 'status'];
+            results = {
+                message: `There is currently no promotion pending. Current activation status of '${envName}' environment by network:`,
+                data: _.map(results, res => {
+                    return _.object(keyNames, res);
+                })
+            };
+            consoleLogger.info(helpers.jsonStringify(results));
+        }
     };
 
     /**
@@ -549,19 +780,24 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
             throw new errors.DependencyError("contractId needs to be provided", "missing_contract_id");
         }
         return devops.listEdgeHostnames(contractId, groupId).then(data => {
-            data = _.map(data.edgeHostnames.items, function(eh) {
-                return [
-                    eh["edgeHostnameId"],
-                    eh["domainPrefix"],
-                    eh["domainSuffix"],
-                    eh["ipVersionBehavior"],
-                    eh["secure"],
-                    eh["edgeHostnameDomain"]
-                ];
-            });
-            data.unshift(["ID", "Prefix", "Suffix", "IP Version Behavior", "Secure", "EdgeHostname Domain"]);
-            const res = AsciiTable.table(data, 80);
-            consoleLogger.info(res);
+            let items = data.edgeHostnames.items;
+            if (devops.devopsSettings.outputFormat === 'table') {
+                data = _.map(items, function(eh) {
+                    return [
+                        eh["edgeHostnameId"],
+                        eh["domainPrefix"],
+                        eh["domainSuffix"],
+                        eh["ipVersionBehavior"],
+                        eh["secure"],
+                        eh["edgeHostnameDomain"]
+                    ];
+                });
+                data.unshift(["ID", "Prefix", "Suffix", "IP Version Behavior", "Secure", "EdgeHostname Domain"]);
+                const res = AsciiTable.table(data, 80);
+                consoleLogger.info(res);
+            } else {
+                consoleLogger.info(helpers.jsonStringify(items));
+            }
         });
     };
 
@@ -574,7 +810,8 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         .description("Promotional Deployment CLI package. " +
             "The command assumes that your current working directory is the pipeline space under which all pipelines reside")
         .option('-v, --verbose', 'Verbose output, show logging on stdout')
-        .option('-s, --section <section>', 'Section name representing Client ID in .edgerc file, defaults to "credentials"')
+        .option('-s, --section [section]', 'Section name representing Client ID in .edgerc file, defaults to "credentials"')
+        .option('-f, --format [format]', "Select output format, allowed values are 'json' or 'table'")
         .option('--record-to-file <filename>', 'Record REST communication to file')
         .option('--record-errors', 'Also record error responses')
         .option('--replay-from-file <filename>', 'Use record file to replay REST communication. Used for offline testing');
@@ -583,29 +820,43 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         .command("new-pipeline [environments...]", "Create a new pipeline with provided attributes. " +
             "This will also create one property for each environment.")
         .option('--retry', 'Assuming command failed last time during execution. Try to continue where it left off.')
+        .option('--dry-run', 'Just parse the parameters and print out the json generated that would normally call the create pipeline funtion.')
         .option('-p, --pipeline <pipelineName>', 'Pipeline name')
-        .option('-g, --groupId [groupId]', "Group ID, optional if -e propertyId/Name is used", helpers.parseGroupId)
+        .option('-g, --groupIds [groupIds]', "Group IDs, optional if -e propertyId/Name is used. " +
+            "Provide one groupId if all environments are expected in that same group. If each environment needs to be in " +
+            "its own group, provide the same number of groupIds as environments by using multiple -g options.", helpers.repeatable(helpers.parseGroupId), [])
         .option('-c, --contractId [contractId]', "Contract ID, optional if -e propertyId/Name is used", helpers.prefixeableString('ctr_'))
         .option('-d, --productId [productId]', "Product ID, optional if -e propertyId/Name is used", helpers.prefixeableString('prd_'))
         .option('-e, --propertyId [propertyId]', "Use existing property as blue print for pipeline templates. " +
             "Either pass property ID or exact property name. Akamai PD will lookup account information like group id, " +
             "contract id and product id of the existing property and use the information for creating pipeline properties")
         .option('-n, --version [version]', "Specify version of property, if omitted, use latest", helpers.parsePropertyVersion)
+        .option('--secure', "Make new pipeline secure, all environment properties are going to be secure")
+        .option('--insecure', "Make all environment properties not secure")
         .alias("np")
         .action(function(...args) {
             argumentsUsed = args;
-            actionCalled = createNewProject
+            actionCalled = createPipeline
         });
 
     commander
         .command("set-default", "Set the default pipeline and or the default section name from .edgerc")
         .option('-p, --pipeline <pipelineName>', 'Set default pipeline name')
         .option('-s, --section <section>', 'Set default section name from edgerc file')
+        .option('-f, --format <format>', "Select output format, allowed values are 'json' or 'table' foobar bo")
         .option('-e, --emails <emails>', 'Set default notification emails as comma separated list')
         .alias("sd")
         .action(function(...args) {
             argumentsUsed = args;
             actionCalled = setDefault
+        });
+
+    commander
+        .command("show-defaults", "Show default settings for this workspace")
+        .alias("sf")
+        .action(function(...args) {
+            argumentsUsed = args;
+            actionCalled = showDefaults
         });
 
     commander
@@ -698,15 +949,6 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         });
 
     commander
-        .command("create-edgehostnames <environment>", "Check if any edge hostnames need to be created and proceed to create them.")
-        .option('-p, --pipeline [pipelineName]', 'pipeline name')
-        .alias("ceh")
-        .action(function(...args) {
-            argumentsUsed = args;
-            actionCalled = createEdgeHostnames
-        });
-
-    commander
         .command("list-edgehostnames", "List edge hostnames available to current user credentials and setup (this could be a long list).")
         .option('-c, --contractId <contractId>', "Contract ID")
         .option('-g, --groupId <groupId>', "Group ID", helpers.parseGroupId)
@@ -730,7 +972,10 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
             "Promote (activate) an environment. This command also executes the merge and save commands mentioned above by default.")
         .option('-p, --pipeline [pipelineName]', 'pipeline name')
         .option('-n, --network <network>', "Network, either 'production' or 'staging', can be abbreviated to 'p' or 's'")
-        .option('-e, --emails <emails>', "Comma separated list of email addresses. Optional if default emails were previously set with set-default")
+        .option('-e, --emails [emails]', "Comma separated list of email addresses. Optional if default emails were previously set with set-default")
+        .option('-m, --message [message]', "Promotion message passed to activation backend")
+        .option('-w, --wait-for-activate', "Return after promotion of an environment is active.")
+        .option('--force', "Force promotion if previous environment aren't promoted or even saved.")
         .alias("pm")
         .action(function(...args) {
             argumentsUsed = args;
@@ -740,7 +985,8 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
     commander
         .command("check-promotion-status <environment>", "Check status of promotion (activation) of an environment.")
         .option('-p, --pipeline [pipelineName]', 'pipeline name')
-        .alias("cps")
+        .option('-w, --wait-for-activate', "Return after promotion of an environment is active.")
+        .alias("cs")
         .action(function(...args) {
             argumentsUsed = args;
             actionCalled = checkPromotions

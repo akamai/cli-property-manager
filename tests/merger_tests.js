@@ -13,7 +13,7 @@
 //  limitations under the License.
 
 
-global.td = require('testdouble');
+const td = require('testdouble');
 const path = require('path');
 const chai = require('chai');
 const assert = chai.assert;
@@ -24,7 +24,6 @@ const createDevOps = require('../src/factory');
 const PAPI = require("../src/papi");
 
 const logger = require("../src/logging")
-    .consoleLogging()
     .createLogger("devops-prov.merger_test");
 
 const VerifyUtils = require('./verify-utils');
@@ -71,26 +70,36 @@ describe('Merger Tests', function () {
         assert.deepEqual(environment.resolvePath("rules/children/0/criteria/0/name"), {
             "template": "templates/compression.json",
             "value": "contentType",
+            "location": "criteria/0/name",
             "variables": []
         });
         assert.deepEqual(environment.resolvePath("rules/behaviors/0/options/hostname"), {
             "template": "templates/main.json",
+            "location": "rules/behaviors/0/options/hostname",
             "value": "origin-qa.testproject.com",
             "variables": ["environments/qa/variables.json"]
         });
         assert.deepEqual(environment.resolvePath("rules/behaviors/1/options/value/id"), {
             "template": "templates/main.json",
+            "location": "rules/behaviors/1/options/value/id",
             "value": 98765,
             "variables": ["environments/variableDefinitions.json"]
         });
         assert.deepEqual(environment.resolvePath("rules/behaviors/2"), {
             "template": "templates/main.json",
+            "location": "rules/behaviors/2",
             "value": {
                 "name": "caching",
                 "options": {
                     "behavior": "NO_STORE"
                 }
             },
+            "variables": []
+        });
+        assert.deepEqual(environment.resolvePath("rules/children/1/behaviors/1/options/httpsPort"), {
+            "location": "behaviors/1/options/httpsPort",
+            "template": "templates/static.json",
+            "value": undefined,
             "variables": []
         });
     });

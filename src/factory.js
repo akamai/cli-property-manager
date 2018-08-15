@@ -14,7 +14,6 @@
 
 
 const path = require('path');
-const fs = require('fs');
 const os = require('os');
 const _ = require('underscore');
 
@@ -34,7 +33,6 @@ const errors = require('./errors');
 const helpers = require('./helpers');
 const logger = require("./logging")
     .createLogger("devops-prov.factory");
-const akamaiPDVersion = require("../package.json").version;
 
 /**
  *
@@ -63,7 +61,7 @@ const prepareEdgeGridConfig = function(utils, devopsSettings, dependencies) {
 
     logger.info(`Using credentials file: '${edgegridRc}', section: '${sectionName}'`);
 
-    if (!fs.existsSync(edgegridRc)) {
+    if (!utils.fileExists(edgegridRc)) {
         throw new errors.DependencyError("Can't create edgegrid instance! Credentials file missing.",
             "missing_edgegrid_credentials");
     }
@@ -90,10 +88,14 @@ const prepareSettings = function(dependencies, procEnv, utils) {
     if (devopsHome) {
         let devopsConfig = path.join(devopsHome, "devopsSettings.json");
         if (utils.fileExists(devopsConfig)) {
-            devopsSettings = helpers.mergeObjects(devopsSettings, utils.readJsonFile(devopsConfig));
+            let savedSettings = utils.readJsonFile(devopsConfig);
+            devopsSettings = helpers.mergeObjects(devopsSettings, savedSettings);
+            devopsSettings.__savedSettings = savedSettings;
         }
         devopsSettings.devopsHome = devopsHome;
     }
+
+    devopsSettings.outputFormat = dependencies.outputFormat || devopsSettings.outputFormat || "table";
 
     if (!devopsSettings.devopsHome) {
         throw new errors.DependencyError("Need to know location of devopsHome folder. Please set AKAMAI_PD_PROJECT_HOME environment variable.",
@@ -127,14 +129,18 @@ const createDevOps = function(dependencies = {}) {
     const clientType = dependencies.clientType || "regular";
     const recordFilename = dependencies.recordFilename;
     const recordErrors = dependencies.recordErrors;
+    const version = dependencies.version || "Version Information Missing";
     const utils = getUtils();
     const devopsSettings = prepareSettings(dependencies, procEnv, utils);
+    const shouldProcessPapiErrors = _.isBoolean(devopsSettings.processPapiErrors) ?
+        devopsSettings.processPapiErrors : true;
     const cache = {};
 
     const devops = new devOpsClass(devopsSettings, {
         getProject,
         getPAPI,
-        getUtils
+        getUtils,
+        version
     });
 
     /**
@@ -171,11 +177,18 @@ const createDevOps = function(dependencies = {}) {
             getUtils,
             getEL,
             getEnvironment,
+            getTemplate,
             getPAPI,
-            devopsSettings
+            devopsSettings,
+            version
         });
-        if (expectExists && !project.exists()) {
-            throw new errors.DependencyError(`Pipeline '${projectName}' doesn't exist!`, "unknown_pipeline", projectName);
+        if (expectExists) {
+            if (project.exists()) {
+                project.checkMigrationStatus(version);
+            } else {
+                throw new errors.DependencyError(`Pipeline '${projectName}' doesn't exist!`, "unknown_pipeline",
+                    projectName);
+            }
         }
         return project;
     }
@@ -187,7 +200,7 @@ const createDevOps = function(dependencies = {}) {
 
     function getOpenClient() {
         const defaultHeaders = {
-            "X-User-Agent": `Akamai-PD; Version=${akamaiPDVersion}`
+            "X-User-Agent": `Akamai-PD; Version=${version}`
         };
         if (clientType === "regular") {
             return new openClientClass({
@@ -223,8 +236,8 @@ const createDevOps = function(dependencies = {}) {
             project,
             getPAPI,
             envInfo,
-            getTemplate,
-            getMerger
+            getMerger,
+            shouldProcessPapiErrors
         });
     }
 
@@ -232,8 +245,8 @@ const createDevOps = function(dependencies = {}) {
         return new elClass(defaultSource, overrideSource, includeResolver);
     }
 
-    function getTemplate(pmData, converterData, productId, isNewProperty = true) {
-        return new templateClass(pmData, converterData, productId, isNewProperty);
+    function getTemplate(pmData, converterData, productId) {
+        return new templateClass(pmData, converterData, productId);
     }
 
     function getMerger(project, environment) {

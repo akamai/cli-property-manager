@@ -26,18 +26,18 @@ const logger = require("./logging")
  * converter data file.
  */
 class Template {
-    constructor(pmData, converterData, productId, isForNewProperty = true) {
+    constructor(pmData, converterData, productId) {
         this.pmData = helpers.clone(pmData);
-        this.converterData = this._prepareConverterData(converterData, productId);
+        this.converterData = Template._prepareConverterData(converterData, productId);
         this.templates = {};
         this.variables = {
             "definitions": {}
         };
         this.envVariables = {};
-        this.isForNewProperty = isForNewProperty || false;
+        this.isSecure = this.pmData.rules.options.is_secure || false;
     }
 
-    _prepareConverterData(converterData, productId) {
+    static _prepareConverterData(converterData, productId) {
         let productConverterData = converterData.generic;
         if (_.isObject(converterData.productOverrides[productId])) {
             productConverterData = helpers.deepMerge(productConverterData, converterData.productOverrides[productId]);
@@ -102,20 +102,30 @@ class Template {
      * this might need more work, we might want to replace things like quotes and other special characters
      * @param ruleName
      */
-    findIncludeNameFor(ruleName) {
-        let includeName = ruleName.replace(/\s/g, '_');
+    static findIncludeNameFor(ruleName) {
+        let includeName = ruleName.replace(/[\s/;,|&:]+/g, '_');
+        includeName = includeName.replace(/(^\.)|(\.$)/g, '');
         return includeName + ".json";
     }
 
 
     processRules() {
         let childRules = this.pmData.rules.children;
+        let ruleCounter = {};
         for (let i = 0; i < childRules.length; i++) {
             let ruleName = childRules[i].name;
             logger.info(`looking at rule: ${ruleName}`);
             let includeName = this.converterData.ruleMapping[ruleName];
             if (!includeName) {
-                includeName = this.findIncludeNameFor(ruleName);
+                includeName = Template.findIncludeNameFor(ruleName);
+            }
+            let count = ruleCounter[includeName];
+            if (count === undefined) {
+                ruleCounter[includeName] = 1;
+            } else {
+                count++;
+                ruleCounter[includeName] = count;
+                includeName = includeName.slice(0, includeName.length - 5) + "_" + count + ".json"
             }
             this.templates[includeName] = childRules[i];
             childRules[i] = "#include:" + includeName;
@@ -148,6 +158,22 @@ class Template {
                         this.envVariables[replacement.name] = replacement.overrideValue;
                     }
                 }
+                if (behavior.name === "origin" && this.isSecure) {
+                    //new properties are created by default non secure.
+                    //adding default origin options required for secure properties
+                    //they might exist if rule tree comes from existing property
+                    //we don't want to override the option, only add if not exist.
+                    let options = behavior.options;
+                    if (!_.isNumber(options.httpsPort)) {
+                        options.httpsPort = 443;
+                    }
+                    if (!_.isBoolean(options.originSni)) {
+                        options.originSni = true;
+                    }
+                    if (!_.isString(options.verificationMode)) {
+                        options.verificationMode = "PLATFORM_SETTINGS"
+                    }
+                }
             }
         }
         if (_.isArray(rule.children)) {
@@ -159,13 +185,12 @@ class Template {
 
     process() {
         let errors = this.pmData.errors;
-        if (this.isForNewProperty && _.isArray(errors)) {
+        if (_.isArray(errors)) {
             for (let err of errors) {
                 this.processError(err);
             }
-        } else {
-            this.processBehaviors(this.pmData.rules)
         }
+        this.processBehaviors(this.pmData.rules);
         this.processRules();
         return {
             "main": {

@@ -13,7 +13,7 @@
 //  limitations under the License.
 
 
-global.td = require('testdouble');
+const td = require('testdouble');
 const path = require('path');
 const chai = require('chai');
 const assert = chai.assert;
@@ -21,7 +21,6 @@ const assert = chai.assert;
 const _ = require('underscore');
 
 const logger = require("../src/logging")
-    .consoleLogging()
     .createLogger("devops-prov.template_tests");
 
 
@@ -35,10 +34,13 @@ const helpers = require('../src/helpers');
  * @param productId
  * @returns {*}
  */
-const createTemplate = function(ruleTreeFileName, productId, isForNewProperty = true) {
+const createTemplate = function(ruleTreeFileName, productId, isSecure) {
     let waaJson = utils.readJsonFile(path.join(__dirname, "testdata", ruleTreeFileName));
+    if (isSecure) {
+        waaJson.rules.options.is_secure = true;
+    }
     let converterData = utils.readJsonFile(path.join(__dirname, "..", "resources", "template.converter.data.json"));
-    return new Template(waaJson, converterData, productId, isForNewProperty);
+    return new Template(waaJson, converterData, productId);
 };
 
 describe('Template Tests WAA', function() {
@@ -59,6 +61,79 @@ describe('Template Tests WAA', function() {
            "type": "PERFORMANCE"
        });
        assert.equal(behavior.name, "sureRoute")
+    });
+
+    it('convert waa template into sdk template files', function() {
+        let results = template.process();
+        assert.exists(results.templates);
+        assert.equal(Object.keys(results.templates).length, 3);
+        assert.deepEqual(results.main.rules.children, [
+            '#include:compression.json',
+            '#include:static.json',
+            '#include:dynamic.json'
+        ]);
+        assert.exists(results.variables);
+        assert.deepEqual(results.variables, {
+            "definitions": {
+                originHostname: {
+                    type: 'hostname',
+                    default: null
+                },
+                cpCode: {
+                    type: 'cpCode',
+                    default: null
+                },
+                sureRouteTestObject: {
+                    type: 'url',
+                    default: "/akamai/sure-route-test-object.html"
+                }
+            }
+        });
+        assert.exists(results.envVariables);
+        assert.deepEqual(results.envVariables, {
+            //Note: we have not done any variable substitution. It happens outside of Template.
+            originHostname: "origin-${environment.propertyName}",
+            cpCode: null,
+            sureRouteTestObject: null
+        });
+    });
+
+    it('convert waa template into template files for secure pipeline', function() {
+        template = createTemplate("testruletree.waa.json", "Web_App_Accel", true);
+        let results = template.process();
+        assert.exists(results.templates);
+        assert.equal(Object.keys(results.templates).length, 3);
+        assert.deepEqual(results.main.rules.children, [
+            '#include:compression.json',
+            '#include:static.json',
+            '#include:dynamic.json'
+        ]);
+        assert.exists(results.variables);
+        assert.deepEqual(results.main.rules.behaviors[0], {
+                "name": "origin",
+                "options": {
+                    "cacheKeyHostname": "ORIGIN_HOSTNAME",
+                    "compress": true,
+                    "enableTrueClientIp": false,
+                    "forwardHostHeader": "REQUEST_HOST_HEADER",
+                    "hostname": "\\${env.originHostname}",
+                    "httpPort": 80,
+                    "httpsPort": 443,
+                    "originSni": true,
+                    "originType": "CUSTOMER",
+                    "verificationMode": "PLATFORM_SETTINGS"
+                }
+            },
+        );
+    });
+
+});
+
+describe('Template Tests Problematic WAA', function() {
+    let template;
+
+    before(function () {
+        template = createTemplate("testruletree.waa.bug272.json", "Web_App_Accel", false);
     });
 
     it('convert waa template into setup of sdk template files', function() {
@@ -96,6 +171,7 @@ describe('Template Tests WAA', function() {
         });
     });
 });
+
 
 describe('Template Tests RMA', function() {
     let template;
@@ -480,3 +556,69 @@ describe('Template Tests Site_Defender', function() {
         });
     });
 });
+
+describe('Test rule name conversion', function() {
+    it('Convert regular names with problematic characters', function() {
+        let newName = Template.findIncludeNameFor("Regular Name With Spaces");
+        assert.equal(newName, "Regular_Name_With_Spaces.json");
+
+        newName = Template.findIncludeNameFor("Regular/Name/With//Slashes");
+        assert.equal(newName, "Regular_Name_With_Slashes.json");
+
+        newName = Template.findIncludeNameFor("Regular;Name,With||Bad&Characters");
+        assert.equal(newName, "Regular_Name_With_Bad_Characters.json");
+
+        newName = Template.findIncludeNameFor(".dots.at.beginning.and.end.");
+        assert.equal(newName, "dots.at.beginning.and.end.json");
+    });
+});
+
+describe('Multiple rule with same name test', function() {
+    it('convert Progressive_Media template into setup of sdk template files', function() {
+        let converterData = utils.readJsonFile(path.join(__dirname, "..", "resources", "template.converter.data.json"));
+        let pmData = {
+            rules: {
+                children: [
+                    {
+                        name: "Some&Name"
+                    },
+                    {
+                        name: "Some&Name"
+                    },
+                    {
+                        name: "Some Name"
+                    },
+                    {
+                        name: "Other Name"
+                    }
+                ],
+                options: {
+                    is_secure : false
+                }
+            }
+        };
+        let template = new Template(pmData, converterData, "Web_App_Accel");
+        template.processRules();
+        assert.deepEqual(template.pmData.rules.children, [
+            "#include:Some_Name.json",
+            "#include:Some_Name_2.json",
+            "#include:Some_Name_3.json",
+            "#include:Other_Name.json"
+        ]);
+        assert.deepEqual(template.templates, {
+            "Other_Name.json": {
+               "name": "Other Name"
+            },
+            "Some_Name.json": {
+                "name": "Some&Name"
+            },
+            "Some_Name_2.json": {
+                "name": "Some&Name"
+            },
+            "Some_Name_3.json": {
+                "name": "Some Name"
+            }
+        });
+    });
+});
+

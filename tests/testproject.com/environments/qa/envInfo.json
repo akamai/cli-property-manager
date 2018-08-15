@@ -1,7 +1,9 @@
 {
   "name": "qa",
+  "groupId": 61726,
   "propertyName": "qa.testproject.com",
   "propertyId": 411089,
+  "isSecure": false,
   "environmentHash": "f91b2efb777cc1a6124d844e4a707676c9e2c105b8852f4700071193b221aaa2",
   "ruleTreeHash": "6ac5ef477dbdc1abbc1c8957a0b6faef28f9d21b2f92e5771f29391da00a7744",
   "latestVersionInfo": {

@@ -13,7 +13,7 @@
 //  limitations under the License.
 
 
-global.td = require('testdouble');
+const td = require('testdouble');
 
 const path = require("path");
 const main = require("../src/cli");
@@ -21,13 +21,17 @@ const chai = require('chai');
 const assert = chai.assert;
 
 
+const errors = require('../src/errors');
+const helpers = require('../src/helpers');
 const createDevOps = require("../src/factory");
 const DevOps = require("../src/devops");
 const Utils = require('../src/utils');
 const RoUtils = require('./ro-utils');
 const logger = require("../src/logging")
-    .consoleLogging()
+//    .consoleLogging()
     .createLogger("devops-prov.project_tests");
+
+const equalIgnoreWhiteSpaces = require('./testutils').equalIgnoreWhiteSpaces;
 
 const createCommand = function (...args) {
     let result = ['/usr/bin/node', 'bin/devops-prov'];
@@ -72,14 +76,6 @@ const mainTester = function (mainCaller, verifyCallback) {
     });
 };
 
-const whiteSpaceRegex = /\s+/g;
-const eatWhiteSpaces = function(text) {
-    return text.replace(whiteSpaceRegex, " ");
-};
-
-const equalIgnoreWhiteSpaces = function(actual, expected, message) {
-    assert.equal(eatWhiteSpaces(actual), eatWhiteSpaces(expected), message);
-};
 
 describe('Eat white spaces test', function () {
 
@@ -163,7 +159,7 @@ describe('Devops-prov CLI provide help test', function () {
 describe('Devops-prov CLI set default tests', function () {
     const devopsHome = __dirname;
     let createDevOpsFun;
-    let devopsHolder = {};
+    let devOps;
 
     before(function () {
         let utilsClass = RoUtils;
@@ -173,8 +169,7 @@ describe('Devops-prov CLI set default tests', function () {
             };
             Object.assign(newDeps, deps);
 
-            let devOps = createDevOps(newDeps);
-            devopsHolder.devops = devOps;
+            devOps = createDevOps(newDeps);
             return devOps;
         };
     });
@@ -190,7 +185,7 @@ describe('Devops-prov CLI set default tests', function () {
             main(cliArgs, {}, createDevOpsFun, errorReporter);
         }, errorCatcher => {
             assert.equal(errorCatcher, null);
-            let roUtils = devopsHolder.devops.utils;
+            let roUtils = devOps.utils;
             let devopsSettingsPath = path.join(__dirname, "devopsSettings.json");
             let devopsSettings = roUtils.readJsonFile(devopsSettingsPath);
             assert.deepEqual(devopsSettings, {
@@ -198,6 +193,25 @@ describe('Devops-prov CLI set default tests', function () {
                 "edgeGridConfig": {
                     "section": "frodo"
                 }
+            })
+        });
+    });
+
+    it('set Default test setting format', function () {
+        let cliArgs = createCommand("sd", "-f", "json");
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter);
+        }, errorCatcher => {
+            assert.equal(errorCatcher, null);
+            let roUtils = devOps.utils;
+            let devopsSettingsPath = path.join(__dirname, "devopsSettings.json");
+            let devopsSettings = roUtils.readJsonFile(devopsSettingsPath);
+            assert.deepEqual(devopsSettings, {
+                "defaultProject": "testproject.com",
+                "edgeGridConfig": {
+                    "section": "credentials"
+                },
+                "outputFormat": "json"
             })
         });
     });
@@ -263,7 +277,7 @@ describe('Devops-prov CLI list status', function () {
     });
 
     it('list status test unexpected option', function () {
-        let cliArgs = createCommand("-v", "lstat", "-f", "something");
+        let cliArgs = createCommand("-v", "lstat", "-g", "something");
         let testConsole = new TestConsole();
         let utils = new Utils();
 
@@ -272,7 +286,7 @@ describe('Devops-prov CLI list status', function () {
                 "AKAMAI_PD_PROJECT_HOME": devopsHome
             }, createDevOps, errorReporter, testConsole);
         }, errorCatcher => {
-            assert.equal(errorCatcher.error, "Error: Unknown option: '-f'");
+            assert.equal(errorCatcher.error, "Error: Unknown option: '-g'");
         });
     });
 });
@@ -303,12 +317,100 @@ describe('Devops-prov CLI create new project', function () {
                 "AKAMAI_PD_PROJECT_HOME": __dirname
             }, createDevOpsFun, errorReporter);
         }, errorCatcher => {
-            td.verify(devOpsClass.prototype.createNewProject({
+            td.verify(devOpsClass.prototype.createPipeline({
                 projectName: "testproject2.com",
                 productId: "NiceProduct",
                 contractId: "XYZ123",
-                groupId: 62234,
+                groupIds: [62234],
                 environments: ["foo", "bar"],
+                environmentGroupIds: {
+                    foo: 62234,
+                    bar: 62234
+                },
+                isInRetryMode: false,
+                propertyId: undefined,
+                propertyName: undefined,
+                propertyVersion: undefined
+            }));
+        });
+    });
+
+    it('create new project with secure option', function () {
+        let cliArgs = createCommand("np", "-p", "testproject2.com",
+            "-g", "62234", "-c", "XYZ123", "--secure", "-d", "NiceProduct", "foo", "bar");
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {
+                "AKAMAI_PD_PROJECT_HOME": __dirname
+            }, createDevOpsFun, errorReporter);
+        }, errorCatcher => {
+            td.verify(devOpsClass.prototype.createPipeline({
+                projectName: "testproject2.com",
+                productId: "NiceProduct",
+                contractId: "XYZ123",
+                groupIds: [62234],
+                environments: ["foo", "bar"],
+                environmentGroupIds: {
+                    foo: 62234,
+                    bar: 62234
+                },
+                isInRetryMode: false,
+                secureOption: true,
+                propertyId: undefined,
+                propertyName: undefined,
+                propertyVersion: undefined
+            }));
+        });
+    });
+
+    it('create new project with insecure option', function () {
+        let cliArgs = createCommand("np", "-p", "testproject2.com",
+            "-g", "62234", "-c", "XYZ123", "--insecure", "-d", "NiceProduct", "foo", "bar");
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {
+                "AKAMAI_PD_PROJECT_HOME": __dirname
+            }, createDevOpsFun, errorReporter);
+        }, errorCatcher => {
+            td.verify(devOpsClass.prototype.createPipeline({
+                projectName: "testproject2.com",
+                productId: "NiceProduct",
+                contractId: "XYZ123",
+                groupIds: [62234],
+                environments: ["foo", "bar"],
+                environmentGroupIds: {
+                    foo: 62234,
+                    bar: 62234
+                },
+                isInRetryMode: false,
+                secureOption: false,
+                propertyId: undefined,
+                propertyName: undefined,
+                propertyVersion: undefined
+            }));
+        });
+    });
+
+    it('create new project', function () {
+        let cliArgs = createCommand("np", "-p", "testproject2.com",
+            "-g", "62234", "-g", "62244", "-g", "62353", "-c", "XYZ123", "-d", "NiceProduct", "foo", "bar", "baz");
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {
+                "AKAMAI_PD_PROJECT_HOME": __dirname
+            }, createDevOpsFun, errorReporter);
+        }, errorCatcher => {
+            td.verify(devOpsClass.prototype.createPipeline({
+                projectName: "testproject2.com",
+                productId: "NiceProduct",
+                contractId: "XYZ123",
+                groupIds: [62234, 62244, 62353],
+                environments: ["foo", "bar", "baz"],
+                environmentGroupIds: {
+                    foo: 62234,
+                    bar: 62244,
+                    baz: 62353
+                },
                 isInRetryMode: false,
                 propertyId: undefined,
                 propertyName: undefined,
@@ -326,12 +428,16 @@ describe('Devops-prov CLI create new project', function () {
                 "AKAMAI_PD_PROJECT_HOME": __dirname
             }, createDevOpsFun, errorCatcher);
         }, errorCatcher => {
-            td.verify(devOpsClass.prototype.createNewProject({
+            td.verify(devOpsClass.prototype.createPipeline({
                 projectName: "testproject2.com",
                 productId: "NiceProduct",
                 contractId: "XYZ123",
-                groupId: 62234,
+                groupIds: [62234],
                 environments: ["foo", "bar"],
+                environmentGroupIds: {
+                    foo: 62234,
+                    bar: 62234
+                },
                 isInRetryMode: true,
                 propertyId: undefined,
                 propertyName: undefined,
@@ -349,12 +455,16 @@ describe('Devops-prov CLI create new project', function () {
                 "AKAMAI_PD_PROJECT_HOME": __dirname
             }, createDevOpsFun, errorCatcher);
         }, errorCatcher => {
-            td.verify(devOpsClass.prototype.createNewProject({
+            td.verify(devOpsClass.prototype.createPipeline({
                 projectName: "testproject2.com",
                 productId: "NiceProduct",
                 contractId: "XYZ123",
-                groupId: 62234,
+                groupIds: [62234],
                 environments: ["foo", "bar"],
+                environmentGroupIds: {
+                    foo: 62234,
+                    bar: 62234
+                },
                 isInRetryMode: false,
                 propertyId: 3456,
                 propertyName: undefined,
@@ -372,12 +482,16 @@ describe('Devops-prov CLI create new project', function () {
                 "AKAMAI_PD_PROJECT_HOME": __dirname
             }, createDevOpsFun, errorCatcher);
         }, errorCatcher => {
-            td.verify(devOpsClass.prototype.createNewProject({
+            td.verify(devOpsClass.prototype.createPipeline({
                 projectName: "testproject2.com",
                 productId: "NiceProduct",
                 contractId: "XYZ123",
-                groupId: 62234,
+                groupIds: [62234],
                 environments: ["foo", "bar"],
+                environmentGroupIds: {
+                    foo: 62234,
+                    bar: 62234
+                },
                 isInRetryMode: false,
                 propertyId: 3456,
                 propertyName: undefined,
@@ -395,12 +509,16 @@ describe('Devops-prov CLI create new project', function () {
                 "AKAMAI_PD_PROJECT_HOME": __dirname
             }, createDevOpsFun, errorCatcher);
         }, errorCatcher => {
-            td.verify(devOpsClass.prototype.createNewProject({
+            td.verify(devOpsClass.prototype.createPipeline({
                 projectName: "testproject2.com",
                 productId: "NiceProduct",
                 contractId: "XYZ123",
-                groupId: 62234,
+                groupIds: [62234],
                 environments: ["foo", "bar"],
+                environmentGroupIds: {
+                    foo: 62234,
+                    bar: 62234
+                },
                 isInRetryMode: false,
                 propertyId: 3456,
                 propertyName: undefined,
@@ -417,12 +535,16 @@ describe('Devops-prov CLI create new project', function () {
                 "AKAMAI_PD_PROJECT_HOME": __dirname
             }, createDevOpsFun, errorCatcher);
         }, errorCatcher => {
-            td.verify(devOpsClass.prototype.createNewProject({
+            td.verify(devOpsClass.prototype.createPipeline({
                 projectName: "testproject2.com",
                 productId: undefined,
                 contractId: undefined,
-                groupId: undefined,
+                groupIds: [],
                 environments: ["foo", "bar"],
+                environmentGroupIds: {
+                    foo: undefined,
+                    bar: undefined
+                },
                 isInRetryMode: false,
                 propertyId: 3456,
                 propertyName: undefined,
@@ -439,12 +561,16 @@ describe('Devops-prov CLI create new project', function () {
                 "AKAMAI_PD_PROJECT_HOME": __dirname
             }, createDevOpsFun, errorCatcher);
         }, errorCatcher => {
-            td.verify(devOpsClass.prototype.createNewProject({
+            td.verify(devOpsClass.prototype.createPipeline({
                 projectName: "testproject2.com",
                 productId: undefined,
                 contractId: undefined,
-                groupId: undefined,
+                groupIds: [],
                 environments: ["foo", "bar"],
+                environmentGroupIds: {
+                    foo: undefined,
+                    bar: undefined
+                },
                 isInRetryMode: false,
                 propertyId: undefined,
                 propertyName: "www.foobar.com",
@@ -461,12 +587,16 @@ describe('Devops-prov CLI create new project', function () {
                 "AKAMAI_PD_PROJECT_HOME": __dirname
             }, createDevOpsFun, errorCatcher);
         }, errorCatcher => {
-            td.verify(devOpsClass.prototype.createNewProject({
+            td.verify(devOpsClass.prototype.createPipeline({
                 projectName: "testproject2.com",
                 productId: undefined,
                 contractId: undefined,
-                groupId: undefined,
+                groupIds: [],
                 environments: ["foo", "bar"],
+                environmentGroupIds: {
+                    foo: undefined,
+                    bar: undefined
+                },
                 isInRetryMode: false,
                 propertyId: 3456,
                 propertyName: undefined,
@@ -537,7 +667,7 @@ describe('Devops-prov CLI create new project', function () {
         }, errorCatcher => {
             assert.exists(errorCatcher);
             assert.equal(errorCatcher.error,
-                "Error: groupId needs to be provided as a number", errorCatcher.error.stack);
+                "Error: At least one groupId needs to be provided as a number", errorCatcher.error.stack);
         });
     });
 });
@@ -568,7 +698,11 @@ describe('list tests', function () {
             };
             Object.assign(newDeps, deps);
 
-            return createDevOps(newDeps);
+            let devOps = createDevOps(newDeps);
+            devOps.devopsSettings = {
+                outputFormat: "table"
+            };
+            return devOps;
         };
         testConsole = new TestConsole();
     });
@@ -646,7 +780,11 @@ describe('merge tests', function () {
             };
             Object.assign(newDeps, deps);
 
-            return createDevOps(newDeps);
+            let devOps = createDevOps(newDeps);
+            devOps.devopsSettings = {
+                outputFormat: "table"
+            };
+            return devOps;
         };
     });
 
@@ -698,16 +836,65 @@ describe('promotion tests', function () {
     let createDevOpsFun;
     let testConsole;
     let utils = new Utils();
+    let devOpsClass;
+
+    let checkPromotionsObject ={
+        promotionUpdates: {
+            "PRODUCTION": {
+                "activationId": "5355534",
+                "propertyName": "dev.devopsdemolive.com",
+                "propertyId": "429569",
+                "propertyVersion": 1,
+                "network": "PRODUCTION",
+                "activationType": "ACTIVATE",
+                "status": "ACTIVE",
+                "submitDate": "2018-01-26T16:11:44Z",
+                "updateDate": "2018-01-26T16:19:55Z",
+                "note": "   ",
+                "notifyEmails": ["j@m.com"]
+            },
+            "STAGING": {
+                "activationId": "5355810",
+                "propertyName": "dev.devopsdemolive.com",
+                "propertyId": "429569",
+                "propertyVersion": 3,
+                "network": "STAGING",
+                "activationType": "ACTIVATE",
+                "status": "ACTIVE",
+                "submitDate": "2018-01-30T18:37:23Z",
+                "updateDate": "2018-01-30T18:38:41Z",
+                "note": "   ",
+                "notifyEmails": ["j@m.com"],
+                "fmaActivationState": "steady",
+                "fallbackInfo": {
+                    "fastFallbackAttempted": false,
+                    "fallbackVersion": 1,
+                    "canFastFallback": true,
+                    "steadyStateTime": 1517337521,
+                    "fastFallbackExpirationTime": 1517341121,
+                    "fastFallbackRecoveryState": null
+                }
+            }
+        }
+    };
+
+    after(function (){
+        td.when(devOpsClass.prototype.checkPromotions("testproject.com", "qa"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(checkPromotionsObject);
+                })
+            );
+    });
 
     before(function () {
-        let devOpsClass = td.constructor(DevOps);
+        devOpsClass = td.constructor(DevOps);
 
         td.when(devOpsClass.prototype.extractProjectName(td.matchers.isA(Object)))
             .thenReturn("testproject.com");
 
-        td.when(devOpsClass.prototype.promote("testproject.com", "qa", "PRODUCTION", "test@foo.com"))
-            .thenReturn(new Promise((resolve, reject) => {
-                    resolve({
+        td.when(devOpsClass.prototype.promote("testproject.com", "qa", "PRODUCTION",
+            "test@foo.com", undefined, undefined))
+            .thenResolve({
                         envInfo: {
                             "name": "dev",
                             "propertyName": "dev.devopsdemolive.com",
@@ -743,54 +930,21 @@ describe('promotion tests', function () {
                             activationId: 5355534
                         }
                     });
-                })
-            );
+        //using stubbing and in this case rejection to test that message was passed as argument. Stubbing + verify causes mocha warning!
+        td.when(devOpsClass.prototype.promote("testproject.com", "qa", "PRODUCTION",
+            "test@foo.com", "Message", undefined)).thenReject(new errors.RestApiError("Promotion with Message Failed!"));
+
+        //using stubbing and in this case rejection to test that force option was passed as argument.
+        td.when(devOpsClass.prototype.promote("testproject.com", "qa", "PRODUCTION",
+            "test@foo.com", undefined, true)).thenReject(new errors.RestApiError("Promotion with force Failed!"));
 
         td.when(devOpsClass.prototype.checkPromotions("testproject.com", "qa"))
             .thenReturn(new Promise((resolve, reject) => {
-                    resolve({
-                        promotionUpdates: {
-                            "PRODUCTION": {
-                                "activationId": "5355534",
-                                "propertyName": "dev.devopsdemolive.com",
-                                "propertyId": "429569",
-                                "propertyVersion": 1,
-                                "network": "PRODUCTION",
-                                "activationType": "ACTIVATE",
-                                "status": "ACTIVE",
-                                "submitDate": "2018-01-26T16:11:44Z",
-                                "updateDate": "2018-01-26T16:19:55Z",
-                                "note": "   ",
-                                "notifyEmails": ["j@m.com"]
-                            },
-                            "STAGING": {
-                                "activationId": "5355810",
-                                "propertyName": "dev.devopsdemolive.com",
-                                "propertyId": "429569",
-                                "propertyVersion": 3,
-                                "network": "STAGING",
-                                "activationType": "ACTIVATE",
-                                "status": "ACTIVE",
-                                "submitDate": "2018-01-30T18:37:23Z",
-                                "updateDate": "2018-01-30T18:38:41Z",
-                                "note": "   ",
-                                "notifyEmails": ["j@m.com"],
-                                "fmaActivationState": "steady",
-                                "fallbackInfo": {
-                                    "fastFallbackAttempted": false,
-                                    "fallbackVersion": 1,
-                                    "canFastFallback": true,
-                                    "steadyStateTime": 1517337521,
-                                    "fastFallbackExpirationTime": 1517341121,
-                                    "fastFallbackRecoveryState": null
-                                }
-                            }
-                        }
-                    });
+                    resolve(checkPromotionsObject);
                 })
             );
 
-        var devopsHome = __dirname;
+        let devopsHome = __dirname;
 
         createDevOpsFun = function (deps) {
             let newDeps = {
@@ -799,7 +953,11 @@ describe('promotion tests', function () {
             };
             Object.assign(newDeps, deps);
 
-            return createDevOps(newDeps);
+            let devOps = createDevOps(newDeps);
+            devOps.devopsSettings = {
+                outputFormat: "table"
+            };
+            return devOps;
         };
     });
 
@@ -815,6 +973,258 @@ describe('promotion tests', function () {
         }, createDevOpsFun);
     });
 
+    it('test promote with -m message', function () {
+        testConsole = new TestConsole();
+        let cliArgs = createCommand("promote", "-m", "Message", "-n", "PRODUCTION", "-e", "test@foo.com", "qa");
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            assert.equal(errorCatcher.error.message, "Promotion with Message Failed!")
+        }, createDevOpsFun);
+    });
+
+    it('test promote with --force option', function () {
+        testConsole = new TestConsole();
+        let cliArgs = createCommand("promote", "--force", "-n", "PRODUCTION", "-e", "test@foo.com", "qa");
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            assert.equal(errorCatcher.error.message, "Promotion with force Failed!")
+        }, createDevOpsFun);
+    });
+
+    it('test promote -w', function () {
+        testConsole = new TestConsole();
+        let cliArgs = createCommand("promote", "-w", "-n", "PRODUCTION", "-e", "test@foo.com", "qa");
+
+        td.when(devOpsClass.prototype.checkPromotions("testproject.com", "qa"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "PENDING";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "PENDING";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    resolve(checkPromotionsObject);
+                })
+            );
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            testConsole.logs.splice(testConsole.logs.length -3, 1);
+            let output = testConsole.logs.join("\n");
+            assert.equal(output, utils.readFile(path.join(__dirname, "testdata", "promote.wait.output.txt")))
+        }, createDevOpsFun);
+    });
+
+    it('test promote -w failed', function () {
+        testConsole = new TestConsole();
+        let cliArgs = createCommand("promote", "-w", "-n", "PRODUCTION", "-e", "test@foo.com", "qa");
+
+        td.when(devOpsClass.prototype.checkPromotions("testproject.com", "qa"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "PENDING";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "PENDING";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "FAILED";
+                    resolve(clone);                })
+            );
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            testConsole.logs.splice(testConsole.logs.length -3, 1);
+            let output = testConsole.logs.join("\n");
+            assert.equal(output, utils.readFile(path.join(__dirname, "testdata", "promote.wait.failed.output.txt")))
+        }, createDevOpsFun);
+    });
+
+    it('test promote -w with cancellation', function () {
+        testConsole = new TestConsole();
+        let cliArgs = createCommand("promote", "-w", "-n", "PRODUCTION", "-e", "test@foo.com", "qa");
+
+        td.when(devOpsClass.prototype.checkPromotions("testproject.com", "qa"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "PENDING";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "PENDING_CANCELLATION";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "ABORTED";
+                    resolve(clone);                })
+            );
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            testConsole.logs.splice(testConsole.logs.length -3, 1);
+            let output = testConsole.logs.join("\n");
+            assert.equal(output, utils.readFile(path.join(__dirname, "testdata", "promote.wait.cancelled.output.txt")))
+        }, createDevOpsFun);
+    });
+
+    it('test promote -w inactive', function () {
+        testConsole = new TestConsole();
+        let cliArgs = createCommand("promote", "-w", "-n", "PRODUCTION", "-e", "test@foo.com", "qa");
+
+        td.when(devOpsClass.prototype.checkPromotions("testproject.com", "qa"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "PENDING";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "PENDING";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "INACTIVE";
+                    resolve(clone);                })
+            );
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            testConsole.logs.splice(testConsole.logs.length -3, 1);
+            let output = testConsole.logs.join("\n");
+            assert.equal(output, utils.readFile(path.join(__dirname, "testdata", "promote.wait.inactive.output.txt")))
+        }, createDevOpsFun);
+    });
+
+    it('test promote -w deactivated', function () {
+        testConsole = new TestConsole();
+        let cliArgs = createCommand("promote", "-w", "-n", "PRODUCTION", "-e", "test@foo.com", "qa");
+
+        td.when(devOpsClass.prototype.checkPromotions("testproject.com", "qa"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "PENDING_DEACTIVATION";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "PENDING_DEACTIVATION";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "DEACTIVATED";
+                    resolve(clone);                })
+            );
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            testConsole.logs.splice(testConsole.logs.length -3, 1);
+            let output = testConsole.logs.join("\n");
+            assert.equal(output, utils.readFile(path.join(__dirname, "testdata", "promote.wait.deactive.output.txt")))
+        }, createDevOpsFun);
+    });
+
+    it('test promote -w aborted', function () {
+        testConsole = new TestConsole();
+        let cliArgs = createCommand("promote", "-w", "-n", "PRODUCTION", "-e", "test@foo.com", "qa");
+
+        td.when(devOpsClass.prototype.checkPromotions("testproject.com", "qa"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "PENDING";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "PENDING";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "ABORTED";
+                    resolve(clone);                })
+            );
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            testConsole.logs.splice(testConsole.logs.length -3, 1);
+            let output = testConsole.logs.join("\n");
+            assert.equal(output, utils.readFile(path.join(__dirname, "testdata", "promote.wait.aborted.output.txt")))
+        }, createDevOpsFun);
+    });
+
+
+    it('test promote -w with zones', function () {
+        testConsole = new TestConsole();
+        let cliArgs = createCommand("promote", "-w", "-n", "PRODUCTION", "-e", "test@foo.com", "qa");
+
+        td.when(devOpsClass.prototype.checkPromotions("testproject.com", "qa"))
+            .thenReturn(
+                new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "NEW";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "PENDING";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "PENDING";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "ZONE_1";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "ZONE_2";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "ZONE_3";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    resolve(checkPromotionsObject);
+                })
+            );
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            testConsole.logs.splice(testConsole.logs.length -3, 1);
+            let output = testConsole.logs.join("\n");
+            assert.equal(output, utils.readFile(path.join(__dirname, "testdata", "promote.wait.zone.output.txt")))
+        }, createDevOpsFun);
+    });
+
     it('test promote II', function () {
         testConsole = new TestConsole();
         let cliArgs = createCommand("promote", "-n", "p", "-e", "test@foo.com", "qa");
@@ -827,9 +1237,19 @@ describe('promotion tests', function () {
         }, createDevOpsFun);
     });
 
-    it('test promote wrong network name', function () {
+    it('test promote -w wrong network name', function () {
         testConsole = new TestConsole();
         let cliArgs = createCommand("promote", "-n", "foo", "qa");
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            assert.equal(errorCatcher.error, "Error: Illegal network name: 'foo'");
+        }, createDevOpsFun);
+    });
+    it('test promote wrong network name', function () {
+        testConsole = new TestConsole();
+        let cliArgs = createCommand("promote", "-w", "-n", "foo", "qa");
 
         return mainTester(errorReporter => {
             main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
@@ -840,12 +1260,248 @@ describe('promotion tests', function () {
 
     it('test check promotion status', function () {
         testConsole = new TestConsole();
-        let cliArgs = createCommand("cps", "qa");
+        let cliArgs = createCommand("cs", "qa");
         return mainTester(errorReporter => {
             main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
         }, errorCatcher => {
             let output = testConsole.logs[1][0];
             assert.equal(output, utils.readFile(path.join(__dirname, "testdata", "checkPromotions.output.txt")))
+        }, createDevOpsFun);
+    });
+
+    it('test check promotion status with -w', function () {
+        testConsole = new TestConsole();
+        let cliArgs = createCommand("cs","-w", "qa");
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            testConsole.logs.splice(testConsole.logs.length -3, 1);
+            let output = testConsole.logs.join("\n");
+            assert.equal(output, utils.readFile(path.join(__dirname, "testdata", "checkPromotions.wait.output.txt")))
+        }, createDevOpsFun);
+    });
+
+    it('test check promotion status with -w, already checked', function () {
+        testConsole = new TestConsole();
+        let cliArgs = createCommand("cs","-w", "qa");
+
+        td.when(devOpsClass.prototype.checkPromotions("testproject.com", "qa"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve({
+                            "promotionUpdates": {},
+                            "promotionStatus": {
+                                "latestVersion": 10,
+                                "activeInStagingVersion": 10,
+                                "activeInProductionVersion": 9
+                            }
+                        }
+                    );
+                })
+            );
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            testConsole.logs.splice(testConsole.logs.length -3, 1);
+            let output = testConsole.logs.join("\n");
+            assert.equal(output, utils.readFile(path.join(__dirname, "testdata", "checkPromotions.wait.already.output.txt")))
+        }, createDevOpsFun);
+    });
+
+
+    it('test check promotion status with --wait-for-activate', function () {
+
+        td.when(devOpsClass.prototype.checkPromotions("testproject.com", "qa"))
+            .thenReturn(
+                new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "PENDING";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "PENDING";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    resolve(checkPromotionsObject);
+                })
+            );
+
+        testConsole = new TestConsole();
+        let cliArgs = createCommand("cs", "--wait-for-activate", "qa");
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            testConsole.logs.splice(testConsole.logs.length -3, 1);
+            let output = testConsole.logs.join("\n");
+
+            assert.equal(output, utils.readFile(path.join(__dirname, "testdata", "checkPromotions.wait.delayed.output.txt")))
+        }, createDevOpsFun);
+    });
+
+    it('test check promotion status -w with zones', function () {
+        td.when(devOpsClass.prototype.checkPromotions("testproject.com", "qa"))
+            .thenReturn(
+                new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "NEW";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "PENDING";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "PENDING";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "ZONE_1";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "ZONE_2";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "ZONE_3";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    resolve(checkPromotionsObject);
+                })
+            );
+
+        testConsole = new TestConsole();
+        let cliArgs = createCommand("cs", "-w", "qa");
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            testConsole.logs.splice(testConsole.logs.length -3, 1);
+            let output = testConsole.logs.join("\n");
+
+            assert.equal(output, utils.readFile(path.join(__dirname, "testdata", "checkPromotions.wait.zone.delayed.output.txt")));
+        }, createDevOpsFun);
+    });
+});
+
+describe('promotion tests with exceptions', function () {
+    let createDevOpsFun;
+    let devOpsClass;
+    let checkPromotionsObject ={
+        promotionUpdates: {
+            "PRODUCTION": {
+                "activationId": "5355534",
+                "propertyName": "dev.devopsdemolive.com",
+                "propertyId": "429569",
+                "propertyVersion": 1,
+                "network": "PRODUCTION",
+                "activationType": "ACTIVATE",
+                "status": "ACTIVE",
+                "submitDate": "2018-01-26T16:11:44Z",
+                "updateDate": "2018-01-26T16:19:55Z",
+                "note": "   ",
+                "notifyEmails": ["j@m.com"]
+            },
+            "STAGING": {
+                "activationId": "5355810",
+                "propertyName": "dev.devopsdemolive.com",
+                "propertyId": "429569",
+                "propertyVersion": 3,
+                "network": "STAGING",
+                "activationType": "ACTIVATE",
+                "status": "ACTIVE",
+                "submitDate": "2018-01-30T18:37:23Z",
+                "updateDate": "2018-01-30T18:38:41Z",
+                "note": "   ",
+                "notifyEmails": ["j@m.com"],
+                "fmaActivationState": "steady",
+                "fallbackInfo": {
+                    "fastFallbackAttempted": false,
+                    "fallbackVersion": 1,
+                    "canFastFallback": true,
+                    "steadyStateTime": 1517337521,
+                    "fastFallbackExpirationTime": 1517341121,
+                    "fastFallbackRecoveryState": null
+                }
+            }
+        }
+    };
+
+    before(function () {
+        devOpsClass = td.constructor(DevOps);
+
+        td.when(devOpsClass.prototype.extractProjectName(td.matchers.isA(Object)))
+            .thenReturn("testproject.com");
+
+        let counter = 0;
+        td.when(devOpsClass.prototype.checkPromotions("testproject.com", "qa"))
+            .thenDo(() => {
+                counter++;
+                if (counter === 1) {
+                    return new Promise((resolve, reject) => {
+                        let clone = helpers.clone(checkPromotionsObject);
+                        clone.promotionUpdates.PRODUCTION.status = "NEW";
+                        resolve(clone);
+                    });
+                } else if (counter === 2) {
+                    return new Promise((resolve, reject) => {
+                        let clone = helpers.clone(checkPromotionsObject);
+                        clone.promotionUpdates.PRODUCTION.status = "PENDING";
+                        resolve(clone);
+                    });
+                } else if (counter === 3) {
+                    return new Promise((resolve, reject) => {
+                        let clone = helpers.clone(checkPromotionsObject);
+                        clone.promotionUpdates.PRODUCTION.status = "PENDING";
+                        resolve(clone);
+                    });
+                } else {
+                    return new Promise((resolve, reject) => {
+                        reject(new errors.RestApiError("Some bad stuff happened", "bad_error", 400, {"boo": "bar"}));
+                    });
+                }
+
+            });
+
+        let devopsHome = __dirname;
+
+        createDevOpsFun = function (deps) {
+            let newDeps = {
+                devOpsClass,
+                devopsHome
+            };
+            Object.assign(newDeps, deps);
+
+            let devOps = createDevOps(newDeps);
+            devOps.devopsSettings = {
+                outputFormat: "table"
+            };
+            return devOps;
+        };
+    });
+
+    it('test check promotion status -w with errors after some time', function () {
+        let testConsole = new TestConsole();
+        let utils = new Utils();
+        let cliArgs = createCommand("-v", "cs", "-w", "qa");
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            let output = testConsole.logs.join("\n");
+            assert.equal(output, utils.readFile(path.join(__dirname, "testdata", "checkPromotions.wait.exception.delayed.output.txt")));
+            assert.exists(errorCatcher.error);
+            assert.equal(errorCatcher.error.message, "Some bad stuff happened");
+            assert.equal(errorCatcher.error.messageId, "bad_error");
         }, createDevOpsFun);
     });
 });

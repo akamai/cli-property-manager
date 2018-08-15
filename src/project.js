@@ -35,11 +35,32 @@ class Project {
         this.projectName = projectName;
         this.devops = dependencies.devops;
         this.devopsHome = this.devops.devopsHome;
+        this.version = dependencies.version;
         this.projectFolder = path.normalize(path.join(this.devopsHome, projectName));
         this.utils = dependencies.getUtils();
         this.devopsSettings = dependencies.devopsSettings || {};
         this.dependencies = dependencies;
         this.__projectInfo = null;
+    }
+
+    checkMigrationStatus(newVersion) {
+        let infoPath = path.join(this.projectFolder, "projectInfo.json");
+        let prjInfo = this.utils.readJsonFile(infoPath);
+        //before this change was put in there was no version in a projectInfo.file
+        //if projectInfo doesn't have a version field, it was created by an earlier version.
+        if (!prjInfo.version && prjInfo.groupId) {
+            let groupId = prjInfo.groupId;
+            prjInfo.groupIds = [prjInfo.groupId];
+            delete prjInfo.groupId;
+            prjInfo.version = newVersion;
+            this.utils.writeJsonFile(infoPath, prjInfo);
+            for (let envName of prjInfo.environments) {
+                let environment = this.getEnvironment(envName);
+                let envInfo = environment.getEnvironmentInfo();
+                envInfo.groupId = groupId;
+                environment.storeEnvironmentInfo(envInfo);
+            }
+        }
     }
 
     /**
@@ -109,8 +130,10 @@ class Project {
         this.projectInfo = {
             productId: createProjectInfo.productId,
             contractId: createProjectInfo.contractId,
-            groupId: createProjectInfo.groupId,
-            environments: createProjectInfo.environments
+            groupIds: createProjectInfo.groupIds,
+            environments: createProjectInfo.environments,
+            version: this.version,
+            isSecure: createProjectInfo.secureOption || false
         };
         if (_.isObject(this.devopsSettings) &&
             _.isObject(this.devopsSettings.edgeGridConfig) &&
@@ -126,18 +149,9 @@ class Project {
     }
 
     createEnvironments(envs) {
-        const domain = this.projectName;
-
         _.each(envs, function(name) {
             let environmentFolder = path.join(this.projectFolder, "environments", name);
             this.utils.mkdir(environmentFolder);
-            let hostnames = [{
-                "cnameFrom": name + "." + domain,
-                "cnameTo": name + "." + domain + ".edgesuite.net",
-                "cnameType": "EDGE_HOSTNAME",
-                "edgeHostnameId": null
-            }];
-            this.utils.writeJsonFile(path.join(environmentFolder, "hostnames.json"), hostnames);
         }, this);
     }
 
@@ -239,11 +253,18 @@ class Project {
     }
 
     getEnvironment(environmentName) {
+        this.checkEnvironmentName(environmentName);
+        return this.dependencies.getEnvironment(environmentName, this);
+    }
+
+    checkEnvironmentName(environmentName) {
+        if (!_.isArray(this.getProjectInfo().environments)) {
+            throw new errors.UndefinedVariableError("unable to parse environments", "env_definition_error");
+        }
         if (!this.getProjectInfo().environments.includes(environmentName)) {
             throw new errors.ArgumentError(`'${environmentName}' is not a valid environment in` +
                 ` pipeline ${this.projectName}`, "invalid_env_name", environmentName, this.projectName);
         }
-        return this.dependencies.getEnvironment(environmentName, this);
     }
 
     /**
@@ -252,11 +273,8 @@ class Project {
      * @returns {Promise.<void>}
      */
     async setupPropertyTemplate(ruleTree) {
-        let isNewProperty = true;
         let suggestedRuleFormat;
-        if (_.isObject(ruleTree)) {
-            isNewProperty = false;
-        }
+        let projectInfo = this.getProjectInfo();
         let createTemplates = true;
         for (let envName of this.getProjectInfo().environments) {
             let env = this.getEnvironment(envName);
@@ -274,9 +292,22 @@ class Project {
                     }
                 }
             }
-            //only need to create templates based on first environment.
-            //templates are stripped of any env based information.
-            env.createTemplate(ruleTree, isNewProperty, createTemplates);
+            env.setupEnvRuleFormat(ruleTree);
+            let productId = projectInfo.productId;
+            let resourceData = this.loadAndSubstituteProjectResourceData("template.converter.data.json", {
+                environment: env
+            });
+            ruleTree.rules.options.is_secure = projectInfo.isSecure;
+            let template = this.dependencies.getTemplate(ruleTree, resourceData, productId);
+            let templateData = template.process();
+            if (createTemplates) {
+                this.storeTemplate("main.json", templateData.main);
+                _.each(templateData.templates, (value, key) => {
+                    this.storeTemplate(key, value);
+                }, this);
+                this.storeVariableDefinitions(templateData.variables);
+            }
+            this.storeEnvironmentVariableValues(templateData.envVariables, env.name);
             createTemplates = false;
         }
         if (_.isString(suggestedRuleFormat)) {
@@ -389,22 +420,44 @@ class Project {
         }
     }
 
-    async promote(envName, network, emails) {
-        logger.info(`promoting environment '${envName} on network '${network}'`);
-        let prevEnv = this.getPreviousEnvironment(envName);
-        if (_.isObject(prevEnv)) {
-            logger.info(`checking promotional status of '${prevEnv.name}'`);
-            if (prevEnv.isPendingPromotion()) {
-                logger.info(`promotion pending in at least one network for '${prevEnv.name}'`);
-                await prevEnv.checkPromotions();
-            }
-            if (!prevEnv.isActive(network) || prevEnv.isDirty()) {
-                throw new errors.ValidationError(
-                    `Environment '${prevEnv.name}' needs to be active without any pending changes`,
-                    "precursor_environment_not_active");
+    /**
+     * Promote changes to provided environment
+     * @param envName
+     * @param network
+     * @param emails
+     * @param message
+     * @param force
+     * @returns {Promise<Promise<*>|Promise<{envInfo: *, pending: {network: *, activationId: Number}}>|*>}
+     */
+    async promote(envName, network, emails, message, force) {
+        this.checkEnvironmentName(envName);
+        logger.info(`promoting environment '${envName}' on network '${network}'`);
+        let envNamesList = this.getProjectInfo().environments;
+        //slicing allows for a copy
+        let envNamesCopy = envNamesList.slice(0, envNamesList.indexOf(envName));
+        logger.info(`beginning check of each previous environment: ${envNamesCopy}`);
+        for (let envItemName of envNamesCopy) {
+            let prevEnv = this.getEnvironment(envItemName);
+            if (_.isObject(prevEnv)) {
+                logger.info(`checking promotional status of previous environment: '${prevEnv.name}'`);
+                if (prevEnv.isPendingPromotion()) {
+                    logger.info(`promotion pending in at least one network for '${prevEnv.name}'`);
+                    await prevEnv.checkPromotions();
+                }
+                if (!prevEnv.isActive(network) || prevEnv.isDirty()) {
+                    if (_.isBoolean(force) && force) {
+                        logger.warn(`Environment '${prevEnv.name}' needs to be active without any pending changes`);
+                    } else {
+                        throw new errors.ValidationError(
+                            //Should we break this up so that seperate errors are thrown when its not active
+                            //OR when its dirty?
+                            `Environment '${prevEnv.name}' needs to be active without any pending changes`,
+                            "precursor_environment_not_active");
+                    }
+                }
             }
         }
-        return this.getEnvironment(envName).promote(network, emails);
+        return this.getEnvironment(envName).promote(network, emails, message);
     }
 }
 

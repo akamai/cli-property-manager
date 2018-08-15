@@ -1,0 +1,14 @@
+{
+  "errors": [
+    {
+      "type": "https://problems.luna.akamaiapis.net/papi/v0/validation/attribute_required",
+      "errorLocation": "#/rules/behaviors/0/options/verificationMode",
+      "detail": "The Verification Settings option on the `Origin Server` behavior is required."
+    },
+    {
+      "type": "https://problems.luna.akamaiapis.net/papi/v0/validation/attribute_required",
+      "errorLocation": "#/rules/behaviors/0/options/httpsPort",
+      "detail": "The HTTPS Port option on the `Origin Server` behavior is required."
+    }
+  ]
+}

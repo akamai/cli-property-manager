@@ -1,6 +1,6 @@
 {
   "name": "cli-promotional-deployment",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "engines": {
     "node": ">=8.0.0"
   },
@@ -46,7 +46,8 @@
     "moment": "^2.20.1",
     "request": "^2.83.0",
     "request-debug": "^0.2.0",
-    "underscore": "^1.8.3",
-    "uuid": "^3.1.0"
+    "underscore": "^1.9.1",
+    "uuid": "^3.1.0",
+    "email-validator": "2.0.4"
   }
 }

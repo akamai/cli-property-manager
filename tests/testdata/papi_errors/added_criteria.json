@@ -1,0 +1,34 @@
+{
+  "type": "https://problems.luna.akamaiapis.net/papi/v0/property-version/lock-error",
+  "title": "Unable to edit read-only element",
+  "status": 403,
+  "detail": "Only Akamai representatives can change read-only behaviors, criteria and child rules.",
+  "instance": "https://akaa-575u5pwzrgn7x2kx-kcqanlogvq2ynqja.luna-dev.akamaiapis.net/papi/v0/properties/466305/versions/1/rules#d5364e98-1bf4-4977-9c3b-a553e2a662c8",
+  "errors": [
+    {
+      "added": [
+        {
+          "match": {
+            "name": "responseHeader",
+            "options": {
+              "headerName": "Content-Type",
+              "matchWildcardName": false,
+              "matchOperator": "IS_ONE_OF",
+              "values": [
+                "text/html*"
+              ],
+              "matchCaseSensitiveValue": false,
+              "matchWildcardValue": true
+            },
+            "uuid": "22e76155-007f-4ff5-a1ba-045ff7e0f8cd",
+            "locked": true
+          },
+          "location": "#/rules/children/2/criteria/0"
+        }
+      ],
+      "type": "https://problems.luna.akamaiapis.net/papi/v0/property-version/lock-error/criteria-changed",
+      "title": "Read-only criteria changed",
+      "detail": "Read-only criteria have been added, removed, changed or moved."
+    }
+  ]
+}

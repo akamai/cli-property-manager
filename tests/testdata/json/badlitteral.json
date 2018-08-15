@@ -1,0 +1,31 @@
+{
+  "accountId": "15Q-MPF",
+  "accountName": "IKEA IT AB",
+  "groups": {
+    "items": [
+      {
+        "groupName": "TestGroupupdategrptestcase4",
+        "groupId": "24511",
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "IRW domains",
+        "groupId": "24514",
+        "parentGroupId": 0x242342,
+        "contractIds": [
+          "1-2681AU"
+        ]
+      },
+      {
+        "groupName": "IRW CTE",
+        "groupId": 24515,
+        "parentGroupId": 24514,
+        "contractIds": [
+          "1-2681AU"
+        ]
+      }
+    ]
+  }
+}

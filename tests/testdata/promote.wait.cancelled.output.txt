@@ -1,0 +1,20 @@
+Following activations are now pending:
+╒═════════════╤═════════╤═══════════════╕
+│"Environment"│"Network"│"Activation Id"│
+╞═════════════╪═════════╪═══════════════╡
+│"qa"         │"STAGING"│5355534        │
+└─────────────┴─────────┴───────────────┘
+...activation status is PENDING...
+...Waiting for active status...
+...Checking promotions...
+...activation status is PENDING_CANCELLATION...
+...Waiting for active status...
+...Checking promotions...
+Activation status report:
+╒═════════════╤════════════╤═══════════════╤═════════╕
+│"Environment"│"Network"   │"Activation Id"│"Status" │
+╞═════════════╪════════════╪═══════════════╪═════════╡
+│"qa"         │"PRODUCTION"│"5355534"      │"ABORTED"│
+├─────────────┼────────────┼───────────────┼─────────┤
+│"qa"         │"STAGING"   │"5355810"      │"ACTIVE" │
+└─────────────┴────────────┴───────────────┴─────────┘

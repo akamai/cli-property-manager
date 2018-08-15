@@ -90,6 +90,13 @@ const prefixeableString = function(prefix) {
 module.exports = {
     parseInteger: parseInteger,
 
+    repeatable: function(parseFunction) {
+        return function(value, memo) {
+            memo.push(parseFunction(value));
+            return memo;
+        }
+    },
+
     isArrayWithData: function(arrayData) {
         return _.isArray(arrayData) && arrayData.length > 0;
     },
