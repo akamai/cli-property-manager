@@ -18,11 +18,21 @@
 
 # Overview 
 
-The Promotional Deployment CLI lets you promote changes to Akamai properties across your local environments without manually updating each property on each environment. 
+The Promotional Deployment CLI lets you leverage your configurations as code snippets and allows for the creation of a customized deployment pipeline defined by the user to automate the promotion of Akamai property changes across local environments. 
 
-With this client-side application, you set up a pipeline, which is a linked and ordered chain of environments. A pipeline represents the order in which changes are deployed. A typical pipeline starts with local development environments, moves to local QA environments, then finishes with your production environment. The number of environments you deploy to depends on your organization’s particular needs.
+
+It focuses on the following primary benefits:
+1. Creation of an automated build pipeline (linked chain of environments that changes can propagate through). A typical pipeline starts with local development environments, moves to QA and Integration environments, then finishes with your production environment. The number of environments you deploy to depends on your organization’s specific needs
+2. Client side tokenization enables you to tokenize any attribute within their configuration file, vary this between environments, and automate your entire configuration build process
+3. Local configuration snippets enables many teams to own and work on different parts of their configuration file independently in parallel
+4. A client side validation engine enables users to instantly validate their configuration syntax locally 
+5. A CLI based interface ensures portability across any type of environment
 
 **Note:** For information about all available CLI commands, see the [Promotional Deployment CLI Command Help](docs/cli_command_help.md). 
+
+# Stay up to date
+To make sure you always use the latest version of the CLI, run this command: 
+akamai update promotional-deployment
 
 # Sample workflow
 
@@ -74,10 +84,7 @@ Here’s how to install Promotional Deployment:
 `mkdir promotional_deployment`. <br> You’ll run Promotional Deployment CLI commands from this folder, which also contains the default values for the CLI and a separate subdirectory for each pipeline you create. 
 
 2. During the beta period, run this installation command: 
-`akamai install https://<githubusername>:<githubpasswd>@github.com/akamai/cli-promotional-deployment.git`
-<br>For example: `akamai install https://John123:password234@github.com/akamai/cli-promotional-deployment.git`
-<br>
-**Note:** After the beta, the installation command will be `akamai install promotional-deployment`.
+`akamai install promotional-deployment`
 
 3. Verify that the CLI is set up for your OPEN API permissions:
 
@@ -110,7 +117,7 @@ To create a new pipeline:
 <br> For example, if you want to base your pipeline on Ion, you'd enter a command like this: `akamai pd np -c 1-23ABC -g 12345 -d SPM -p MyPipeline123 qa prod`
 
 1. If creating a pipeline using an existing property as a template, run this command:  `akamai pd np -p <pipelineName> -e <propertyId or propertyName> <environment1_name environment2_name...>` 
-    <br>For example: `akamai pd np -p MyPipeline123 -e 123 qa prod`
+    <br>For example: `akamai pd np -p MyPipeline123 -e MyProperty qa prod`
 
 6. Verify the pipeline folder structure, which will look something like this:
 
@@ -209,6 +216,58 @@ This command takes the values in the templates and variable files, creates a new
 
 5. Verify that the updates made it to all environments in the pipeline: 
 `akamai pd lstat -p <pipelineName>`
+
+# Advanced Use Cases
+
+# Reuse secure edge hostnames
+When you first create a pipeline and run the akamai pd save command, it saves your pipeline and validates your pipeline’s configuration. In addition, this command creates edge hostnames for you, if the value of the  edgeHostnameId is null in the hostnames.json file. 
+
+Promotional Deployment can only create non-secure (HTTP) edge hostnames. If you want to use a secure (HTTPS) edge hostname with your pipeline, you can add an existing secure edge hostname to your hostnames.json file. You can also create a new one in Property Manager and add it to your hostnames.json file. Just be aware that it might take a while before the system sees the new secure edge hostname.
+
+# Parallel development with property snippets
+
+The Promotional Deployment CLI retrieves your configuration locally and breaks it into a series of property snippets. These can be found under the ‘templates’ directory inside your pipeline directory structure.
+
+Property snippets are client-side <includes> that enable different teams or developers to own different parts of the configuration file. By default, a configuration file is broken into pre-defined snippets but you can add, remove, and modify as needed.
+
+Adding a new snippet
+Assume you are looking to add a new snippet Catalog.json owned by your Catalog team. This team is looking to control timeouts for the Catalog App within your organization. This requires the following two steps:
+
+
+1. Have a Catalog.json file ready and set permissions so only the Catalog team can modify this. The JSON snippet for this will be:
+
+       {
+       "name": "Catalog",
+       "children": [],
+       "behaviors": [
+            {
+               "name": "timeout",
+               "options": {
+               	"value": "5s"
+               } } ],
+       "criteria": [
+            {
+               "name": "path",
+               "options": {
+            	   "matchOperator": "MATCHES_ONE_OF",
+            	   "values": [
+                   	   "/catalog/*"
+            	   ],
+            	   "matchCaseSensitive": false
+               } } ],
+       "criteriaMustSatisfy": "all"
+       }
+    
+
+2. Include this snippet in the main.json file found in your Snippets directory using “#include:Catalog.json”
+
+As a best practice, the Catalog team works on this Snippet locally and copies it over the Snippets directory whenever a new change is ready. This unblocks other teams from deploying live changes. Once copied over, the team validates the syntax for any new change using ‘akamai pd save -p <pipeline_name> -e <environment_name>
+
+The ‘children’ section of the main.json file can be used to add, remove, and control the order in which Snippets are executed. Sub-snippets can also be worked on by leveraging a ‘children’ section in individual include files. In our example above, the Catalog.json file can include a SubCatalog.json file with path match set to “/catalog/subcatalog/*”
+
+# Working with Advanced and Read-Only Behaviors
+If you want to use a configuration with advanced behaviors as a template, you need to convert all advanced behaviors to Custom Behaviors before creating the pipeline. If you want to use a configurations with read-only behaviors as a template, this needs to be unlocked before creating your pipeline.
+
 
 # Notice
 
