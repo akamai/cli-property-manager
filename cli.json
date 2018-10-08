@@ -4,10 +4,10 @@
   },
   "commands": [
     {
-      "name": "promotional-deployment",
-      "aliases": ["pd", "prodeploy"],
-      "version": "0.2.1",
-      "description": "Promotional deployment for DevOps"
+      "name": "pipeline",
+      "aliases": ["pl", "pipeline", "pd", "proddeploy"],
+      "version": "0.2.9",
+      "description": "Pipeline for DevOps"
     }
   ]
 }
