@@ -10,7 +10,7 @@
 
 * [Get started](#get-started)
 
-* [Installing Akamai Property Manager CLI](#installing-promotional-deployment)
+* [Installing Akamai Property Manager CLI](#installing-akamai-pipeline)
 
 * [Create and set up a new pipeline](#create-and-set-up-a-new-pipeline)
 
