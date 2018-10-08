@@ -1,5 +1,5 @@
 
-# Akamai Pipeline CLI command help
+# Akamai Pipeline command help
 
 ## General help
 Use akamai pl or akamai pd help to get general help about all commands.
@@ -7,7 +7,7 @@ Use akamai pl or akamai pd help to get general help about all commands.
    
      Usage: akamai pl [options] [command]
    
-     Akamai Pipeline CLI package. The command assumes that your current working directory is the pipeline space under which all pipelines reside
+     Akamai Pipeline. The command assumes that your current working directory is the pipeline space under which all pipelines reside
    
      Options:
    

@@ -807,7 +807,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
     const commander = new DevOpsCommand("akamai pl", consoleLogger);
     commander
         .version(version)
-        .description("Akamai Pipeline CLI package. " +
+        .description("Akamai Pipeline. " +
             "The command assumes that your current working directory is the pipeline space under which all pipelines reside")
         .option('-v, --verbose', 'Verbose output, show logging on stdout')
         .option('-s, --section [section]', 'Section name representing Client ID in .edgerc file, defaults to "credentials"')

@@ -6,7 +6,7 @@
     {
       "name": "pipeline",
       "aliases": ["pl", "pipeline", "pd", "proddeploy"],
-      "version": "0.2.9",
+      "version": "0.2.10",
       "description": "Pipeline for DevOps"
     }
   ]
