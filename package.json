@@ -1,6 +1,6 @@
 {
   "name": "cli-promotional-deployment",
-  "version": "0.2.1",
+  "version": "0.2.9",
   "engines": {
     "node": ">=8.0.0"
   },
@@ -8,8 +8,10 @@
   "author": "jmenzel@akamai.com",
   "main": "index.js",
   "bin": {
-    "devops-prov": "./bin/akamai-promotional-deployment",
-    "akamai-pd": "./bin/akamai-promotional-deployment"
+    "devops-prov": "./bin/akamai-pipeline",
+    "pipeline": "./bin/akamai-pipeline",
+    "akamai-pl": "./bin/akamai-pipeline",
+    "akamai-pd": "./bin/akamai-pipeline"
   },
   "devDependencies": {
     "chai": "^4.1.2",

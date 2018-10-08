@@ -1,4 +1,4 @@
-# Promotional Deployment CLI Beta
+# Akamai Pipeline CLI
 
 * [Overview](#overview)
 
@@ -6,11 +6,11 @@
 
 * [Stay up to date](#stay-up-to-date)
 
-* [Sample workflow](#sample-workflow)
+* [Workflows](#workflows)
 
 * [Get started](#get-started)
 
-* [Installing Promotional Deployment](#installing-promotional-deployment)
+* [Installing Akamai Pipeline](#installing-promotional-deployment)
 
 * [Create and set up a new pipeline](#create-and-set-up-a-new-pipeline)
 
@@ -30,20 +30,60 @@
 
 # Overview 
 
-The Promotional Deployment CLI lets you promote changes to Akamai properties across your local environments without manually updating each property on each environment. 
+The Property Manager CLI lets you make configuration changes locally and automate the deployment of Akamai property changes across your local environments.  
 
-With this client-side application, you set up a pipeline, which is a linked and ordered chain of environments. A pipeline represents the order in which changes are deployed. A typical pipeline starts with local development environments, moves to local QA environments, then finishes with your production environment. The number of environments you deploy to depends on your organization’s particular needs.
+With this client-side application, you can: 
+
+* **Coming Soon: Set up a federated configuration development structure.** You can create local client side templates, or snippets, for different parts of your property configuration, like rules or behaviors. Different teams within your organization can own specific snippets and make Property Manager changes both independently of and in parallel with other teams.
+
+* **Validate locally.** Before deploying a change, the Property Manager CLI automatically validates your configuration syntax locally.
+
+* **Automate a pipeline.** A pipeline is a linked and ordered chain of environments.  A typical pipeline starts with local development environments, moves to QA and Integration environments, then finishes with your production environment. The number of environments you deploy to depends on your organization’s specific needs.
+
+* **Customize variable definitions between environments.** If you want a use one variable value in a development environment and try out a different value in a test environment, you can add a custom variable to your Property Manager CLI template files. 
+
+You use akamai pipeline command to make changes within an automated Akamai Pipeline. Soon you’ll be able to edit Property Manager configurations locally for an existing property with the akamai property-manager command. See the [Workflows](#workflows) section for more information.
+
 
 # Available commands 
-Want to see all available CLI commands? See the [Promotional Deployment CLI Command Help](docs/cli_command_help.md).
+Want to see all available CLI commands? See the [help for this CLI](docs/cli_command_help.md).
 
 # Stay up to date
 To make sure you always use the latest version of the CLI, run this command: 
-`akamai update promotional-deployment`
+`akamai update property-manager`
 
-# Sample workflow
+# Workflows
 
-Here’s a typical workflow for Promotional Deployment pipelines once you install and configure the CLI:
+With this CLI, you’ll likely use one of these common workflows: 
+
+* **Coming Soon: Federated configuration development.** Use this workflow if you want to make local configuration changes for one property, enable different teams to own different parts of the configuration, and deploy without interdependencies.
+
+* **Akamai Pipeline.** Use this workflow to both set up configuration templates and create an automated pipeline for deploying Property Manager changes to your various environments. 
+
+## Coming Soon: Federated Configuration Development workflow
+
+Here’s a typical workflow when you want to break your Property Manager configuration into separate rules-based templates:
+
+1. Make some decisions:
+
+    * Which property configuration do you want to create templates for? 
+	
+    * How do you want to divide the configuration up? By default, a separate snippet is created for each top level rule in your configuration. You can add, remove, or modify snippets. 
+	
+    * Do you need any new supporting processes?  
+
+1. Run the `akamai property-manager new-property` operation to create a local instance of your configuration. 
+
+
+1. Verify that the `/config-snippets` folder contains a separate JSON-based configuration snippet for each rule in your property configuration. <br> Within this folder, the main.json file ties all the snippets together: It lists the available snippets and contains the local permissions for each snippet. You can modify both the list of snippets and their permissions.
+
+1. Edit the snippets as needed to reflect the rule changes you want to deploy.
+
+1. Run the `akamai property-manager activate` operation to activate the property. This operation syncs the local changes in your `/config-snippets` directory to the Akamai network. Once activation is complete, you can verify changes in the Property Manager UI. 
+
+## Akamai Pipeline workflow
+
+Here’s a typical workflow for Akamai Pipeline pipelines once you install and configure the CLI:
 
 1. Make some decisions: 
 
@@ -71,7 +111,7 @@ Here’s a typical workflow for Promotional Deployment pipelines once you instal
 
 # Get started 
 
-In order to start using Promotional Deployment, you have to complete these tasks: 
+In order to start using Akamai Pipeline, you have to complete these tasks: 
 
 * Verify you have a Unix-like shell environment, like those available with Mac OS X, Linux, and similar operating systems.
 
@@ -83,20 +123,20 @@ In order to start using Promotional Deployment, you have to complete these tasks
 
 * Install [Node.js](https://Nodejs.org/en/) version 8.0 Long Term Support (LTS). 
 
-# Installing Promotional Deployment
+# Installing Akamai Pipeline
 
-You use the Akamai CLI tool to install the code. Once you complete the installation, you can use the `akamai pd` CLI commands.
+You use the Akamai CLI tool to install the code. Once you complete the installation, you can use the `akamai pipeline` CLI commands.
 
-Here’s how to install Promotional Deployment:
+Here’s how to install Akamai Pipeline:
 
 1. Create a project folder under your user home directory: `mkdir <folder_name>`. For example: 
-`mkdir promotional_deployment`. <br> You’ll run Promotional Deployment CLI commands from this folder, which also contains the default values for the CLI and a separate subdirectory for each pipeline you create. 
+`mkdir promotional_deployment`. <br> You’ll run Akamai Pipeline CLI commands from this folder, which also contains the default values for the CLI and a separate subdirectory for each pipeline you create. 
 
-2. Run the installation command: `akamai install promotional-deployment`
+2. Run the installation command: `akamai install property-manager`
 
 3. Verify that the CLI is set up for your OPEN API permissions:
 
-    1. Run this command to return the list of contracts you have access to: `akamai pd list-contracts`
+    1. Run this command to return the list of contracts you have access to: `akamai pl list-contracts`
     1. Verify that the list of contracts returned is accurate for your access level. 
 
 # Create and set up a new pipeline
@@ -109,12 +149,12 @@ To create a new pipeline:
 
 1. If you need to, retrieve and store the contract, group, and product IDs for your pipeline:
 
-    1. Run this command to list contract IDs (contractId):  `akamai pd list-contracts`
+    1. Run this command to list contract IDs (contractId):  `akamai pl list-contracts`
 
-    2. Run this command to list group IDs (groupId):  `akamai pd list-groups`
+    2. Run this command to list group IDs (groupId):  `akamai pl list-groups`
 
     3. Run this command to [list product IDs](#common-product-ids) (productId): 
-`akamai pd list-products -c <contractId>`
+`akamai pl list-products -c <contractId>`
 
 	**Note:** The IDs returned depend on the permissions associated with your username.
 
@@ -122,11 +162,11 @@ To create a new pipeline:
 
 3. Choose a descriptive name for your pipeline. <br> The pipeline name is added as a suffix to each property created for your new pipeline. Because of this, make sure the name you choose won’t result in any duplicate property names for the account. So, if your pipeline is `example.com`, and your environments are `dev`, `qa`, and `www`, the new properties will be `dev.example.com`, `qa.example.com`, and `www.example.com`.
 
-4. If creating a pipeline using a specific product as a template, run this command:  `akamai pd np -c <contractId> -g <groupId> -d <productId> -p <pipelineName> <environmentName1 environmentName2...>` 
-<br> For example, if you want to base your pipeline on Ion, you'd enter a command like this: `akamai pd np -c 1-23ABC -g 12345 -d SPM -p MyPipeline123 qa prod`
+4. If creating a pipeline using a specific product as a template, run this command:  `akamai pipeline new-pipeline -c <contractId> -g <groupId> -d <productId> -p <pipelineName> <environmentName1 environmentName2...>` 
+<br> For example, if you want to base your pipeline on Ion, you'd enter a command like this: `akamai pipeline new-pipeline -c 1-23ABC -g 12345 -d SPM -p MyPipeline123 qa prod`
 
-1. If creating a pipeline using an existing property as a template, run this command:  `akamai pd np -p <pipelineName> -e <propertyId or propertyName> <environment1_name environment2_name...>` 
-    <br>For example: `akamai pd np -p MyPipeline123 -e 123 qa prod`
+1. If creating a pipeline using an existing property as a template, run this command:  `akamai pipeline new-pipeline -p <pipelineName> -e <propertyId or propertyName> <environment1_name environment2_name...>` 
+    <br>For example: `akamai pipeline new-pipeline -p MyPipeline123 -e 123 qa prod`
 
 6. Verify the pipeline folder structure, which will look something like this:
 
@@ -154,7 +194,7 @@ To create a new pipeline:
                 static.json
 
 7. Edit `variableDefinitions.json` to declare variables that you can use in any of the templates. <br> See 
-[Update the variableDefinitions.json file](#update-the-variableDefinitions.json-file) for details.
+[Update the variableDefinitions.json file](#update-the-variabledefinitions-file) for details.
 
 8. In each environment-specific subdirectory under the `/environments` folder, edit these JSON files:                      
 
@@ -217,16 +257,20 @@ If creating a new pipeline based on a product template, you’ll need to know yo
   </tr>
   <tr>
     <td>Dynamic Site Accelerator</td>
-    <td>DSA</td>
+    <td>Site_Accel</td>
   </tr>
   <tr>
-    <td>Dynamic Site Delivery</td>
-    <td>DSD</td>
+    <td>Rich Media Accelerator</td>
+    <td>Rich_Media_Accel</td>
+  </tr>
+  <tr>
+    <td>Web Application Accelerator</td>
+    <td>Web_App_Accel</td>
   </tr>  
 </table>
 
 If you don’t see your product code, run this command to return the product IDs available for your account: 
-`akamai pd list-products -c <contractId>`  
+`akamai pl list-products -c <contractId>`  
   
 # Save and promote changes through the pipeline
 
@@ -236,32 +280,35 @@ To save and promote changes:
 
 1. Make your configuration change within the desired snippet inside your `templates` folder. This folder contains JSON snippets for the top-level rules in your property’s configuration. 
 
-2. Optionally, update the property files to reflect your changes without saving to Property Manager: `akamai pd merge -p <pipelineName> <environment_name>`
+2. Optionally, update the property files to reflect your changes without saving to Property Manager: `akamai pipeline merge -p <pipelineName> <environment_name>`
 
-3. Save your changes, validate your configuration, and create a new property version: `akamai pd save -p <pipelineName> <environment_name>`
+3. Save your changes, validate your configuration, and create a new property version: `akamai pipeline  save -p <pipelineName> <environment_name>`
 
-4. Promote the change to the first environment in your pipeline: `akamai pd promote -p <pipelineName> -n <network> <environment_name> <notification_emails>`. 
+4. Promote the change to the first environment in your pipeline: `akamai pipeline  promote -p <pipelineName> -n <network> <environment_name> <notification_emails>`. 
 <br> The `<network>` value corresponds to Akamai’s staging and production networks. You can enter `STAGING` or `PROD` for this value.
 <br>
-For example: `akamai pd promote -p MyPipeline123 -n STAGING qa jsmith@example.com`
+For example: `akamai pipeline  promote -p MyPipeline123 -n STAGING qa jsmith@example.com`
 <br>
 When run, `promote` merges the template and variables files, saves any changes to Property Manager, and  activates the property version on the selected Akamai network. 
 
-5. Once the activation is complete, run the following command to make sure the pipeline reflects the latest activation status: `akamai pd check-promotion-status <environment_name>`
+5. Once the activation is complete, run the following command to make sure the pipeline reflects the latest activation status: `akamai pipeline  check-promotion-status <environment_name>`
 <br> **Note:** You should receive an email once activation is complete. Activation times vary, so you may want to wait several minutes before attempting to run this command.
 
 6. Repeat steps 2 through 5 until you promote your changes to all environments in the pipeline. 
 
 7. Verify that the updates made it to all environments in the pipeline: 
-`akamai pd lstat -p <pipelineName>`
+`akamai pipeline lstat -p <pipelineName>`
 
 # Use Cases
 
 ## Reuse secure edge hostnames
 
-When you first create a pipeline and run the `akamai pd save` command, it saves your pipeline and validates your pipeline’s configuration. In addition, this command creates edge hostnames for you, if the value of the  `edgeHostnameId` is null in the `hostnames.json` file. 
+When you first create a pipeline and run the `akamai pl save` command, it saves your pipeline and validates your pipeline’s configuration. In addition, this command creates edge hostnames for you, if the value of the  `edgeHostnameId` is null in the `hostnames.json` file. 
 
-Promotional Deployment can only create non-secure (HTTP) edge hostnames. If you want to use a secure (HTTPS) edge hostname with your pipeline, you can add an existing secure edge hostname to your `hostnames.json` file. You can also create a new one in Property Manager and add it to your `hostnames.json` file. Just be aware that it might take a while before the system sees the new secure edge hostname.
+Akamai Pipeline can only create non-secure (HTTP) edge hostnames. If you want to use a secure (HTTPS) edge hostname with your pipeline, you can add an existing secure edge hostname to your `hostnames.json` file. You can also create a new one in Property Manager and add it to your `hostnames.json` file. Just be aware that it might take a while before the system sees the new secure edge hostname.
+
+You can view a list of your existing available edge hostnames by using the `akamai pl list-edgehostnames -c <contractId> -g <groupId>` command.
+
 
 ## Working with advanced behaviors
 
@@ -269,7 +316,6 @@ If you want to use a property configuration with advanced behaviors as a templat
 
 # Notice
 
-This document is provided for informational purposes only and shall not be construed as providing any 
-representation or guarantee as to the matters discussed. Akamai assumes no obligation to update or correct 
-any matters discussed in the document.
+Your use of Akamai's products and services is subject to the terms and provisions outlined in [Akamai's legal policies](https://www.akamai.com/us/en/privacy-policies/).
+
 

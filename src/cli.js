@@ -115,7 +115,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         reportError = function(error, verbose) {
             if (error instanceof errors.AkamaiPDError) {
                 if (verbose) {
-                    consoleLogger.error(`Promotional Deployment Error: '${error.messageId}' occurred: \n`, error.stack);
+                    consoleLogger.error(`Pipeline Error: '${error.messageId}' occurred: \n`, error.stack);
                     if (_.isArray(error.args) && error.args.length > 0) {
                         consoleLogger.error("Error details: ");
                         _.each(error.args, function(detail, index) {
@@ -126,7 +126,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
                         });
                     }
                 } else {
-                    consoleLogger.error(`Promotional Deployment Error: '${error.messageId}' occurred: \n`, error.message);
+                    consoleLogger.error(`Pipeline Error: '${error.messageId}' occurred: \n`, error.message);
                 }
             } else {
                 consoleLogger.error("Unexpected error occurred: ", error, error.stack);
@@ -804,10 +804,10 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
     let actionCalled;
     let argumentsUsed;
     let verbose = false;
-    const commander = new DevOpsCommand("akamai pd", consoleLogger);
+    const commander = new DevOpsCommand("akamai pl", consoleLogger);
     commander
         .version(version)
-        .description("Promotional Deployment CLI package. " +
+        .description("Akamai Pipeline CLI package. " +
             "The command assumes that your current working directory is the pipeline space under which all pipelines reside")
         .option('-v, --verbose', 'Verbose output, show logging on stdout')
         .option('-s, --section [section]', 'Section name representing Client ID in .edgerc file, defaults to "credentials"')

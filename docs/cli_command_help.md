@@ -1,13 +1,13 @@
 
-# Promotional Deployment CLI command help
+# Akamai Pipeline CLI command help
 
 ## General help
-Use akamai pd or akamai pd help to get general help about all commands.
+Use akamai pl or akamai pd help to get general help about all commands.
 
    
-     Usage: akamai pd [options] [command]
+     Usage: akamai pl [options] [command]
    
-     Promotional Deployment CLI package. The command assumes that your current working directory is the pipeline space under which all pipelines reside
+     Akamai Pipeline CLI package. The command assumes that your current working directory is the pipeline space under which all pipelines reside
    
      Options:
    
@@ -44,7 +44,7 @@ Use akamai pd or akamai pd help to get general help about all commands.
    
 ## Most useful commands in order of assumed importance
 
-## <a name="createNew"></a>Create new PD pipeline.
+## <a name="createNew"></a>Create new pipeline.
 A pipeline consists of a pipeline name and 2 or more environment names. In order to create a new pipeline you also need to specify
 a group Id, product Id and contract Id. These ids can be obtained by using the list-* commands. See below.
 

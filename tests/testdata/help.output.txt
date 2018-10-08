@@ -1,7 +1,7 @@
 
-  Usage: akamai pd [options] [command]
+  Usage: akamai pl [options] [command]
 
-  Promotional Deployment CLI package. The command assumes that your current working directory is the pipeline space under which all pipelines reside
+  Akamai Pipeline CLI package. The command assumes that your current working directory is the pipeline space under which all pipelines reside
 
   Options:
 
