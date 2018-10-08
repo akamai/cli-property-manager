@@ -1,4 +1,4 @@
-# Akamai Pipeline CLI
+# Akamai Property Manager CLI
 
 * [Overview](#overview)
 
@@ -10,7 +10,7 @@
 
 * [Get started](#get-started)
 
-* [Installing Akamai Pipeline](#installing-promotional-deployment)
+* [Installing Akamai Property Manager CLI](#installing-promotional-deployment)
 
 * [Create and set up a new pipeline](#create-and-set-up-a-new-pipeline)
 
@@ -130,13 +130,13 @@ You use the Akamai CLI tool to install the code. Once you complete the installat
 Here’s how to install Akamai Pipeline:
 
 1. Create a project folder under your user home directory: `mkdir <folder_name>`. For example: 
-`mkdir promotional_deployment`. <br> You’ll run Akamai Pipeline CLI commands from this folder, which also contains the default values for the CLI and a separate subdirectory for each pipeline you create. 
+`mkdir akamai_pipeline`. <br> You’ll run Property Manager CLI commands from this folder, which also contains the default values for the CLI and a separate subdirectory for each pipeline you create. 
 
 2. Run the installation command: `akamai install property-manager`
 
 3. Verify that the CLI is set up for your OPEN API permissions:
 
-    1. Run this command to return the list of contracts you have access to: `akamai pl list-contracts`
+    1. Run this command to return the list of contracts you have access to: `akamai pipeline list-contracts`
     1. Verify that the list of contracts returned is accurate for your access level. 
 
 # Create and set up a new pipeline
@@ -149,9 +149,9 @@ To create a new pipeline:
 
 1. If you need to, retrieve and store the contract, group, and product IDs for your pipeline:
 
-    1. Run this command to list contract IDs (contractId):  `akamai pl list-contracts`
+    1. Run this command to list contract IDs (contractId):  `akamai pipeline list-contracts`
 
-    2. Run this command to list group IDs (groupId):  `akamai pl list-groups`
+    2. Run this command to list group IDs (groupId):  `akamai pipeline list-groups`
 
     3. Run this command to [list product IDs](#common-product-ids) (productId): 
 `akamai pl list-products -c <contractId>`
@@ -305,7 +305,7 @@ When run, `promote` merges the template and variables files, saves any changes t
 
 When you first create a pipeline and run the `akamai pl save` command, it saves your pipeline and validates your pipeline’s configuration. In addition, this command creates edge hostnames for you, if the value of the  `edgeHostnameId` is null in the `hostnames.json` file. 
 
-Akamai Pipeline can only create non-secure (HTTP) edge hostnames. If you want to use a secure (HTTPS) edge hostname with your pipeline, you can add an existing secure edge hostname to your `hostnames.json` file. You can also create a new one in Property Manager and add it to your `hostnames.json` file. Just be aware that it might take a while before the system sees the new secure edge hostname.
+The Property Manager CLI can only create non-secure (HTTP) edge hostnames. If you want to use a secure (HTTPS) edge hostname with your pipeline, you can add an existing secure edge hostname to your `hostnames.json` file. You can also create a new one in Property Manager and add it to your `hostnames.json` file. Just be aware that it might take a while before the system sees the new secure edge hostname.
 
 You can view a list of your existing available edge hostnames by using the `akamai pl list-edgehostnames -c <contractId> -g <groupId>` command.
 
