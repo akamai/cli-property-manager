@@ -103,5 +103,29 @@
         ]
       }
     }
+  },
+  "userVarProperty": {
+    "latestVersion": {
+      "propertyId": 98789,
+      "propertyName": "userVarProperty.com",
+      "accountId": "1-1TJZFB",
+      "contractId": "1-1TJZH5",
+      "groupId": "61726",
+      "assetId": "471243",
+      "versions": {
+        "items": [
+          {
+            "propertyVersion": 75,
+            "updatedByUser": "jpws7ubcv5jjsv37",
+            "updatedDate": "2017-11-13T21:49:31Z",
+            "productionStatus": "INACTIVE",
+            "stagingStatus": "INACTIVE",
+            "etag": "9fdf49fecd0ed31b57eb13a6326f5190b9a14cc2",
+            "productId": "Web_App_Accel",
+            "ruleFormat": "latest"
+          }
+        ]
+      }
+    }
   }
 }

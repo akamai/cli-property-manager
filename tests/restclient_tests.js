@@ -19,7 +19,6 @@ const assert = chai.assert;
 
 const OpenClient = require('../src/openclient');
 const RecordingClient = require('../src/recordingclient');
-const ReplayClient = require('../src/replayclient');
 const throwsAsync = require("./testutils").throwsAsync;
 
 const logger = require("../src/logging")
@@ -75,7 +74,6 @@ describe('Open client tests', function () {
 
 describe('Recording client tests, errors are recorded', function () {
     let recordingClient;
-    let replayClient;
     let sender;
     let logs = {};
     let responses = [{
@@ -114,14 +112,8 @@ describe('Recording client tests, errors are recorded', function () {
             },
             getEdgeGrid : function() {
                 return edgeGrid;
-            },
-            recordErrors: true
-        });
-        replayClient = new ReplayClient("logfile.json", {
-            getUtils : function() {
-                return utils;
             }
-        })
+        });
 
     });
 
@@ -141,27 +133,6 @@ describe('Recording client tests, errors are recorded', function () {
 
     it('Record GET OK2 test', async function () {
         let result = await recordingClient.get("/foo/bar");
-        assert.deepEqual(result, {
-            result: "OK2"
-        });
-    });
-
-    it('Replay GET OK test', async function () {
-        let result = await replayClient.get("/foo/bar");
-        assert.deepEqual(result, {
-            result: "OK"
-        });
-    });
-
-    it('Replay GET BAD test', async function () {
-        return throwsAsync(function() {
-            return replayClient.get("/foo/bar");
-        }, "Error: Request failed, status code: 400,\n" +
-            "Response Body: '{\"result\":\"BAD\"}'");
-    });
-
-    it('Replay GET OK2 test', async function () {
-        result = await replayClient.get("/foo/bar");
         assert.deepEqual(result, {
             result: "OK2"
         });
@@ -171,7 +142,6 @@ describe('Recording client tests, errors are recorded', function () {
 
 describe('Recording client tests, no errors are recorded', function () {
     let recordingClient;
-    let replayClient;
     let sender;
     let logs = {};
     let responses = [{
@@ -212,12 +182,6 @@ describe('Recording client tests, no errors are recorded', function () {
                 return edgeGrid;
             }
         });
-        replayClient = new ReplayClient("logfile.json", {
-            getUtils : function() {
-                return utils;
-            }
-        })
-
     });
 
     it('Record GET OK test', async function () {
@@ -236,27 +200,6 @@ describe('Recording client tests, no errors are recorded', function () {
 
     it('Record GET OK2 test', async function () {
         let result = await recordingClient.get("/foo/bar");
-        assert.deepEqual(result, {
-            result: "OK2"
-        });
-    });
-
-    it('Replay GET OK test', async function () {
-        let result = await replayClient.get("/foo/bar");
-        assert.deepEqual(result, {
-            result: "OK"
-        });
-    });
-
-    it('Replay GET OK2 test', async function () {
-        result = await replayClient.get("/foo/bar");
-        assert.deepEqual(result, {
-            result: "OK2"
-        });
-    });
-
-    it('Replay GET OK2 test again', async function () {
-        result = await replayClient.get("/foo/bar");
         assert.deepEqual(result, {
             result: "OK2"
         });

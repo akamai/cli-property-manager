@@ -9,9 +9,6 @@
     -v, --verbose                                      Verbose output, show logging on stdout
     -s, --section [section]                            Section name representing Client ID in .edgerc file, defaults to "credentials"
     -f, --format [format]                              Select output format, allowed values are 'json' or 'table'
-    --record-to-file <filename>                        Record REST communication to file
-    --record-errors                                    Also record error responses
-    --replay-from-file <filename>                      Use record file to replay REST communication. Used for offline testing
     -h, --help                                         output usage information
 
   Commands:
@@ -21,7 +18,7 @@
     show-defaults|sf                                   Show default settings for this workspace
     merge|m [options] <environment>                    Merge template json and variable values into a PM/PAPI ruletree JSON document, stored in dist folder in the current pipeline folder
     search|s <name>                                    Search for properties by name
-    set-prefixes|sp <useprefix>                        Set or unset use of prefixes for current user credentials and setup
+    set-prefixes|sp <useprefix>                        Set or unset use of prefixes  [true|false] for current user credentials and setup
     set-ruleformat|srf <ruleformat>                    Set ruleformat for current user credentials and setup
     list-contracts|lc                                  List contracts available to current user credentials and setup
     list-products|lp [options]                         List products available under provided contract ID and client ID available to current user credentials and setup

@@ -1,0 +1,8 @@
+[
+  {
+    "cnameFrom": "qa.testproject-novar.com",
+    "cnameTo": "qa.testproject-novar.com.edgesuite.net",
+    "cnameType": "EDGE_HOSTNAME",
+    "edgeHostnameId": null
+  }
+]

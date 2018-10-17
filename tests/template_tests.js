@@ -359,7 +359,7 @@ describe('Template Tests Fresca existing property', function() {
         ]);
         assert.exists(results.variables);
         assert.deepEqual(results.variables, {
-            "definitions": {
+            definitions: {
                 originHostname: {
                     type: 'hostname',
                     default: null
@@ -381,6 +381,38 @@ describe('Template Tests Fresca existing property', function() {
             cpCode: null,
             sureRouteTestObject: null
         });
+    });
+});
+
+describe('Template Tests Fresca existing property variable-mode no-var', function() {
+    let template;
+
+    before(function () {
+        template = createTemplate("sampleProperty_waa.json", "Fresca", false);
+    });
+
+    it('convert Mobile_Accel template into setup of sdk template files', function() {
+        //no variable definitions, no environment variables defined, no environment variables used in main template
+        let results = template.process("no-var");
+        assert.exists(results.templates);
+        assert.equal(Object.keys(results.templates).length, 9);
+        assert.deepEqual(results.main.rules.children,  [ '#include:compression.json',
+            '#include:static.json',
+            '#include:dynamic.json',
+            '#include:Allow_OPTIONS.json',
+            '#include:Access-Control_Headers_if_matches_domain_whitelist.json',
+            '#include:CORs_for_JS_(custom_and_always_Vary).json',
+            '#include:Compression_Fix.json',
+            '#include:Compression_Fix2.json',
+            '#include:Disable_PCONN_for_DELETE.json'
+        ]);
+        assert.exists(results.variables);
+        assert.deepEqual(results.variables, {
+            definitions: {}
+        });
+        assert.equal(results.main.rules.behaviors[0].options.hostname, "api.origin.hubapiqa.com");
+        assert.exists(results.envVariables);
+        assert.deepEqual(results.envVariables, {});
     });
 });
 
@@ -622,3 +654,57 @@ describe('Multiple rule with same name test', function() {
     });
 });
 
+describe('Template Tests user variables', function() {
+    let template;
+
+    before(function () {
+        template = createTemplate("testruletree.waa.variables.json", "Web_App_Accel");
+    });
+    it('convert waa template into sdk template files user variables', function() {
+        let results = template.process("user-var-value");
+        assert.exists(results.templates);
+        assert.equal(Object.keys(results.templates).length, 3);
+        assert.deepEqual(results.main.rules.children, [
+            '#include:compression.json',
+            '#include:static.json',
+            '#include:dynamic.json'
+        ]);
+        assert.exists(results.variables);
+        assert.deepEqual(results.variables, {
+            definitions: {
+                "PMUSER_FOO_value" : {
+                    default: "fooooo",
+                    type: "userVariableValue"
+                },
+                "PMUSER_HOSTNAME_value" : {
+                    default: "www.example-origin.com",
+                    type: "userVariableValue"
+                }
+            }
+        });
+        assert.exists(results.envVariables);
+        assert.deepEqual(results.main.rules.variables,
+            [
+                {
+                    name : "PMUSER_HOSTNAME",
+                    value : "${env.PMUSER_HOSTNAME_value}",
+                    description : "",
+                    hidden : false,
+                    sensitive : false
+                },
+                {
+                    name : "PMUSER_FOO",
+                    value : "${env.PMUSER_FOO_value}",
+                    description : "",
+                    hidden : false,
+                    sensitive : false
+                }
+            ]);
+        assert.deepEqual(results.envVariables, {
+            //Note: we have not done any variable substitution. It happens outside of Template.
+            "PMUSER_FOO_value": null,
+            "PMUSER_HOSTNAME_value": null
+        });
+    });
+
+});

@@ -1,0 +1,8 @@
+[
+    {
+        "cnameFrom": "new.snipppets.existing.com",
+        "cnameTo": "new.snipppets.existing.com.edgesuite.net",
+        "cnameType": "EDGE_HOSTNAME",
+        "edgeHostnameId": null
+    }
+]

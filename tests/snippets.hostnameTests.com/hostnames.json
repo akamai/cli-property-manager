@@ -1,0 +1,30 @@
+[
+  {
+    "cnameFrom": "qa.testproject.com",
+    "cnameTo": "qa.testproject.com.edgesuite.net",
+    "cnameType": "EDGE_HOSTNAME",
+    "edgeHostnameId": null
+  },
+  {
+    "cnameFrom": "qa.securesite.com",
+    "cnameTo": "qa.securesite.com.edgekey.net",
+    "cnameType": "EDGE_HOSTNAME",
+    "edgeHostnameId": null
+  },
+  {
+    "cnameFrom": "qa.testprojectnull.com",
+    "cnameTo": null,
+    "cnameType": "EDGE_HOSTNAME",
+    "edgeHostnameId": null
+  },{
+    "cnameFrom": "qa.securesiteNoCreate.com",
+    "cnameTo": "qa.notfound.com.edgekey.net",
+    "cnameType": "EDGE_HOSTNAME",
+    "edgeHostnameId": null
+  },
+  {
+    "cnameFrom": "wontCreateBecauseHasId",
+    "cnameTo": "wontCreateBecauseHasId.info.edgekey.net",
+    "edgeHostnameId": "2951"
+  }
+]

@@ -1,0 +1,17 @@
+{
+  "versions" : {
+    "items" : [ {
+      "accountId" : "1-1TJZFB",
+      "contractId" : "1-1TJZH5",
+      "assetId" : "10591019",
+      "groupId" : "15225",
+      "propertyId" : "495911",
+      "propertyName" : "FOOBAR",
+      "propertyVersion" : 1,
+      "updatedByUser" : "tohare@gmail.com",
+      "updatedDate" : "2018-10-03T13:14:54Z",
+      "productionStatus" : "INACTIVE",
+      "stagingStatus" : "INACTIVE"
+    } ]
+  }
+}

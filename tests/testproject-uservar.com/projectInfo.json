@@ -1,0 +1,18 @@
+{
+    "productId": "Web_App_Accel",
+    "contractId": "1-1TJZH5",
+    "groupIds": [
+        61726
+    ],
+    "environments": [
+        "qa",
+        "staging",
+        "prod"
+    ],
+    "version": "0.1.10",
+    "isSecure": false,
+    "edgeGridConfig": {
+        "section": "credentials"
+    },
+    "name": "testproject-uservar.com"
+}

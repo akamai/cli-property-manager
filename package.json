@@ -1,6 +1,6 @@
 {
   "name": "cli-promotional-deployment",
-  "version": "0.2.10",
+  "version": "0.3.0",
   "engines": {
     "node": ">=8.0.0"
   },
@@ -11,7 +11,8 @@
     "devops-prov": "./bin/akamai-pipeline",
     "pipeline": "./bin/akamai-pipeline",
     "akamai-pl": "./bin/akamai-pipeline",
-    "akamai-pd": "./bin/akamai-pipeline"
+    "akamai-pd": "./bin/akamai-pipeline",
+    "snippets": "./bin/akamai-snippets"
   },
   "devDependencies": {
     "chai": "^4.1.2",
@@ -30,7 +31,7 @@
     "env": "dev"
   },
   "scripts": {
-    "docs": "jsdoc2md src/*.js > docs/api.md",
+    "docs": "jsdoc2md src/*.js src/pm/*.js > docs/api.md",
     "jsbeautify": "./scripts/jsbeautify.sh",
     "pegjs": "pegjs -o src/expression_parser.js resources/expression_parser.pegjs",
     "test": "mocha --recursive tests",

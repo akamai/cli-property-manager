@@ -112,7 +112,7 @@ describe('Devops-prov CLI provide help test', function () {
 
         return mainTester(errorReporter => {
             main(cliArgs, {
-                "AKAMAI_PD_PROJECT_HOME": devopsHome
+                "AKAMAI_PROJECT_HOME": devopsHome
             }, createDevOps, errorReporter, testConsole);
         }, errorCatcher => {
             assert.equal(errorCatcher, null);
@@ -128,7 +128,7 @@ describe('Devops-prov CLI provide help test', function () {
 
         return mainTester(errorReporter => {
             main(cliArgs, {
-                "AKAMAI_PD_PROJECT_HOME": devopsHome
+                "AKAMAI_PROJECT_HOME": devopsHome
             }, createDevOpsFun, errorReporter, testConsole);
         }, errorCatcher => {
             assert.equal(errorCatcher, null);
@@ -144,7 +144,7 @@ describe('Devops-prov CLI provide help test', function () {
 
         return mainTester(errorReporter => {
             main(cliArgs, {
-                "AKAMAI_PD_PROJECT_HOME": devopsHome
+                "AKAMAI_PROJECT_HOME": devopsHome
             }, createDevOpsFun, errorReporter, testConsole);
         }, errorCatcher => {
             assert.equal(errorCatcher, null);
@@ -160,6 +160,7 @@ describe('Devops-prov CLI set default tests', function () {
     const devopsHome = __dirname;
     let createDevOpsFun;
     let devOps;
+    let utils = new RoUtils();
 
     before(function () {
         let utilsClass = RoUtils;
@@ -180,11 +181,63 @@ describe('Devops-prov CLI set default tests', function () {
     });
 
     it('set Default test set two defaults', function () {
-        let cliArgs = createCommand("sd", "-p", "example.com", "-s", "frodo");
+        let cliArgs = createCommand("sd", "-p", "testproject.com", "-s", "credentials");
+        let testConsole = new TestConsole();
+
         return mainTester(errorReporter => {
-            main(cliArgs, {}, createDevOpsFun, errorReporter);
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
         }, errorCatcher => {
             assert.equal(errorCatcher, null);
+            assert.equal(testConsole.logs.length, 1);
+            let roUtils = devOps.utils;
+            let devopsSettingsPath = path.join(__dirname, "devopsSettings.json");
+            let devopsSettings = roUtils.readJsonFile(devopsSettingsPath);
+            assert.deepEqual(devopsSettings, {
+                "defaultProject": "testproject.com",
+                "edgeGridConfig": {
+                    "section": "credentials"
+                }
+            })
+            let output = testConsole.logs[0][0];
+            equalIgnoreWhiteSpaces(output, utils.readFile(path.join(__dirname, "testdata", "setDefault.output.txt")))
+        });
+    });
+
+    it('set Default test add new default field', function () {
+        let cliArgs = createCommand("sd", "-e", "test@akamai.com");
+        let testConsole = new TestConsole();
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            assert.equal(errorCatcher, null);
+            assert.equal(testConsole.logs.length, 1);
+            let roUtils = devOps.utils;
+            let devopsSettingsPath = path.join(__dirname, "devopsSettings.json");
+            let devopsSettings = roUtils.readJsonFile(devopsSettingsPath);
+            assert.deepEqual(devopsSettings, {
+                "defaultProject": "testproject.com",
+                "edgeGridConfig": {
+                    "section": "credentials"
+                },
+                "emails": [
+                    "test@akamai.com"
+                ]
+            })
+            let output = testConsole.logs[0][0];
+            equalIgnoreWhiteSpaces(output, utils.readFile(path.join(__dirname, "testdata", "setDefaultAdd.output.txt")))
+        });
+    });
+
+    it('set Default test modify default values', function () {
+        let cliArgs = createCommand("sd", "-p", "example.com", "-s", "frodo");
+        let testConsole = new TestConsole();
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            assert.equal(errorCatcher, null);
+            assert.equal(testConsole.logs.length, 1);
             let roUtils = devOps.utils;
             let devopsSettingsPath = path.join(__dirname, "devopsSettings.json");
             let devopsSettings = roUtils.readJsonFile(devopsSettingsPath);
@@ -194,6 +247,8 @@ describe('Devops-prov CLI set default tests', function () {
                     "section": "frodo"
                 }
             })
+            let output = testConsole.logs[0][0];
+            equalIgnoreWhiteSpaces(output, utils.readFile(path.join(__dirname, "testdata", "setDefaultModified.output.txt")))
         });
     });
 
@@ -222,7 +277,7 @@ describe('Devops-prov CLI set default tests', function () {
         return mainTester(errorReporter => {
             main(cliArgs, {}, createDevOpsFun, errorReporter);
         }, errorCatcher => {
-            assert.equal(errorCatcher.error, "Error: Pipeline 'foobar' doesn't exist!",
+            assert.equal(errorCatcher.error, "Error: Akamai pipeline 'foobar' doesn't exist!",
                 errorCatcher.error.stack)
         });
     });
@@ -241,6 +296,137 @@ describe('Devops-prov CLI set default tests', function () {
     });
 });
 
+describe('Devops-prov CLI show rule tree', function () {
+    const devopsHome = __dirname;
+    let createDevOpsFun;
+    let getProject;
+
+    before(function () {
+        getProject = td.func();
+        extractProjectName = td.func();
+
+        let project = td.object(["getRuleTree"]);
+
+        td.when(extractProjectName(td.matchers.anything())).thenReturn("testproject.com");
+        td.when(getProject(td.matchers.anything())).thenReturn(project);
+        td.when(project.getRuleTree("qa")).thenReturn(
+            new Promise((resolve, reject) => {
+                resolve('{some rule tree stuff}');
+            })
+        );
+
+        createDevOpsFun = function (deps) {
+            let newDeps = {
+                devopsHome
+            };
+            Object.assign(deps, newDeps);
+
+            let devOps = createDevOps(deps);
+            devOps.getProject = getProject;
+            devOps.extractProjectName = extractProjectName;
+            return devOps;
+        };
+    });
+
+    it('show rule tree test', function () {
+        let cliArgs = createCommand("sr", "qa");
+        let testConsole = new TestConsole();
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            assert.equal(errorCatcher, null);
+            assert.equal(testConsole.logs.length, 1);
+            let output = testConsole.logs[0][0];
+            assert.equal(output, '"{some rule tree stuff}"');
+        });
+    });
+});
+
+describe('Devops-prov CLI search tests', function () {
+    const devopsHome = __dirname;
+    let createDevOpsFun;
+    let devOps;
+    let roUtils = new RoUtils();
+    let getPAPI;
+
+    before(function () {
+        let utilsClass = RoUtils;
+
+        getPAPI = td.func();
+
+        let papi = td.object(["findProperty"]);
+
+        let searchResultPath = path.join(devopsHome, "testdata/search.json");
+        let result = roUtils.readJsonFile(searchResultPath);
+
+        td.when(getPAPI()).thenReturn(papi);
+        td.when(papi.findProperty("FOOBAR")).thenReturn(
+            new Promise((resolve, reject) => {
+                resolve(result);
+            })
+        );
+
+        createDevOpsFun = function(deps) {
+            let newDeps = {
+                utilsClass,
+                devopsHome
+            };
+            Object.assign(deps, newDeps);
+            devOps = createDevOps(deps);
+            devOps.getPAPI = getPAPI;
+
+            return devOps;
+        };
+    });
+
+    it('search test', function () {
+        let cliArgs = createCommand("s", "FOOBAR");
+        let testConsole = new TestConsole();
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            assert.equal(errorCatcher, null);
+            assert.equal(testConsole.logs.length, 1);
+            let output = testConsole.logs[0][0];
+            equalIgnoreWhiteSpaces(output, roUtils.readFile(path.join(devopsHome, "testdata", "search.output.txt")))
+        });
+    });
+});
+
+describe('Devops-prov CLI show defaults tests', function () {
+    const devopsHome = __dirname;
+    let createDevOpsFun;
+    let devOps;
+    let utils = new RoUtils();
+
+    before(function () {
+        let utilsClass = RoUtils;
+        createDevOpsFun = function (deps) {
+            let newDeps = {
+                utilsClass, devopsHome
+            };
+            Object.assign(newDeps, deps);
+
+            devOps = createDevOps(newDeps);
+            return devOps;
+        };
+    });
+    it('show default test', function () {
+        let cliArgs = createCommand("sf");
+        let testConsole = new TestConsole();
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            assert.equal(errorCatcher, null);
+            assert.equal(testConsole.logs.length, 1);
+            let output = testConsole.logs[0][0];
+            equalIgnoreWhiteSpaces(output, utils.readFile(path.join(__dirname, "testdata", "setDefault.output.txt")))
+        });
+    });
+});
+
 describe('Devops-prov CLI list status', function () {
     const devopsHome = __dirname;
 
@@ -251,7 +437,7 @@ describe('Devops-prov CLI list status', function () {
 
         return mainTester(errorReporter => {
             main(cliArgs, {
-                "AKAMAI_PD_PROJECT_HOME": devopsHome
+                "AKAMAI_PROJECT_HOME": devopsHome
             }, createDevOps, errorReporter, testConsole);
         }, errorCatcher => {
             assert.equal(errorCatcher, null);
@@ -269,7 +455,7 @@ describe('Devops-prov CLI list status', function () {
 
         return mainTester(errorReporter => {
             main(cliArgs, {
-                "AKAMAI_PD_PROJECT_HOME": devopsHome
+                "AKAMAI_PROJECT_HOME": devopsHome
             }, createDevOps, errorReporter, testConsole);
         }, errorCatcher => {
             assert.equal(errorCatcher.error, "Error: Didn't expect these parameters: 'foobar'");
@@ -283,7 +469,7 @@ describe('Devops-prov CLI list status', function () {
 
         return mainTester(errorReporter => {
             main(cliArgs, {
-                "AKAMAI_PD_PROJECT_HOME": devopsHome
+                "AKAMAI_PROJECT_HOME": devopsHome
             }, createDevOps, errorReporter, testConsole);
         }, errorCatcher => {
             assert.equal(errorCatcher.error, "Error: Unknown option: '-g'");
@@ -314,7 +500,7 @@ describe('Devops-prov CLI create new project', function () {
 
         return mainTester(errorReporter => {
             main(cliArgs, {
-                "AKAMAI_PD_PROJECT_HOME": __dirname
+                "AKAMAI_PROJECT_HOME": __dirname
             }, createDevOpsFun, errorReporter);
         }, errorCatcher => {
             td.verify(devOpsClass.prototype.createPipeline({
@@ -330,8 +516,96 @@ describe('Devops-prov CLI create new project', function () {
                 isInRetryMode: false,
                 propertyId: undefined,
                 propertyName: undefined,
-                propertyVersion: undefined
+                propertyVersion: undefined,
+                variableMode: "default"
             }));
+        });
+    });
+
+    it('create new project with variable-mode chosen with no property', function () {
+        let cliArgs = createCommand("np", "-p", "testproject2.com", "--variable-mode", "default",
+            "-g", "62234", "-c", "XYZ123", "-d", "NiceProduct", "foo", "bar");
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": __dirname
+            }, createDevOpsFun, errorReporter);
+        }, errorCatcher => {
+            assert.exists(errorCatcher);
+            assert.equal(errorCatcher.error,
+                "Error: Variable Mode usable only with an existing property.", errorCatcher.error.stack);
+        });
+    });
+
+    it('create new project with variable-mode chosen with property string', function () {
+        let cliArgs = createCommand("np", "-p", "testproject2.com", "--variable-mode", "default",
+            "-g", "62234", "-c", "XYZ123", "-e", "someProp", "-d", "NiceProduct", "foo", "bar");
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": __dirname
+            }, createDevOpsFun, errorReporter);
+        }, errorCatcher => {
+
+            td.verify(devOpsClass.prototype.createPipeline({
+                projectName: "testproject2.com",
+                productId: "NiceProduct",
+                contractId: "XYZ123",
+                groupIds: [62234],
+                environments: ["foo", "bar"],
+                environmentGroupIds: {
+                    foo: 62234,
+                    bar: 62234
+                },
+                isInRetryMode: false,
+                propertyId: undefined,
+                propertyName: "someProp",
+                propertyVersion: undefined,
+                variableMode: "default"
+            }));
+        });
+    });
+
+    it('create new project with variable-mode chosen with property string', function () {
+        let cliArgs = createCommand("np", "-p", "testproject2.com", "--variable-mode", "default",
+            "-g", "62234", "-c", "XYZ123", "-e", "123", "-d", "NiceProduct", "foo", "bar");
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": __dirname
+            }, createDevOpsFun, errorReporter);
+        }, errorCatcher => {
+            td.verify(devOpsClass.prototype.createPipeline({
+                projectName: "testproject2.com",
+                productId: "NiceProduct",
+                contractId: "XYZ123",
+                groupIds: [62234],
+                environments: ["foo", "bar"],
+                environmentGroupIds: {
+                    foo: 62234,
+                    bar: 62234
+                },
+                isInRetryMode: false,
+                propertyId: 123,
+                propertyName: undefined,
+                propertyVersion: undefined,
+                variableMode: "default"
+            }));
+        });
+    });
+
+    it('create new project with invalid variable mode', function () {
+        let cliArgs = createCommand("np", "-p", "testproject2.com", "--variable-mode", "xyz",
+            "-g", "62234", "-c", "XYZ123", "-d", "NiceProduct", "foo", "bar");
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": __dirname
+            }, createDevOpsFun, errorReporter);
+        }, errorCatcher => {
+            let expectedError = "Error: Variable Mode usable only with an existing property.";
+            assert.exists(errorCatcher);
+            assert.equal(errorCatcher.error, expectedError, errorCatcher.error.stack);
         });
     });
 
@@ -341,7 +615,7 @@ describe('Devops-prov CLI create new project', function () {
 
         return mainTester(errorReporter => {
             main(cliArgs, {
-                "AKAMAI_PD_PROJECT_HOME": __dirname
+                "AKAMAI_PROJECT_HOME": __dirname
             }, createDevOpsFun, errorReporter);
         }, errorCatcher => {
             td.verify(devOpsClass.prototype.createPipeline({
@@ -358,7 +632,8 @@ describe('Devops-prov CLI create new project', function () {
                 secureOption: true,
                 propertyId: undefined,
                 propertyName: undefined,
-                propertyVersion: undefined
+                propertyVersion: undefined,
+                variableMode: "default"
             }));
         });
     });
@@ -369,7 +644,7 @@ describe('Devops-prov CLI create new project', function () {
 
         return mainTester(errorReporter => {
             main(cliArgs, {
-                "AKAMAI_PD_PROJECT_HOME": __dirname
+                "AKAMAI_PROJECT_HOME": __dirname
             }, createDevOpsFun, errorReporter);
         }, errorCatcher => {
             td.verify(devOpsClass.prototype.createPipeline({
@@ -386,7 +661,8 @@ describe('Devops-prov CLI create new project', function () {
                 secureOption: false,
                 propertyId: undefined,
                 propertyName: undefined,
-                propertyVersion: undefined
+                propertyVersion: undefined,
+                variableMode: "default"
             }));
         });
     });
@@ -397,7 +673,7 @@ describe('Devops-prov CLI create new project', function () {
 
         return mainTester(errorReporter => {
             main(cliArgs, {
-                "AKAMAI_PD_PROJECT_HOME": __dirname
+                "AKAMAI_PROJECT_HOME": __dirname
             }, createDevOpsFun, errorReporter);
         }, errorCatcher => {
             td.verify(devOpsClass.prototype.createPipeline({
@@ -414,7 +690,8 @@ describe('Devops-prov CLI create new project', function () {
                 isInRetryMode: false,
                 propertyId: undefined,
                 propertyName: undefined,
-                propertyVersion: undefined
+                propertyVersion: undefined,
+                variableMode: "default"
             }));
         });
     });
@@ -425,7 +702,7 @@ describe('Devops-prov CLI create new project', function () {
 
         return mainTester(errorCatcher => {
             main(cliArgs, {
-                "AKAMAI_PD_PROJECT_HOME": __dirname
+                "AKAMAI_PROJECT_HOME": __dirname
             }, createDevOpsFun, errorCatcher);
         }, errorCatcher => {
             td.verify(devOpsClass.prototype.createPipeline({
@@ -441,7 +718,8 @@ describe('Devops-prov CLI create new project', function () {
                 isInRetryMode: true,
                 propertyId: undefined,
                 propertyName: undefined,
-                propertyVersion: undefined
+                propertyVersion: undefined,
+                variableMode: "default"
             }));
         });
     });
@@ -452,7 +730,7 @@ describe('Devops-prov CLI create new project', function () {
 
         return mainTester(errorCatcher => {
             main(cliArgs, {
-                "AKAMAI_PD_PROJECT_HOME": __dirname
+                "AKAMAI_PROJECT_HOME": __dirname
             }, createDevOpsFun, errorCatcher);
         }, errorCatcher => {
             td.verify(devOpsClass.prototype.createPipeline({
@@ -468,7 +746,64 @@ describe('Devops-prov CLI create new project', function () {
                 isInRetryMode: false,
                 propertyId: 3456,
                 propertyName: undefined,
-                propertyVersion: undefined
+                propertyVersion: undefined,
+                variableMode: "default"
+            }));
+        });
+    });
+
+    it('create new project with propertyId', function () {
+        let cliArgs = createCommand("np", "-e", "3456", "-p", "testproject2.com",
+            "-g", "62234", "--variable-mode", "default", "-c", "XYZ123", "-d", "NiceProduct", "foo", "bar");
+
+        return mainTester(errorCatcher => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": __dirname
+            }, createDevOpsFun, errorCatcher);
+        }, errorCatcher => {
+            td.verify(devOpsClass.prototype.createPipeline({
+                projectName: "testproject2.com",
+                productId: "NiceProduct",
+                contractId: "XYZ123",
+                groupIds: [62234],
+                environments: ["foo", "bar"],
+                environmentGroupIds: {
+                    foo: 62234,
+                    bar: 62234
+                },
+                isInRetryMode: false,
+                propertyId: 3456,
+                propertyName: undefined,
+                propertyVersion: undefined,
+                variableMode: "default"
+            }));
+        });
+    });
+
+    it('create new project with propertyId variable-mode no var', function () {
+        let cliArgs = createCommand("np", "-e", "3456", "-p", "testproject2.com",
+            "-g", "62234", "--variable-mode", "no-var", "-c", "XYZ123", "-d", "NiceProduct", "foo", "bar");
+
+        return mainTester(errorCatcher => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": __dirname
+            }, createDevOpsFun, errorCatcher);
+        }, errorCatcher => {
+            td.verify(devOpsClass.prototype.createPipeline({
+                projectName: "testproject2.com",
+                productId: "NiceProduct",
+                contractId: "XYZ123",
+                groupIds: [62234],
+                environments: ["foo", "bar"],
+                environmentGroupIds: {
+                    foo: 62234,
+                    bar: 62234
+                },
+                isInRetryMode: false,
+                propertyId: 3456,
+                propertyName: undefined,
+                propertyVersion: undefined,
+                variableMode: "no-var"
             }));
         });
     });
@@ -479,7 +814,7 @@ describe('Devops-prov CLI create new project', function () {
 
         return mainTester(errorCatcher => {
             main(cliArgs, {
-                "AKAMAI_PD_PROJECT_HOME": __dirname
+                "AKAMAI_PROJECT_HOME": __dirname
             }, createDevOpsFun, errorCatcher);
         }, errorCatcher => {
             td.verify(devOpsClass.prototype.createPipeline({
@@ -495,7 +830,8 @@ describe('Devops-prov CLI create new project', function () {
                 isInRetryMode: false,
                 propertyId: 3456,
                 propertyName: undefined,
-                propertyVersion: undefined
+                propertyVersion: undefined,
+                variableMode: "default"
             }));
         });
     });
@@ -506,7 +842,7 @@ describe('Devops-prov CLI create new project', function () {
 
         return mainTester(errorCatcher => {
             main(cliArgs, {
-                "AKAMAI_PD_PROJECT_HOME": __dirname
+                "AKAMAI_PROJECT_HOME": __dirname
             }, createDevOpsFun, errorCatcher);
         }, errorCatcher => {
             td.verify(devOpsClass.prototype.createPipeline({
@@ -522,7 +858,8 @@ describe('Devops-prov CLI create new project', function () {
                 isInRetryMode: false,
                 propertyId: 3456,
                 propertyName: undefined,
-                propertyVersion: 4
+                propertyVersion: 4,
+                variableMode: "default"
             }));
         });
     });
@@ -532,7 +869,7 @@ describe('Devops-prov CLI create new project', function () {
 
         return mainTester(errorCatcher => {
             main(cliArgs, {
-                "AKAMAI_PD_PROJECT_HOME": __dirname
+                "AKAMAI_PROJECT_HOME": __dirname
             }, createDevOpsFun, errorCatcher);
         }, errorCatcher => {
             td.verify(devOpsClass.prototype.createPipeline({
@@ -548,7 +885,8 @@ describe('Devops-prov CLI create new project', function () {
                 isInRetryMode: false,
                 propertyId: 3456,
                 propertyName: undefined,
-                propertyVersion: undefined
+                propertyVersion: undefined,
+                variableMode: "default"
             }));
         });
     });
@@ -558,7 +896,7 @@ describe('Devops-prov CLI create new project', function () {
 
         return mainTester(errorCatcher => {
             main(cliArgs, {
-                "AKAMAI_PD_PROJECT_HOME": __dirname
+                "AKAMAI_PROJECT_HOME": __dirname
             }, createDevOpsFun, errorCatcher);
         }, errorCatcher => {
             td.verify(devOpsClass.prototype.createPipeline({
@@ -574,7 +912,8 @@ describe('Devops-prov CLI create new project', function () {
                 isInRetryMode: false,
                 propertyId: undefined,
                 propertyName: "www.foobar.com",
-                propertyVersion: undefined
+                propertyVersion: undefined,
+                variableMode: "default"
             }));
         });
     });
@@ -584,7 +923,7 @@ describe('Devops-prov CLI create new project', function () {
 
         return mainTester(errorCatcher => {
             main(cliArgs, {
-                "AKAMAI_PD_PROJECT_HOME": __dirname
+                "AKAMAI_PROJECT_HOME": __dirname
             }, createDevOpsFun, errorCatcher);
         }, errorCatcher => {
             td.verify(devOpsClass.prototype.createPipeline({
@@ -600,7 +939,8 @@ describe('Devops-prov CLI create new project', function () {
                 isInRetryMode: false,
                 propertyId: 3456,
                 propertyName: undefined,
-                propertyVersion: 4
+                propertyVersion: 4,
+                variableMode: "default"
             }));
         });
     });
@@ -612,7 +952,7 @@ describe('Devops-prov CLI create new project', function () {
 
         return mainTester(errorCatcher => {
             main(cliArgs, {
-                "AKAMAI_PD_PROJECT_HOME": __dirname
+                "AKAMAI_PROJECT_HOME": __dirname
             }, createDevOpsFun, errorCatcher, testConsole);
         }, errorCatcher => {
             assert.exists(errorCatcher);
@@ -629,7 +969,7 @@ describe('Devops-prov CLI create new project', function () {
 
         return mainTester(errorCatcher => {
             main(cliArgs, {
-                "AKAMAI_PD_PROJECT_HOME": __dirname
+                "AKAMAI_PROJECT_HOME": __dirname
             }, createDevOpsFun, errorCatcher, testConsole);
         }, errorCatcher => {
             assert.exists(errorCatcher);
@@ -645,7 +985,7 @@ describe('Devops-prov CLI create new project', function () {
 
         return mainTester(errorCatcher => {
             main(cliArgs, {
-                "AKAMAI_PD_PROJECT_HOME": __dirname
+                "AKAMAI_PROJECT_HOME": __dirname
             }, createDevOpsFun, errorCatcher, testConsole);
         }, errorCatcher => {
             assert.exists(errorCatcher);
@@ -662,7 +1002,7 @@ describe('Devops-prov CLI create new project', function () {
 
         return mainTester(errorCatcher => {
             main(cliArgs, {
-                "AKAMAI_PD_PROJECT_HOME": __dirname
+                "AKAMAI_PROJECT_HOME": __dirname
             }, createDevOpsFun, errorCatcher, testConsole);
         }, errorCatcher => {
             assert.exists(errorCatcher);
@@ -712,7 +1052,7 @@ describe('list tests', function () {
 
         return mainTester(errorReporter => {
             main(cliArgs, {
-                "AKAMAI_PD_PROJECT_HOME": __dirname
+                "AKAMAI_PROJECT_HOME": __dirname
             }, createDevOpsFun, errorReporter);
         }, errorCatcher => {
             assert.exists(errorCatcher);
@@ -726,7 +1066,7 @@ describe('list tests', function () {
 
         return mainTester(errorReporter => {
             main(cliArgs, {
-                "AKAMAI_PD_PROJECT_HOME": __dirname
+                "AKAMAI_PROJECT_HOME": __dirname
             }, createDevOpsFun, errorReporter, testConsole);
         }, errorCatcher => {
             assert.equal(null, errorCatcher);

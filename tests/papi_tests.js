@@ -42,4 +42,17 @@ describe('PAPI Tests', function () {
         td.verify(openClient.post("/papi/v0/edgehostnames/?contractId=CTR-345&groupId=3598", {body: "body"}));
     });
 
+    it('show rule tree', function() {
+        papi.getPropertyVersionRules(494064, 1);
+        td.verify(openClient.get("/papi/v0/properties/494064/versions/1/rules", {}));
+    });
+
+    it('find property', function() {
+        papi.findProperty("FOOBAR");
+        td.verify(openClient.post('/papi/v1/search/find-by-value', {
+            propertyName: "FOOBAR"
+        }));
+    });
+
+
 });

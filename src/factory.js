@@ -19,11 +19,10 @@ const _ = require('underscore');
 
 const EdgeGrid = require('./edgegrid/api');
 const DevOps = require('./devops');
+const DevOpsSnippets = require('./pm/devops_property_manager')
 const Project = require('./project');
 const PAPI = require('./papi');
 const OpenClient = require('./openclient');
-const RecordingClient = require('./recordingclient');
-const ReplayClient = require('./replayclient');
 const Environment = require('./environment');
 const Merger = require('./merger');
 const Utils = require('./utils');
@@ -33,7 +32,7 @@ const errors = require('./errors');
 const helpers = require('./helpers');
 const logger = require("./logging")
     .createLogger("devops-prov.factory");
-
+const SnippetsProject = require('./pm/project_property_manager');
 /**
  *
  * @param devopsSettings
@@ -56,7 +55,6 @@ const prepareEdgeGridConfig = function(utils, devopsSettings, dependencies) {
     } else if (utils.fileExists(userHomeEdgerc)) {
         edgegridRc = userHomeEdgerc;
     }
-
     let sectionName = dependencies.section || edgeGridConfig.section || "papi";
 
     logger.info(`Using credentials file: '${edgegridRc}', section: '${sectionName}'`);
@@ -73,20 +71,30 @@ const prepareEdgeGridConfig = function(utils, devopsSettings, dependencies) {
 
 const prepareSettings = function(dependencies, procEnv, utils) {
     //by default devopsHome is the current working directory.
-    //This can be overridden by setting the AKAMAI_PD_PROJECT_HOME env variable or
+    //This can be overridden by setting the AKAMAI_PROJECT_HOME env variable or
     // passing devopsHome with the dependencies object.
-    const devopsHome = dependencies.devopsHome || procEnv["AKAMAI_PD_PROJECT_HOME"] || process.cwd();
+    const devopsHome = dependencies.devopsHome || procEnv["AKAMAI_PROJECT_HOME"] || process.cwd();
     let devopsSettings = {};
 
     if (procEnv["HOME"]) {
-        let devopsConfig = path.resolve(procEnv["HOME"], ".devopsSettings.json");
+        let devopsConfig;
+        if (dependencies.devOpsClass === DevOpsSnippets) {
+            devopsConfig = path.resolve(procEnv["HOME"], ".snippetsSettings.json");
+        } else {
+            devopsConfig = path.resolve(procEnv["HOME"], ".devopsSettings.json");
+        }
         if (utils.fileExists(devopsConfig)) {
             devopsSettings = utils.readJsonFile(devopsConfig);
         }
     }
 
     if (devopsHome) {
-        let devopsConfig = path.join(devopsHome, "devopsSettings.json");
+        let devopsConfig;
+        if (dependencies.devOpsClass === DevOpsSnippets) {
+            devopsConfig = path.join(devopsHome, "snippetsSettings.json");
+        } else {
+            devopsConfig = path.join(devopsHome, "devopsSettings.json");
+        }
         if (utils.fileExists(devopsConfig)) {
             let savedSettings = utils.readJsonFile(devopsConfig);
             devopsSettings = helpers.mergeObjects(devopsSettings, savedSettings);
@@ -98,8 +106,8 @@ const prepareSettings = function(dependencies, procEnv, utils) {
     devopsSettings.outputFormat = dependencies.outputFormat || devopsSettings.outputFormat || "table";
 
     if (!devopsSettings.devopsHome) {
-        throw new errors.DependencyError("Need to know location of devopsHome folder. Please set AKAMAI_PD_PROJECT_HOME environment variable.",
-            "devops_pipeline_home_env_var_missing");
+        throw new errors.DependencyError("Need to know location of devopsHome folder. Please set AKAMAI_PROJECT_HOME environment variable.",
+            "property_home_env_var_missing");
     }
 
     devopsSettings.edgeGridConfig = prepareEdgeGridConfig(utils, devopsSettings, dependencies);
@@ -109,26 +117,24 @@ const prepareSettings = function(dependencies, procEnv, utils) {
 
 /**
  * Somewhat unsatisfying "do your own dependency injection scheme"
+ *
+ * EXTREMELY unsatisfying.  The logger breaks because of when depencies are "injected"
  * @param devopsHome
  * @param dependencies
  * @returns factory object
  */
 const createDevOps = function(dependencies = {}) {
-    const procEnv = dependencies.procEnv || {};
     const devOpsClass = dependencies.devOpsClass || DevOps;
     const projectClass = dependencies.projectClass || Project;
+    const procEnv = dependencies.procEnv || {};
     const papiClass = dependencies.papiClass || PAPI;
     const openClientClass = dependencies.openClientClass || OpenClient;
-    const recordingClientClass = dependencies.recordingClientClass || RecordingClient;
-    const replayClientClass = dependencies.replayClientClass || ReplayClient;
     const environmentClass = dependencies.environmentClass || Environment;
     const mergerClass = dependencies.mergerClass || Merger;
     const utilsClass = dependencies.utilsClass || Utils;
     const elClass = dependencies.elClass || EL;
     const templateClass = dependencies.templateClass || Template;
     const clientType = dependencies.clientType || "regular";
-    const recordFilename = dependencies.recordFilename;
-    const recordErrors = dependencies.recordErrors;
     const version = dependencies.version || "Version Information Missing";
     const utils = getUtils();
     const devopsSettings = prepareSettings(dependencies, procEnv, utils);
@@ -166,7 +172,7 @@ const createDevOps = function(dependencies = {}) {
 
     /**
      * Create and return Project instance.
-     * Throws error if expectExists === true but pipeline doesn't exist.
+     * Throws error if expectExists === true but pipeline/property doesn't exist.
      * @param projectName
      * @param expectExists
      * @returns {*}
@@ -186,8 +192,14 @@ const createDevOps = function(dependencies = {}) {
             if (project.exists()) {
                 project.checkMigrationStatus(version);
             } else {
-                throw new errors.DependencyError(`Pipeline '${projectName}' doesn't exist!`, "unknown_pipeline",
-                    projectName);
+                if (project instanceof SnippetsProject) {
+                    throw new errors.DependencyError(`PM CLI property '${projectName}' doesn't exist!`, "unknown_pm_cli_property",
+                        projectName);
+                } else {
+                    throw new errors.DependencyError(`Akamai pipeline '${projectName}' doesn't exist!`, "unknown_pipeline",
+                        projectName);
+                }
+
             }
         }
         return project;
@@ -199,26 +211,16 @@ const createDevOps = function(dependencies = {}) {
     }
 
     function getOpenClient() {
-        const defaultHeaders = {
+
+        const defaultHeaders = (devOpsClass === DevOpsSnippets) ? {
+            "X-User-Agent": `Akamai-PD; Version=${version};pm-cli;`
+        } : {
             "X-User-Agent": `Akamai-PD; Version=${version}`
         };
         if (clientType === "regular") {
             return new openClientClass({
                 getEdgeGrid,
                 defaultHeaders
-            });
-        } else if (clientType === "record") {
-            logger.info(`Using recording client, writing to '${recordFilename}'`);
-            return new recordingClientClass(recordFilename, {
-                getEdgeGrid,
-                getUtils,
-                recordErrors,
-                defaultHeaders
-            });
-        } else if (clientType === "replay") {
-            logger.info(`Using replay client, reading from '${recordFilename}'`);
-            return new replayClientClass(recordFilename, {
-                getUtils
             });
         } else {
             throw new errors.ArgumentError(`unknown clientType: ${clientType}`, "unknown_client_type", clientType);

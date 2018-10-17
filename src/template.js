@@ -68,32 +68,36 @@ class Template {
         }
     }
 
-    processError(error) {
-        if (error.type.endsWith("attribute_required") || error.type.endsWith("option_empty")) {
-            logger.info(`processing error with location: ${error.errorLocation}`);
-            let [behavior, options, optionName] = this.resolvePath(error.errorLocation);
-            logger.info(`replacing ${optionName} of behavior ${behavior.name}`);
-            let varDefinition = this.converterData.behaviorMapping[behavior.name];
-            if (!varDefinition) {
-                logger.warn(`can't find variable specification for behavior ${behavior.name}`);
-                return;
-            }
-            let replacement = varDefinition[optionName];
-            if (!replacement) {
-                logger.warn(`can't find replacement specification for option ${optionName}`);
-                return;
-            }
-            options[optionName] = replacement.value;
-            if (replacement.useVariable) {
-                let varDef = {
-                    "type": replacement.type,
-                    "default": null
-                };
-                if (replacement.defaultValue) {
-                    varDef.default = replacement.defaultValue;
+    processError(errors) {
+        if (_.isArray(errors)) {
+            for (let error of errors) {
+                if (error.type.endsWith("attribute_required") || error.type.endsWith("option_empty")) {
+                    logger.info(`processing error with location: ${error.errorLocation}`);
+                    let [behavior, options, optionName] = this.resolvePath(error.errorLocation);
+                    logger.info(`replacing ${optionName} of behavior ${behavior.name}`);
+                    let varDefinition = this.converterData.behaviorMapping[behavior.name];
+                    if (!varDefinition) {
+                        logger.warn(`can't find variable specification for behavior ${behavior.name}`);
+                        return;
+                    }
+                    let replacement = varDefinition[optionName];
+                    if (!replacement) {
+                        logger.warn(`can't find replacement specification for option ${optionName}`);
+                        return;
+                    }
+                    options[optionName] = replacement.value;
+                    if (replacement.useVariable) {
+                        let varDef = {
+                            "type": replacement.type,
+                            "default": null
+                        };
+                        if (replacement.defaultValue) {
+                            varDef.default = replacement.defaultValue;
+                        }
+                        this.variables.definitions[replacement.name] = varDef;
+                        this.envVariables[replacement.name] = replacement.overrideValue;
+                    }
                 }
-                this.variables.definitions[replacement.name] = varDef;
-                this.envVariables[replacement.name] = replacement.overrideValue;
             }
         }
     }
@@ -183,14 +187,39 @@ class Template {
         }
     }
 
-    process() {
-        let errors = this.pmData.errors;
-        if (_.isArray(errors)) {
-            for (let err of errors) {
-                this.processError(err);
+    processUserVariables() {
+        //This is blank.  We do not normally process user variables.
+    }
+
+    doNothing() {
+
+    }
+
+    doProcessUserVariableValues() {
+        //replacing the variables value with an environment variable
+        //environment variable placed in the variableDefinitions
+        let variables = this.pmData.rules.variables;
+        if (_.isArray(variables)) {
+            for (let i = 0; i < variables.length; i++) {
+                let varDef = {
+                    "type": "userVariableValue",
+                    "default": null
+                };
+                let varName = variables[i].name;
+                let varValue = variables[i].value;
+                varDef.default = varValue;
+                this.variables.definitions[`${varName}_value`] = varDef;
+                this.envVariables[`${varName}_value`] = null;
+                variables[i].value = `\${env.${varName}_value}`;
             }
         }
+    }
+
+    process(mode = helpers.allowedModes[0]) {
+        this.loadMode(mode);
+        this.processError(this.pmData.errors);
         this.processBehaviors(this.pmData.rules);
+        this.processUserVariables();
         this.processRules();
         return {
             "main": {
@@ -200,6 +229,23 @@ class Template {
             "variables": this.variables,
             "envVariables": this.envVariables
         };
+    }
+
+    loadMode(mode) {
+        //Determines how the template will process behaviors and user variables
+        if (mode === helpers.allowedModes[0]) {
+            //default - Everything is setup to do this already
+        } else if (mode === helpers.allowedModes[1]) {
+            //no variables
+            this.processError = this.doNothing;
+            this.processBehaviors = this.doNothing;
+
+        } else if (mode === helpers.allowedModes[2]) {
+            //user variable values only
+            this.processError = this.doNothing;
+            this.processBehaviors = this.doNothing;
+            this.processUserVariables = this.doProcessUserVariableValues
+        }
     }
 }
 
