@@ -1,0 +1,11 @@
+{
+    "productId": "Web_App_Accel",
+    "contractId": "1-1TJZH5",
+    "groupId": 61726,
+    "version": "0.1.10",
+    "isSecure": false,
+    "edgeGridConfig": {
+        "section": "credentials"
+    },
+    "name": "new.snipppets.existing.com"
+}

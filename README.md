@@ -8,9 +8,19 @@
 
 * [Workflows](#workflows)
 
+    * [Federated development workflow](#federated-development-workflow)
+
+    * [Akamai Pipeline workflow](#akamai-pipeline-workflow)    
+
 * [Get started](#get-started)
 
-* [Installing Akamai Property Manager CLI](#installing-akamai-pipeline)
+* [Installing Akamai Property Manager CLI](#installing-akamai-property-manager-cli)
+
+* [Set up federated development](#set-up-federated-development)
+
+    * [Create snippets of your Property Manager configuration](#create-snippets-of-your-property-manager-configuration)
+
+    * [Add a new snippet](#add-a-new-snippet)
 
 * [Create and set up a new pipeline](#create-and-set-up-a-new-pipeline)
 
@@ -18,9 +28,14 @@
 	
 	* [Common product IDs](#common-product-ids)
 
-* [Save and promote changes through the pipeline](#save-and-promote-changes-through-the-pipeline)
+    * [Save and promote changes through the pipeline](#save-and-promote-changes-through-the-pipeline)
 
-* [Use cases](#use-cases)
+* [How you can use this CLI](#how-you-can-use-this-cli)
+
+    * [Using Property Manager user variables with Akamai Pipeline
+](#using-property-manager-user-variables-with-akamai-pipeline)
+
+    * [Using attributes that vary across environments with Akamai Pipeline](#using-attributes-that-vary-across-environments-with-akamai-pipeline)
 
     * [Reuse secure edge hostnames](#reuse-secure-edge-hostnames)
 
@@ -34,7 +49,7 @@ The Property Manager CLI lets you make configuration changes locally and automat
 
 With this client-side application, you can: 
 
-* **Coming Soon: Set up a federated configuration development structure.** You can create local client side templates, or snippets, for different parts of your property configuration, like rules or behaviors. Different teams within your organization can own specific snippets and make Property Manager changes both independently of and in parallel with other teams.
+* **Set up federated development.** You can create local client side templates, or snippets, for different parts of your property configuration, like rules or behaviors. Different teams within your organization can own specific snippets and make Property Manager changes both independently of and in parallel with other teams.
 
 * **Validate locally.** Before deploying a change, the Property Manager CLI automatically validates your configuration syntax locally.
 
@@ -42,8 +57,7 @@ With this client-side application, you can:
 
 * **Customize variable definitions between environments.** If you want a use one variable value in a development environment and try out a different value in a test environment, you can add a custom variable to your Property Manager CLI template files. 
 
-You use akamai pipeline command to make changes within an automated Akamai Pipeline. Soon you’ll be able to edit Property Manager configurations locally for an existing property with the akamai property-manager command. See the [Workflows](#workflows) section for more information.
-
+You use `akamai pipeline` command to make changes within an automated Akamai Pipeline. Soon you’ll be able to edit Property Manager configurations locally for an existing property with the `akamai property-manager` command. See the [Workflows](#workflows) section for more information.
 
 # Available commands 
 Want to see all available CLI commands? See the [help for this CLI](docs/cli_command_help.md).
@@ -56,34 +70,34 @@ To make sure you always use the latest version of the CLI, run this command:
 
 With this CLI, you’ll likely use one of these common workflows: 
 
-* **Coming Soon: Federated configuration development.** Use this workflow if you want to make local configuration changes for one property, enable different teams to own different parts of the configuration, and deploy without interdependencies.
+* **Federated development.** Use this workflow to make local configuration changes for one property, enable different teams to own different parts of the configuration, and deploy without interdependencies.
 
 * **Akamai Pipeline.** Use this workflow to both set up configuration templates and create an automated pipeline for deploying Property Manager changes to your various environments. 
 
-## Coming Soon: Federated Configuration Development workflow
+## Federated development workflow
 
-Here’s a typical workflow when you want to break your Property Manager configuration into separate rules-based templates:
+Here’s a typical workflow when you want to break your Property Manager configuration into separate rules-based snippets:
 
 1. Make some decisions:
 
-    * Which property configuration do you want to create templates for? 
+    * Which property configuration do you want to create snippets for? 
 	
-    * How do you want to divide the configuration up? By default, a separate snippet is created for each top level rule in your configuration. You can add, remove, or modify snippets. 
+    * How do you want to divide up the configuration? By default, a separate snippet is created for each top level rule in your configuration. You can add, remove, or modify snippets. 
 	
     * Do you need any new supporting processes?  
 
-1. Run the `akamai property-manager new-property` operation to create a local instance of your configuration. 
+1. Run the `akamai property-manager new-property` command to create a local instance of your configuration. 
 
 
 1. Verify that the `/config-snippets` folder contains a separate JSON-based configuration snippet for each rule in your property configuration. <br> Within this folder, the main.json file ties all the snippets together: It lists the available snippets and contains the local permissions for each snippet. You can modify both the list of snippets and their permissions.
 
-1. Edit the snippets as needed to reflect the rule changes you want to deploy.
-
-1. Run the `akamai property-manager activate` operation to activate the property. This operation syncs the local changes in your `/config-snippets` directory to the Akamai network. Once activation is complete, you can verify changes in the Property Manager UI. 
+1. Edit the snippets as needed to reflect the rule changes you want to deploy. <br> If another team owns a snippet, once they make their changes locally, they can copy it into the `/config-snippets` folder. 
+ 
+1. Run the `akamai property-manager activate` command to activate the property. This command syncs the local changes in your `/config-snippets` directory to the Akamai network. Once activation is complete, you can verify changes in the Property Manager UI. 
 
 ## Akamai Pipeline workflow
 
-Here’s a typical workflow for Akamai Pipeline pipelines once you install and configure the CLI:
+Here’s a typical workflow for using Akamai Pipeline once you install and configure the CLI:
 
 1. Make some decisions: 
 
@@ -123,7 +137,7 @@ In order to start using Akamai Pipeline, you have to complete these tasks:
 
 * Install [Node.js](https://Nodejs.org/en/) version 8.0 Long Term Support (LTS). 
 
-# Installing Akamai Property Manager
+# Installing Akamai Property Manager CLI
 
 You use the Akamai CLI tool to install the code. Once you complete the installation, you can use the `akamai pipeline` commands.
 
@@ -136,14 +150,107 @@ Here’s how to install Akamai Pipeline:
 
 3. Verify that the CLI is set up for your OPEN API permissions:
 
-    1. Run this command to return the list of contracts you have access to: `akamai pipeline list-contracts`
+    1. Run this command to return the list of contracts you have access to: 
+            akamai property-manager list-contracts
+        
     1. Verify that the list of contracts returned is accurate for your access level. 
+
+4. Continue by either [creating snippets for federated deployment](#set-up-federated-development) or [setting up a new pipeline](#create-and-set-up-a-new-pipeline).
+	
+	
+# Set up federated development
+
+Create your local client side snippets to let different teams own different parts of your property configuration. 
+
+## Create snippets of your Property Manager configuration
+
+1. Run the `akamai property-manager new-property` command to create a local instance of your Property Manager configuration. 
+
+1. In your project directory structure, navigate to the new `config-snippets` folder. <br> This folder contains a separate JSON-based configuration snippet for each rule in your property configuration.
+
+1. Verify the folder structure, which will look something like this:
+
+        project_name/
+            /config-snippets
+                main.json
+                compression.json
+                static.json
+				cloudlets.json
+                ...
+		
+    Each snippet represents one of the property's child rules.		
+				
+1. If needed, add or edit snippets to support your organization's federated development structure. <br> Say, for example, you have a `cloudlets.json` snippet that only includes Edge Redirector. Since Marketing maintains this Cloudlet, you'll change the filename to  `mkt-EdgeRedirect.json` to note the owner and the application the rule is for.  
+
+1. Open the `main.json` file, which corresponds to the property's default rule, edit the rule values as needed, and update the `children` array to reflect any snippet name changes, [additions](#add-a-new-snippet), or deletions.  
+
+1. If required, set up local permissions for each JSON snippet.
+
+1. Run the `akamai property-manager activate` command to activate your changes. <br> It's a good practice to test your changes before activating on production. 
+
+1. If you'd like, verify your changes in the Property Manager UI. 
+
+## Add a new snippet
+
+If you want to add a new snippet to your federated development configuration: 
+
+1. Create a JSON file for the new snippet that represents a [Property Manager rule](https://developer.akamai.com/api/core_features/property_manager/v1.html#rule), including any child rules. <br> For example: 
+
+	```
+	{
+		"name": "Catalog",
+		"children": [],
+		"behaviors": [
+			{
+				"name": "timeout",
+				"options": {
+					"value": "5s"
+				} } ],
+		"criteria": [
+			{
+				"name": "path",
+				"options": {
+					"matchOperator": "MATCHES_ONE_OF",
+					"values": [
+						"/catalog/*"
+					],
+					"matchCaseSensitive": false
+				} } ],
+		"criteriaMustSatisfy": "all"
+	}
+	```
+
+1. Open the `main.json` file.
+
+1. Add the snippet to the `children` object:
+
+    ```
+	"rules": {
+			"name": "default",
+			"children": [
+				"#include:Cache_extensions.json",
+				"#include:Catalog.json",
+				"#include:Furniture.json",
+			    "#include:Clothing.json",
+				],
+			"Behaviors": [ 
+			…
+			… ],
+			}
+    ```
+	
+1. Save your changes.
+
+1. Run the `akamai property-manager activate` command to activate your changes.
+
 
 # Create and set up a new pipeline
 
 You use the CLI to create a new pipeline. Before creating any type of pipeline, you’ll need the names of two or more environments that you want to include. If you're using a product as a template, you'll also need group, product, and contract IDs. If you're using a property as a template, you'll need either the property name or ID.
 
 **Note:** You only have to create a pipeline once.
+
+## Create a new pipeline
 
 To create a new pipeline:  
 
@@ -154,7 +261,7 @@ To create a new pipeline:
     2. Run this command to list group IDs (groupId):  `akamai pipeline list-groups`
 
     3. Run this command to [list product IDs](#common-product-ids) (productId): 
-`akamai pipeline list-products -c <contractId>`
+            akamai pipeline list-products -c <contractId>
 
 	**Note:** The IDs returned depend on the permissions associated with your username.
 
@@ -162,14 +269,20 @@ To create a new pipeline:
 
 3. Choose a descriptive name for your pipeline. <br> The pipeline name is added as a suffix to each property created for your new pipeline. Because of this, make sure the name you choose won’t result in any duplicate property names for the account. So, if your pipeline is `example.com`, and your environments are `dev`, `qa`, and `www`, the new properties will be `dev.example.com`, `qa.example.com`, and `www.example.com`.
 
-4. If creating a pipeline using a specific product as a template, run this command:  `akamai pipeline new-pipeline -c <contractId> -g <groupId> -d <productId> -p <pipelineName> <environmentName1 environmentName2...>` 
-<br> For example, if you want to base your pipeline on Ion, you'd enter a command like this: `akamai pipeline new-pipeline -c 1-23ABC -g 12345 -d SPM -p MyPipeline123 qa prod`
+4. If creating a pipeline using a specific product as a template, run this command:  
+        akamai pipeline new-pipeline -c <contractId> -g <groupId> -d <productId> -p <pipelineName> <environmentName1 environmentName2...>
 
-1. If creating a pipeline using an existing property as a template, run this command:  `akamai pipeline new-pipeline -p <pipelineName> -e <propertyId or propertyName> <environment1_name environment2_name...>` 
-    <br>For example: `akamai pipeline new-pipeline -p MyPipeline123 -e 123 qa prod`
+    For example, if you want to base your pipeline on Ion, you'd enter a command like this: 
+        akamai pipeline new-pipeline -c 1-23ABC -g 12345 -d SPM -p MyPipeline123 qa prod
+
+1. If creating a pipeline using an existing property as a template, run this command:  
+        akamai pipeline new-pipeline -p <pipelineName> -e <propertyId or propertyName> <environment1_name environment2_name...>
+    
+    For example: `akamai pipeline new-pipeline -p MyPipeline123 -e 123 qa prod`
 
 6. Verify the pipeline folder structure, which will look something like this:
 
+    ```
         pipeline_name/
             projectInfo.json
             /cache
@@ -192,6 +305,7 @@ To create a new pipeline:
                 compression.json
                 ...
                 static.json
+    ```
 
 7. Edit `variableDefinitions.json` to declare variables that you can use in any of the templates. <br> See 
 [Update the variableDefinitions.json file](#update-the-variabledefinitions-file) for details.
@@ -272,7 +386,7 @@ If creating a new pipeline based on a product template, you’ll need to know yo
 If you don’t see your product code, run this command to return the product IDs available for your account: 
 `akamai pipeline list-products -c <contractId>`  
   
-# Save and promote changes through the pipeline
+## Save and promote changes through the pipeline
 
 Once you make changes to your pipeline, you can save and promote those changes to all environments in your pipeline. 
 
@@ -280,26 +394,111 @@ To save and promote changes:
 
 1. Make your configuration change within the desired snippet inside your `templates` folder. This folder contains JSON snippets for the top-level rules in your property’s configuration. 
 
-2. Optionally, update the property files to reflect your changes without saving to Property Manager: `akamai pipeline merge -p <pipelineName> <environment_name>`
+2. Optionally, update the property files to reflect your changes without saving to Property Manager: 
+        akamai pipeline merge -p <pipelineName> <environment_name>
 
-3. Save your changes, validate your configuration, and create a new property version: `akamai pipeline  save -p <pipelineName> <environment_name>`
+3. Save your changes, validate your configuration, and create a new property version: 
+        akamai pipeline  save -p <pipelineName> <environment_name>
 
-4. Promote the change to the first environment in your pipeline: `akamai pipeline  promote -p <pipelineName> -n <network> <environment_name> <notification_emails>`. 
-<br> The `<network>` value corresponds to Akamai’s staging and production networks. You can enter `STAGING` or `PROD` for this value.
-<br>
-For example: `akamai pipeline  promote -p MyPipeline123 -n STAGING qa jsmith@example.com`
-<br>
-When run, `promote` merges the template and variables files, saves any changes to Property Manager, and  activates the property version on the selected Akamai network. 
+4. Promote the change to the first environment in your pipeline: 
+        akamai pipeline  promote -p <pipelineName> -n <network> <environment_name> <notification_emails>. 
 
-5. Once the activation is complete, run the following command to make sure the pipeline reflects the latest activation status: `akamai pipeline  check-promotion-status <environment_name>`
-<br> **Note:** You should receive an email once activation is complete. Activation times vary, so you may want to wait several minutes before attempting to run this command.
+    The `<network>` value corresponds to Akamai’s staging and production networks. You can enter `STAGING` or `PROD` for this value. For example: 
+        akamai pipeline  promote -p MyPipeline123 -n STAGING qa jsmith@example.com
+
+    When run, `promote` merges the template and variables files, saves any changes to Property Manager, and 
+    activates the property version on the selected Akamai network. 
+    
+5. Once the activation is complete, run the following command to make sure the pipeline reflects the latest activation status: 
+        akamai pipeline  check-promotion-status <environment_name>
+
+    **Note:** You should receive an email once activation is complete. Activation times vary, so you may want to wait several minutes before attempting to run this command.
 
 6. Repeat steps 2 through 5 until you promote your changes to all environments in the pipeline. 
 
 7. Verify that the updates made it to all environments in the pipeline: 
-`akamai pipeline lstat -p <pipelineName>`
+        akamai pipeline lstat -p <pipelineName>
 
-# Use Cases
+# How you can use this CLI
+
+Here are some ways you can use the Property Manager CLI to meet your business needs.
+
+## Using Property Manager user variables with Akamai Pipeline
+
+Some Property Manager behaviors, like Origin Server [`origin`](https://developer.akamai.com/api/core_features/property_manager/v2018-02-27.html#origin), let you define custom user variables for certain settings. 
+
+If you have an existing property that includes user variables, Akamai Pipeline recognizes these variables and automatically populates the `variabledefinitions.json` and the environment-specific `variables.json` files to support these variables. 
+
+As a best practice, review your property's custom variables in the Property Manager application before creating a new pipeline and adjust as needed. See the Property Manager help system for more information about setting user variables in the GUI application.
+
+If you need to declare new user variables after you create your pipeline, you'll need to revise the `../environments/variableDefinitions.json` and `../environments/{environment}/variables.json` files using the [syntax for Property Manager API variables](https://developer.akamai.com/api/core_features/property_manager/v1.html#declaringvariables).
+
+## Using attributes that vary across environments with Akamai Pipeline
+
+Property Manager CLI is a client-only library. With it you can tokenize any attribute in your configuration and have different values for that attribute in each environment. 
+
+Say you want a behavior enabled on one of your three environments for testing purposes. How can you set this up for your pipeline?
+
+Many behaviors have a boolean `enabled` field, which is essentially an on/off switch. Here’s an example for the Forward Rewrite Cloudlet:
+
+```
+{
+  "name": "forwardRewrite",
+  "options": {
+    "enabled": true,
+    "cloudletPolicy": {
+      "id": 12345,
+      "name": "some policy name"
+    }
+  }
+}
+```
+
+We need to change the value of `enabled` to a variable. We'll do this in a few steps:
+
+
+1. Pick a variable name, like `forwardRewriteEnabled`, and add it to the `variableDefinitions.json` file:
+
+    ```
+    {
+        "definitions": {
+            "forwardRewriteEnabled": {
+                "type": "boolean",
+                "default": true
+            },
+    ...
+       }
+    }
+    ```
+
+1. In the `variables.json` file for each environment, add a new JSON variable with a valid value. In this example, the variable needs a boolean value.
+
+    ```
+    {
+    "forwardRewriteEnabled": false,
+    ...
+    }
+    ```
+
+1. In the `templates` folder, update the JSON file containing the Forward Rewrite behavior by replacing the boolean value with the variable expression using the `env` prefix:
+
+1. In the `templates` folder, open the JSON file containing the Forward Rewrite behavior.
+
+1. Replace the boolean value with the variable expression using the `env` prefix, which represents the current environment:
+
+    ```
+    {
+      "name": "forwardRewrite",
+      "options": {
+        "enabled": "${env.forwardRewriteEnabled}", //notice type string!
+        "cloudletPolicy": {
+          "id": 12345,
+          "name": "some policy name"
+        }
+      }
+    }
+    ```
+1. Merge, save, and promote your change as needed. 
 
 ## Reuse secure edge hostnames
 
@@ -307,9 +506,9 @@ When you first create a pipeline and run the `akamai pipeline save` command, it 
 
 The Property Manager CLI can only create non-secure (HTTP) edge hostnames. If you want to use a secure (HTTPS) edge hostname with your pipeline, you can add an existing secure edge hostname to your `hostnames.json` file. You can also create a new one in Property Manager and add it to your `hostnames.json` file. Just be aware that it might take a while before the system sees the new secure edge hostname.
 
-You can view a list of your existing available edge hostnames by using the `akamai pipeline list-edgehostnames -c <contractId> -g <groupId>` command.
-
-
+You can view a list of your existing available edge hostnames by using this command: 
+    akamai property-manager list-edgehostnames -c <contractId> -g <groupId>
+    
 ## Working with advanced behaviors
 
 If you want to use a property configuration with advanced behaviors as a template, you need to convert all advanced behaviors to Custom Behaviors before creating the pipeline. See [Custom Behaviors for PAPI](https://developer.akamai.com/blog/2018/04/26/custom-behaviors-property-manager-papi) for more information.

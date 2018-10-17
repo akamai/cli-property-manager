@@ -159,7 +159,7 @@ class PAPI {
         const complianceRecord = {
             noncomplianceReason: "NO_PRODUCTION_TRAFFIC"
         };
-        const note = message || "Akamai PD Activation";
+        const note = message || "Property Manager CLI Activation";
         return this.openClient.post(url, {
             propertyVersion,
             network,

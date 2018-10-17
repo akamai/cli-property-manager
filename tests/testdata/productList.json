@@ -1,0 +1,31 @@
+{
+  "accountId" : "1-1TJZFB",
+  "contractId" : "1-1TJZH5",
+  "products" : {
+    "items" : [ {
+      "productName" : "Rich_Media_Accel",
+      "productId" : "Rich_Media_Accel"
+    }, {
+      "productName" : "Site_Del",
+      "productId" : "Site_Del"
+    }, {
+      "productName" : "HTTP_Downloads",
+      "productId" : "HTTP_Downloads"
+    }, {
+      "productName" : "Mobile_Accel",
+      "productId" : "Mobile_Accel"
+    }, {
+      "productName" : "Web_App_Accel",
+      "productId" : "Web_App_Accel"
+    }, {
+      "productName" : "Site_Accel",
+      "productId" : "Site_Accel"
+    }, {
+      "productName" : "HTTP_Content_Del",
+      "productId" : "HTTP_Content_Del"
+    }, {
+      "productName" : "Progressive_Media",
+      "productId" : "Progressive_Media"
+    } ]
+  }
+}

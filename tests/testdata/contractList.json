@@ -1,0 +1,12 @@
+{
+  "accountId" : "1-1TJZFB",
+  "contracts" : {
+    "items" : [ {
+      "contractId" : "1-1TJZH5",
+      "contractTypeName" : "TIER_1_RESELLER"
+    }, {
+      "contractId" : "1-1TJZFW",
+      "contractTypeName" : "INDIRECT_CUSTOMER"
+    } ]
+  }
+}

@@ -12,13 +12,12 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-
 const _ = require('underscore');
 
 const helpers = require('./helpers');
 const logger = require("./logging")
     .createLogger("devops-prov.envionment");
-
+const EdgeHostnameManager = require('./edgehostname_manager').EdgeHostnameManager;
 const errors = require("./errors");
 
 const Network = {
@@ -35,131 +34,8 @@ const Status = {
     DEACTIVATED: "DEACTIVATED"
 };
 
-const EdgeDomains = {
-    EDGE_SUITE: ".edgesuite.net",
-    EDGE_KEY: ".edgekey.net"
-};
+const EdgeDomains = require('./edgehostname_manager').EdgeDomains;
 
-/**
- * Manages creation and lookup of Edgehostnames.
- * This class is considered private and isn't exported.
- *
- */
-class EdgeHostnameManager {
-    constructor(environment) {
-        this.project = environment.project;
-        this.projectInfo = this.project.getProjectInfo();
-        this.environment = environment;
-        this.papi = environment.getPAPI();
-        this.hostnamesCreated = [];
-        this.hostnamesFound = [];
-        this.errors = [];
-        this.existingEdgehostnames = null;
-    }
-
-    /**
-     * create hostnames associated with property hostnames
-     * @returns {Promise.<void>}
-     */
-    async createEdgeHostnames(hostnames) {
-        let envInfo = this.environment.getEnvironmentInfo();
-        for (let hostname of hostnames) {
-            try {
-                if (hostname.edgeHostnameId) {
-                    logger.info(`cnameId for '${hostname.cnameFrom}' is already set to: ${hostname.edgeHostnameId}`);
-                    continue;
-                }
-                await this.createEdgeHostname(hostname, envInfo)
-            } catch (error) {
-                this.errors.push(error);
-            }
-        }
-        if (this.hostnamesCreated.length > 0 || this.hostnamesFound.length > 0) {
-            //we found or created edgehostnames, so let's write the edgehostname ids to disk
-            this.environment.storeHostnames(hostnames);
-        }
-        envInfo.lastSaveHostnameErrors = this.errors;
-        this.environment.storeEnvironmentInfo(envInfo);
-        return {
-            hostnamesCreated: this.hostnamesCreated,
-            hostnamesFound: this.hostnamesFound,
-            errors: this.errors
-        };
-    }
-
-    async createEdgeHostname(hostname, envInfo) {
-        if (hostname.cnameTo === null) {
-            this.errors.push({
-                message: `hostname.cnameTo can not be set to null`,
-                messageId: "null_hostname_cnameTo",
-                edgehostname: null
-            });
-            return;
-        }
-
-        if (!_.isObject(this.existingEdgehostnames)) {
-            this.existingEdgehostnames = {};
-            let edgehostnames = await this.papi.listEdgeHostnames(this.projectInfo.contractId, envInfo.groupId);
-            for (let item of edgehostnames.edgeHostnames.items) {
-                this.existingEdgehostnames[item.edgeHostnameDomain] = item;
-            }
-        }
-
-        let foundEdgehostname = this.existingEdgehostnames[hostname.cnameTo];
-        if (_.isObject(foundEdgehostname)) {
-            hostname.edgeHostnameId = helpers.parseEdgehostnameId(foundEdgehostname.edgeHostnameId);
-            hostname.ipVersionBehavior = foundEdgehostname.ipVersionBehavior;
-            this.hostnamesFound.push({
-                name: hostname.cnameTo,
-                id: hostname.edgeHostnameId
-            });
-            return;
-        }
-
-        //currently papi doesn't support creation of edgekey.net hostnames. So there is some dead code ahead.
-        if (hostname.cnameTo.endsWith(EdgeDomains.EDGE_SUITE)) {
-            let edgeDomain;
-            if (hostname.cnameTo.endsWith(EdgeDomains.EDGE_SUITE)) {
-                edgeDomain = "edgesuite.net";
-            } else {
-                edgeDomain = "edgekey.net";
-            }
-            let prefix = hostname.cnameTo.slice(0, hostname.cnameTo.length - (edgeDomain.length + 1));
-
-            let createReq = {
-                productId: this.projectInfo.productId,
-                ipVersionBehavior: "IPV6_COMPLIANCE",
-                domainPrefix: prefix,
-                domainSuffix: edgeDomain //TODO: allow creation of other domains as well.
-            };
-            if (edgeDomain === "edgekey.net") {
-                createReq.secure = true;
-                if (!hostname.slotNumber) {
-                    this.errors.push({
-                        message: `Need 'slotNumber' of hostname in order to create secure edge hostname`,
-                        messageId: "missing_slot_number",
-                        edgehostname: hostname.cnameTo
-                    });
-                    return;
-                }
-                createReq.slotNumber = hostname.slotNumber;
-            }
-            let result = await this.papi.createEdgeHostname(this.projectInfo.contractId, envInfo.groupId, createReq);
-            logger.info("Got create edgehostname result:", result);
-            hostname.edgeHostnameId = Environment._extractEdgeHostnameId(result);
-            this.hostnamesCreated.push({
-                name: hostname.cnameTo,
-                id: hostname.edgeHostnameId
-            });
-        } else {
-            this.errors.push({
-                message: `'${hostname.cnameTo}' is not a supported edge hostname for creation, only edge hostnames under 'edgesuite.net' domain can be created. Please create manually`,
-                messageId: "unsupported_edgehostname",
-                edgehostname: hostname.cnameTo
-            });
-        }
-    }
-}
 
 /**
  * represents environment in a Akamai PD pipeline
@@ -178,11 +54,12 @@ class Environment {
         this.shouldProcessPapiErrors = dependencies.shouldProcessPapiErrors || false;
         this.propertyName = envName + "." + this.project.getName();
         this.__envInfo = null;
+        this.mergeLoggingWording = `Merge environment: '${this.name}' in pipeline: '${this.project.projectName}'`;
     }
 
     /**
      * Creates the property associated with this environment using PAPI
-     * and stores the information in $AKAMAI_PD_PROJECT_HOME/<pipeline_name>/<environment_name>/envInfo.json
+     * and stores the information in $AKAMAI_PROJECT_HOME/<pipeline_name>/<environment_name>/envInfo.json
      * @param {boolean} isInRetryMode - true if in retry mode.
      * @returns {Promise.<void>}
      */
@@ -261,17 +138,6 @@ class Environment {
         let results = activationRegex.exec(activationLink);
         logger.info("activation regex results: ", results);
         return parseInt(results[3]);
-    }
-
-    /**
-     * extracts edge hostname ID out of a create edge hostname response object.
-     **/
-    static _extractEdgeHostnameId(item) {
-        let edgeHostnameLink = item.edgeHostnameLink;
-        let edgeHostnameRegex = /\/papi\/v0\/edgehostnames\/(ehn_)?(\d+)\?.*/;
-        let results = edgeHostnameRegex.exec(edgeHostnameLink);
-        logger.info("results: ", results);
-        return parseInt(results[2]);
     }
 
     /**
@@ -519,7 +385,7 @@ class Environment {
      * @returns {Promise.<void>}
      */
     async merge(validate = true) {
-        logger.info(`Merge environment: '${this.name}' in pipeline: '${this.project.projectName}'`);
+        logger.info(this.mergeLoggingWording);
         let mergeResult = this.getMerger(this.project, this).merge("main.json");
         let fileName = this.storePropertyData(mergeResult.ruleTree);
         let envInfo = this.getEnvironmentInfo();
@@ -549,6 +415,7 @@ class Environment {
                     this.storeEnvironmentInfo(envInfo);
                 } catch (error) {
                     if (error instanceof errors.RestApiError) {
+                        results.validationPerformed = true;
                         this.processValidationResults(envInfo, error.args[1], results);
                         this.storeEnvironmentInfo(envInfo);
                     } else {
@@ -677,6 +544,12 @@ class Environment {
         }
     }
 
+    _checkEnvInfo(envInfo) {
+        if (!envInfo.lastSavedHash || envInfo.lastSavedHash !== envInfo.environmentHash) {
+            throw new errors.DependencyError("Environment data has changed since last save, please merge and save first",
+                "cannot_promote_unexpected_changes");
+        }
+    }
     /**
      * Promote environment to Akamai network by activating the underlying property
      * @param network {string} needs to be exactly "STAGING" or "PRODUCTION"
@@ -693,11 +566,8 @@ class Environment {
         this.checkForLastSavedValidationResults(envInfo);
         this.checkForLastSavedHostnameErrors(envInfo);
         this._checkForActive(envInfo, network);
+        this._checkEnvInfo(envInfo);
 
-        if (!envInfo.lastSavedHash || envInfo.lastSavedHash !== envInfo.environmentHash) {
-            throw new errors.DependencyError("Environment data has changed since last save, please merge and save first",
-                "cannot_promote_unexpected_changes");
-        }
         const hostnames = this.getHostnames();
         const hostnamesHash = helpers.createHash(hostnames);
         logger.info("hostnames hash: ", hostnamesHash);

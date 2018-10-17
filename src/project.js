@@ -148,6 +148,8 @@ class Project {
         this.utils.writeJsonFile(infoPath, this.projectInfo);
     }
 
+
+
     createEnvironments(envs) {
         _.each(envs, function(name) {
             let environmentFolder = path.join(this.projectFolder, "environments", name);
@@ -155,13 +157,17 @@ class Project {
         }, this);
     }
 
+    checkInfoPath(infoPath) {
+        if (!this.utils.fileExists(infoPath)) {
+            throw new errors.DependencyError(`projectInfo file: ${infoPath} does not exist!`,
+                "missing_pipeline_info_file", infoPath);
+        }
+    }
+
     getProjectInfo() {
         if (!this.__projectInfo) {
             let infoPath = path.join(this.projectFolder, "projectInfo.json");
-            if (!this.utils.fileExists(infoPath)) {
-                throw new errors.DependencyError(`projectInfo file: ${infoPath} does not exist!`,
-                    "missing_pipeline_info_file", infoPath);
-            }
+            this.checkInfoPath(infoPath);
             this.__projectInfo = this.utils.readJsonFile(infoPath);
             //overriding global edgeGridConfig with project specific settings.
             //If a project was created with a specific edgeGridConfig, we want keep using it whenever we use the project.
@@ -243,13 +249,13 @@ class Project {
     }
 
     loadEnvironmentHostnames(envName) {
-        let infoPath = path.join(this.projectFolder, "environments", envName, "hostnames.json");
-        return this.utils.readJsonFile(infoPath);
+        let hostNames = path.join(this.projectFolder, "environments", envName, "hostnames.json");
+        return this.utils.readJsonFile(hostNames);
     }
 
     storeEnvironmentHostnames(envName, hostnames) {
-        let infoPath = path.join(this.projectFolder, "environments", envName, "hostnames.json");
-        return this.utils.writeJsonFile(infoPath, hostnames);
+        let hostNames = path.join(this.projectFolder, "environments", envName, "hostnames.json");
+        return this.utils.writeJsonFile(hostNames, hostnames);
     }
 
     getEnvironment(environmentName) {
@@ -272,7 +278,7 @@ class Project {
      * Each product needs its own set of rules.
      * @returns {Promise.<void>}
      */
-    async setupPropertyTemplate(ruleTree) {
+    async setupPropertyTemplate(ruleTree, variableMode) {
         let suggestedRuleFormat;
         let projectInfo = this.getProjectInfo();
         let createTemplates = true;
@@ -299,7 +305,7 @@ class Project {
             });
             ruleTree.rules.options.is_secure = projectInfo.isSecure;
             let template = this.dependencies.getTemplate(ruleTree, resourceData, productId);
-            let templateData = template.process();
+            let templateData = template.process(variableMode);
             if (createTemplates) {
                 this.storeTemplate("main.json", templateData.main);
                 _.each(templateData.templates, (value, key) => {

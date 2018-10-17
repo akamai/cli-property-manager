@@ -1,0 +1,12 @@
+{
+    "definitions": {
+        "PMUSER_HOSTNAME_value": {
+            "type": "userVariableValue",
+            "default": "www.example-origin.com"
+        },
+        "PMUSER_FOO_value": {
+            "type": "userVariableValue",
+            "default": "fooooo"
+        }
+    }
+}

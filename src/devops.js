@@ -34,6 +34,7 @@ class DevOps {
         this.utils = dependencies.getUtils();
         this.version = dependencies.version;
         this.pollingIntervalMs = 60000;
+        this.promoteEmailString = "emails for promote: ";
     }
 
     /**
@@ -136,19 +137,8 @@ class DevOps {
             let env = project.getEnvironment(envName);
             await env.create(createPipelineInfo);
         }
-        await project.setupPropertyTemplate(ruleTree);
+        await project.setupPropertyTemplate(ruleTree, createPipelineInfo.variableMode);
         return project;
-    }
-
-    /**
-     * Create project template based on newly created properties (uses first environment property).
-     * Uses PAPI formatted rule try to generate template.
-     * @param createPipelineInfo
-     * @returns {Promise.<void>}
-     */
-    setupTemplate(createPipelineInfo) {
-        let project = this.getProject(createPipelineInfo.projectName);
-        return project.setupPropertyTemplate(createPipelineInfo.propertyId, createPipelineInfo.version);
     }
 
     /**
@@ -215,14 +205,18 @@ class DevOps {
      * @param update {object} updated settings
      */
     updateDevopsSettings(update) {
-        logger.info("updating devops settings");
+        logger.info("updating Akamai Pipeline settings");
         let devopsConfig = path.join(this.devopsHome, "devopsSettings.json");
         let settings = {};
         if (this.utils.fileExists(devopsConfig)) {
             settings = this.utils.readJsonFile(devopsConfig);
         }
-        settings = helpers.deepMerge(settings, update);
+        settings = Object.assign(settings, update);
         this.utils.writeJsonFile(devopsConfig, settings);
+        if (this.devopsSettings.__savedSettings === undefined || this.devopsSettings.__savedSettings === null) {
+            this.devopsSettings.__savedSettings = {};
+        }
+        this.devopsSettings.__savedSettings = Object.assign(this.devopsSettings.__savedSettings, settings);
     }
 
     /**
@@ -283,6 +277,7 @@ class DevOps {
      * @param emails {Array<String>}
      */
     promote(projectName, environmentName, network, emails, message, force) {
+
         const project = this.getProject(projectName);
         let emailSet = new Set([]);
         if (_.isString(emails) && emails.length > 0) {
@@ -290,14 +285,14 @@ class DevOps {
                 emailSet.add(e);
             }
         }
-        logger.info("this.devopsSettings: ", this.devopsSettings);
+        logger.info("Settings file: ", this.devopsSettings);
         if (_.isArray(this.devopsSettings.emails)) {
             for (let e of this.devopsSettings.emails) {
                 emailSet.add(e)
             }
         }
         this.checkEmails(emailSet);
-        logger.info("emails for promote: ", emailSet);
+        logger.info(this.promoteEmailString, emailSet);
 
         return project.promote(environmentName, network, emailSet, message, force);
     }

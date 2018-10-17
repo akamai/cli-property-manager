@@ -31,6 +31,9 @@ class HashMaker {
     }
 }
 
+const allowedModes = ["default", "no-var", "user-var-value"];
+
+
 const INTEGER = /^(0|[1-9][0-9]*)$/;
 
 const parseInteger = function(intString) {
@@ -40,6 +43,9 @@ const parseInteger = function(intString) {
     return NaN;
 };
 
+//copies everything with respect to keys
+//while copying arrays index is treated as keys and only the respective values are replaced
+//without disturbing the other elements in the array
 const deepMerge = function(obj1, obj2) {
     _.each(obj2, function(value, key) {
         if (_.isObject(obj1[key]) && _.isObject(value)) {
@@ -89,6 +95,8 @@ const prefixeableString = function(prefix) {
 
 module.exports = {
     parseInteger: parseInteger,
+
+    allowedModes: allowedModes,
 
     repeatable: function(parseFunction) {
         return function(value, memo) {
@@ -157,6 +165,6 @@ module.exports = {
     },
 
     deepMerge: deepMerge,
-
     HashMaker: HashMaker
+
 };

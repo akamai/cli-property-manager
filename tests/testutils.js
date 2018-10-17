@@ -47,7 +47,7 @@ const throwsAsync = async function (fn, expectation) {
 
 const whiteSpaceRegex = /\s+/g;
 const eatWhiteSpaces = function(text) {
-    return text.replace(whiteSpaceRegex, " ");
+    return text.replace(whiteSpaceRegex, " ").trim();
 };
 
 const equalIgnoreWhiteSpaces = function(actual, expected, message) {

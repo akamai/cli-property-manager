@@ -91,16 +91,20 @@ const consoleLogging = function() {
     return module.exports;
 };
 
-const log4jsLogging = function(verbose) {
+const log4jsLogging = function(verbose, type) {
     if (loggingConfigured) {
         return module.exports;
+    }
+    let filename = "devops.log";
+    if (type === "snippets") {
+        filename = "snippets.log";
     }
     const log4js = require('log4js');
     let appenders = {
         logfile: {
             type: 'file',
-            filename: 'devops.log',
             maxLogSize: 10485760,
+            filename: filename,
             backups: 3,
             compress: true
         }

@@ -28,6 +28,7 @@ const RoUtils = require('./ro-utils');
 const createOverlayUtils = require('./overlay-utils');
 const Project = require('../src/project');
 const Environment = require('../src/environment');
+const EdgeHostnameManager = require('../src/edgehostname_manager').EdgeHostnameManager;
 const Template = require('../src/template');
 const EL = require('../src/el');
 const errors = require('../src/errors');
@@ -48,10 +49,10 @@ describe('Environment static function tests', function () {
 
     it('_extractEdgeHostnameId should be able to extract the edgehostnameId ', function () {
         let pcData = { edgeHostnameLink: '/papi/v0/edgehostnames/2683119?contractId=1-1TJZH5&groupId=61726' };
-        assert.equal(Environment._extractEdgeHostnameId(pcData), 2683119);
+        assert.equal(EdgeHostnameManager._extractEdgeHostnameId(pcData), 2683119);
 
         pcData.edgeHostnameLink = '/papi/v0/edgehostnames/ehn_2683119?contractId=1-1TJZH5&groupId=61726';
-        assert.equal(Environment._extractEdgeHostnameId(pcData), 2683119);
+        assert.equal(EdgeHostnameManager._extractEdgeHostnameId(pcData), 2683119);
     });
 
     it('_extractActivationId testing extraction of activation ID', function () {

@@ -1,0 +1,33 @@
+{
+  "accountId" : "1-1TJZFB",
+  "contractId" : "1-1TJZH5",
+  "groupId" : "15231",
+  "cpcodes" : {
+    "items" : [ {
+      "cpcodeId" : "336850",
+      "cpcodeName" : "David.M.Group.Test",
+      "productIds" : [ "Site_Accel" ],
+      "createdDate" : "2014-10-30T14:12:36Z"
+    }, {
+      "cpcodeId" : "575265",
+      "cpcodeName" : "oca-g1.faden.me",
+      "productIds" : [ "Site_Accel" ],
+      "createdDate" : "2017-05-12T11:16:28Z"
+    }, {
+      "cpcodeId" : "575259",
+      "cpcodeName" : "oca-g2.faden.me",
+      "productIds" : [ "Site_Accel" ],
+      "createdDate" : "2017-05-12T11:07:42Z"
+    }, {
+      "cpcodeId" : "586969",
+      "cpcodeName" : "oca-g4.faden.me",
+      "productIds" : [ "Site_Accel" ],
+      "createdDate" : "2017-06-15T17:30:08Z"
+    }, {
+      "cpcodeId" : "699595",
+      "cpcodeName" : "www42517.xmarkvh.com",
+      "productIds" : [ "Site_Accel" ],
+      "createdDate" : "2018-04-25T16:14:03Z"
+    } ]
+  }
+}

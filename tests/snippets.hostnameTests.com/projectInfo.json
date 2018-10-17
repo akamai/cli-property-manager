@@ -1,0 +1,17 @@
+{
+    "productId": "Web_App_Accel",
+    "contractId": "1-1TJZH5",
+    "edgeGridConfig": {
+        "section": "credentials"
+    },
+    "environments": [
+        "qa",
+        "staging",
+        "prod"
+    ],
+    "name": "hostnameTests.com",
+    "groupIds": [
+        61726
+    ],
+    "version": "0.1.10"
+}

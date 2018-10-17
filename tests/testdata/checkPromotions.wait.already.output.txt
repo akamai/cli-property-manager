@@ -1,5 +1,5 @@
 'wait' option unnecessary.  Most likely the promotion was already checked on.
-Current activation status of 'qa' environment by network:
+Current activation status of 'qa' by network:
 ╒═════════════╤════════════╤════════════════╕
 │"Environment"│"Network"   │"Active Version"│
 ╞═════════════╪════════════╪════════════════╡

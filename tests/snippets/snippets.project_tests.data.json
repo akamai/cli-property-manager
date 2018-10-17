@@ -1,0 +1,30 @@
+[
+    [
+        "mkdir",
+        "homeSweetHome/Foobar"
+    ],
+    [
+        "mkdir",
+        "homeSweetHome/Foobar/cache"
+    ],
+    [
+        "mkdir",
+        "homeSweetHome/Foobar/dist"
+    ],
+    [
+        "mkdir",
+        "homeSweetHome/Foobar/config-snippets"
+    ],
+    [
+        "writeJsonFile",
+        "homeSweetHome/Foobar/projectInfo.json",
+        {
+            "productId": "WAA",
+            "contractId": "ABF543",
+            "groupId": 76342,
+            "version": "0.1.11",
+            "isSecure": false,
+            "name": "Foobar"
+        }
+    ]
+]

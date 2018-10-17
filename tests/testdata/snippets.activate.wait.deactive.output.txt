@@ -1,0 +1,20 @@
+Following activations are now pending:
+╒══════════════════╤═════════╤═══════════════╕
+│"Property"        │"Network"│"Activation Id"│
+╞══════════════════╪═════════╪═══════════════╡
+│"new.snippets.com"│"STAGING"│5355534        │
+└──────────────────┴─────────┴───────────────┘
+...activation status is PENDING_DEACTIVATION...
+...Waiting for active status...
+...Checking activations...
+...activation status is PENDING_DEACTIVATION...
+...Waiting for active status...
+...Checking activations...
+Activation status report:
+╒══════════════════╤════════════╤═══════════════╤═════════════╕
+│"Property"        │"Network"   │"Activation Id"│"Status"     │
+╞══════════════════╪════════════╪═══════════════╪═════════════╡
+│"new.snippets.com"│"PRODUCTION"│"5355534"      │"DEACTIVATED"│
+├──────────────────┼────────────┼───────────────┼─────────────┤
+│"new.snippets.com"│"STAGING"   │"5355810"      │"ACTIVE"     │
+└──────────────────┴────────────┴───────────────┴─────────────┘

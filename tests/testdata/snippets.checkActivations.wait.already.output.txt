@@ -1,0 +1,9 @@
+'wait' option unnecessary.  Most likely the activation was already checked on.
+Current activation status of 'new.snippets.com' by network:
+╒══════════════════╤════════════╤════════════════╕
+│"Property"        │"Network"   │"Active Version"│
+╞══════════════════╪════════════╪════════════════╡
+│"new.snippets.com"│"staging"   │10              │
+├──────────────────┼────────────┼────────────────┤
+│"new.snippets.com"│"production"│9               │
+└──────────────────┴────────────┴────────────────┘

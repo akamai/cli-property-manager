@@ -3,6 +3,5 @@ package-lock.json
 node_modules
 .idea
 stuff/
-dist/
 .nyc_output/
-devops.log
+*.log
