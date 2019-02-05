@@ -75,6 +75,9 @@ class DevopsPropertyManager extends Devops {
             if (!_.isBoolean(createPropertyInfo.secureOption)) {
                 createPropertyInfo.secureOption = ruleTree.rules.options.is_secure;
             }
+            if (!createPropertyInfo.propertyVersion) {
+                createPropertyInfo.propertyVersion = propertyInfo.propertyVersion;
+            }
         } else {
             createPropertyInfo.secureOption = createPropertyInfo.secureOption || false;
         }
@@ -91,6 +94,96 @@ class DevopsPropertyManager extends Devops {
         await project.setupPropertyTemplate(ruleTree, createPropertyInfo.variableMode);
         return project;
     }
+
+
+    /**
+     * Imports Property from Property Manager. Async since a bunch of REST calls are being made
+     *
+     * @param createPropertyInfo
+     * @returns {Promise.<*>}
+     */
+    async importProperty(createPropertyInfo) {
+        //validate property name
+        if (!_.isString(createPropertyInfo.propertyName)) {
+            throw new errors.ArgumentError(`Property name '${createPropertyInfo.propertyName}' is not a string`,
+                "property_name_not_string", createPropertyInfo.propertyName);
+        }
+        //check if property already exists locally
+        let project = this.getProject(createPropertyInfo.propertyName, false);
+        if (project.exists()) {
+            throw new errors.ArgumentError(`Property folder '${createPropertyInfo.propertyName}' already exists locally`,
+                "property_folder_already_exists", createPropertyInfo.propertyName);
+        }
+        //check if property exists on server
+        let results = await this.getPAPI().findProperty(createPropertyInfo.propertyName);
+        if (results.versions.items.length === 0) {
+            throw new errors.ArgumentError(`Can't find any version of property '${createPropertyInfo.propertyName}'`,
+                "property_does_not_exist_on_server", createPropertyInfo.propertyName);
+        }
+        createPropertyInfo.propertyId = helpers.parsePropertyId(results.versions.items[0].propertyId);
+        let propertyInfo = await project.getPropertyInfo(createPropertyInfo.propertyId);
+
+        createPropertyInfo.propertyVersion = propertyInfo.propertyVersion;
+        logger.info(`Attempting to load rule tree for property id: ${createPropertyInfo.propertyId} and version: ${createPropertyInfo.propertyVersion}`);
+        let ruleTree = await project.getPropertyRuleTree(createPropertyInfo.propertyId, createPropertyInfo.propertyVersion);
+        createPropertyInfo.groupId = helpers.parseGroupId(propertyInfo.groupId);
+        createPropertyInfo.contractId = propertyInfo.contractId;
+        createPropertyInfo.productId = propertyInfo.productId;
+        createPropertyInfo.secureOption = ruleTree.rules.options.is_secure;
+        createPropertyInfo.variableMode = helpers.allowedModes[1];
+
+        logger.info('Importing existing property with data: ', helpers.jsonStringify(createPropertyInfo));
+
+        //Creating project folder
+        if (!project.exists()) {
+            project.createProjectFolders(createPropertyInfo);
+        }
+
+        //Creating "environment"
+        let env = project.getEnvironment(project.getName());
+        await env.importProperty(createPropertyInfo);
+        await project.setupPropertyTemplate(ruleTree, createPropertyInfo.variableMode, true);
+        return project;
+
+
+    }
+    async updateProperty(createPropertyInfo) {
+        logger.info("Updating property with info:", helpers.jsonStringify(createPropertyInfo));
+        let ruleTree;
+        let project = this.getProject(createPropertyInfo.projectName, false);
+
+        if (!project.exists()) {
+            throw new errors.ArgumentError(`Property folder '${createPropertyInfo.projectName}' does not exist`,
+                "property_folder_does_not_exist", createPropertyInfo.projectName);
+        }
+        let envInfo = project.loadEnvironmentInfo();
+
+        if (_.isString(envInfo.propertyName) && !_.isNumber(envInfo.propertyId)) {
+            let results = await this.getPAPI().findProperty(envInfo.propertyName);
+            if (results.versions.items.length === 0) {
+                throw new errors.ArgumentError(`Can't find any versions for property '${envInfo.propertyName}'`);
+            }
+            envInfo.propertyId = helpers.parsePropertyId(results.versions.items[0].propertyId);
+        }
+        let propertyInfo = await project.getPropertyInfo(envInfo.propertyId);
+
+
+        ruleTree = await project.getPropertyRuleTree(envInfo.propertyId, propertyInfo.propertyVersion);
+        let projectInfo = project.getProjectInfo();
+        let isSecure = ruleTree.rules.options.is_secure;
+        projectInfo.secureOption = isSecure;
+        project.createProjectSettings(projectInfo);
+
+        logger.info('Updating PM CLI property with data: ', helpers.jsonStringify(createPropertyInfo));
+
+        let env = project.getEnvironment(project.getName());
+        //Creating "environment"
+        await env.update(isSecure);
+
+        await project.setupPropertyTemplate(ruleTree, createPropertyInfo.variableMode, true);
+        return project;
+    }
+
 
     /**
      * Extract the desired project name either from devopsSettings.json file or
@@ -175,6 +268,19 @@ class DevopsPropertyManager extends Devops {
             this.devopsSettings.__savedSettings = {};
         }
         this.devopsSettings.__savedSettings = Object.assign(this.devopsSettings.__savedSettings, settings);
+    }
+
+    /**
+     * Deactivate property on a newtwork
+     * @param propertyName {String}
+     * @param environmentName {String}
+     * @param network {String} "STAGING" or "PRODUCTION"
+     * @param emails {Array<String>}
+     */
+    deactivate(propertyName, network, emails, message) {
+        const project = this.getProject(propertyName);
+        let emailSet = this.createEmailSet(emails);
+        return project.deactivate(propertyName, network, emailSet, message);
     }
 }
 

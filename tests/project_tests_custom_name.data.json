@@ -1,0 +1,54 @@
+[
+  [
+    "mkdir",
+    "homeSweetHome/Foobar"
+  ],
+  [
+    "mkdir",
+    "homeSweetHome/Foobar/cache"
+  ],
+  [
+    "mkdir",
+    "homeSweetHome/Foobar/dist"
+  ],
+  [
+    "mkdir",
+    "homeSweetHome/Foobar/environments"
+  ],
+  [
+    "mkdir",
+    "homeSweetHome/Foobar/templates"
+  ],
+  [
+    "writeJsonFile",
+    "homeSweetHome/Foobar/projectInfo.json",
+    {
+      "productId": "WAA",
+      "contractId": "ABF543",
+      "customPropertyName": true,
+      "groupIds": [
+        76342
+      ],
+      "environments": [
+        "foo",
+        "bar",
+        "prod"
+      ],
+      "version": "0.1.11",
+      "isSecure": false,
+      "name": "Foobar"
+    }
+  ],
+  [
+    "mkdir",
+    "homeSweetHome/Foobar/environments/foo"
+  ],
+  [
+    "mkdir",
+    "homeSweetHome/Foobar/environments/bar"
+  ],
+  [
+    "mkdir",
+    "homeSweetHome/Foobar/environments/prod"
+  ]
+]

@@ -1,0 +1,17 @@
+{
+    "name": "prod",
+    "propertyName": "prod",
+    "groupId": 61726,
+    "propertyId": 411091,
+    "isSecure": false,
+    "latestVersionInfo": {
+        "propertyVersion": 1,
+        "updatedByUser": "jpws7ubcv5jjsv37",
+        "updatedDate": "2017-11-13T21:49:31Z",
+        "productionStatus": "INACTIVE",
+        "stagingStatus": "INACTIVE",
+        "etag": "9fdf49fecd0ed31b57eb13a6326f5190b9a14cc2",
+        "productId": "Web_App_Accel",
+        "ruleFormat": "latest"
+    }
+}

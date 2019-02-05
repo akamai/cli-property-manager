@@ -156,50 +156,67 @@ describe('createPipeline integration tests', function() {
                     });
                 })
             );
-        td.when(papiClass.prototype.createProperty("qa." + projectName, "Web_App_Accel", "1-1TJZH5", 61726))
+        td.when(papiClass.prototype.createProperty("qa." + projectName, "Web_App_Accel", "1-1TJZH5", 61726,null, undefined, undefined))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.qa.create);
                 })
             );
-        td.when(papiClass.prototype.createProperty("staging." + projectName, "Web_App_Accel", "1-1TJZH5", 61726))
+        td.when(papiClass.prototype.createProperty("staging." + projectName, "Web_App_Accel", "1-1TJZH5", 61726,null, undefined, undefined))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.staging.create);
                 })
             );
 
-        td.when(papiClass.prototype.createProperty("prod." + projectName, "Web_App_Accel", "1-1TJZH5", 61726))
+        td.when(papiClass.prototype.createProperty("prod." + projectName, "Web_App_Accel", "1-1TJZH5", 61726,null, undefined, undefined))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.prod.create);
                 })
             );
 
-        td.when(papiClass.prototype.createProperty("qa." + testProjectNoVarName, "Web_App_Accel", "1-1TJZH5", 61726))
+        td.when(papiClass.prototype.createProperty("qa." + projectName, "Web_App_Accel", "1-1TJZH5", 61726,null, 76543, 75))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.qa.create);
                 })
             );
-        td.when(papiClass.prototype.createProperty("staging." + testProjectNoVarName, "Web_App_Accel", "1-1TJZH5", 61726))
+        td.when(papiClass.prototype.createProperty("staging." + projectName, "Web_App_Accel", "1-1TJZH5", 61726,null, 76543, 75))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.staging.create);
                 })
             );
-        td.when(papiClass.prototype.createProperty("prod." + testProjectNoVarName, "Web_App_Accel", "1-1TJZH5", 61726))
+
+        td.when(papiClass.prototype.createProperty("prod." + projectName, "Web_App_Accel", "1-1TJZH5", 61726,null, 76543, 75))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.prod.create);
                 })
             );
 
-        td.when(papiClass.prototype.createProperty("qa." + testProjectUserVar, "Web_App_Accel", "1-1TJZH5", 61726))
+        td.when(papiClass.prototype.createProperty("qa." + testProjectNoVarName, "Web_App_Accel", "1-1TJZH5", 61726,null, 76543, 75))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.qa.create);
                 })
             );
-        td.when(papiClass.prototype.createProperty("staging." + testProjectUserVar, "Web_App_Accel", "1-1TJZH5", 61726))
+        td.when(papiClass.prototype.createProperty("staging." + testProjectNoVarName, "Web_App_Accel", "1-1TJZH5", 61726,null, 76543, 75))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.staging.create);
                 })
             );
-        td.when(papiClass.prototype.createProperty("prod." + testProjectUserVar, "Web_App_Accel", "1-1TJZH5", 61726))
+        td.when(papiClass.prototype.createProperty("prod." + testProjectNoVarName, "Web_App_Accel", "1-1TJZH5", 61726,null, 76543, 75))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testData.prod.create);
+                })
+            );
+
+        td.when(papiClass.prototype.createProperty("qa." + testProjectUserVar, "Web_App_Accel", "1-1TJZH5", 61726,null, 98789, 75))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testData.qa.create);
+                })
+            );
+        td.when(papiClass.prototype.createProperty("staging." + testProjectUserVar, "Web_App_Accel", "1-1TJZH5", 61726,null, 98789, 75))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testData.staging.create);
+                })
+            );
+        td.when(papiClass.prototype.createProperty("prod." + testProjectUserVar, "Web_App_Accel", "1-1TJZH5", 61726,null, 98789, 75))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.prod.create);
                 })
@@ -336,7 +353,7 @@ describe('createPipeline integration tests', function() {
             groupIds: [],
             environmentGroupIds: {
             },
-            propertyId: 76543
+            propertyId: 76543,
         });
     });
 
@@ -432,6 +449,294 @@ describe('createPipeline integration tests', function() {
     });
 });
 
+describe('createPipeline custom property name integration tests', function() {
+    let utils;
+    let projectName = "new.customname.com";
+    let testProjectNoVarName = "testproject-novar-customname.com";
+    let testProjectUserVar = "testproject-uservar-customname.com";
+    let devops;
+
+    class TestProject extends Project {
+        constructor(projectName, dependencies) {
+            dependencies.getUtils = function() {
+                return utils;
+            };
+            super(projectName, dependencies);
+        }
+
+        exists() {
+            return this.projectName === "existingProject";
+        }
+    }
+
+    before(function () {
+        //these changes represent user edits after project creation.
+        utils = new VerifyUtils(pretendEmpty = true);
+        utils.touch(path.join(__dirname, "..", "resources", "template.converter.data.json"));
+        let regularUtils = new Utils();
+        let testRuleTree = regularUtils.readJsonFile(path.join(__dirname, "testdata", "testruletree.waa.json"));
+        let existingRuleTree = regularUtils.readJsonFile(
+            path.join(__dirname, "testproject.com", "dist", "qa.testproject.com.papi.json"));
+        let existingRuleTreeUserVar = regularUtils.readJsonFile(path.join(__dirname, "testdata", "testruletree.waa.variables.json"));
+
+        let testData = regularUtils.readJsonFile(path.join(__dirname, "testdata", "createProjectDataCustomName.json"));
+        let papiClass = td.constructor(PAPI);
+        td.when(papiClass.prototype.getClientSettings())
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve({
+                        "ruleFormat" : "v2018-02-27",
+                        "usePrefixes" : false
+                    });
+                })
+            );
+        td.when(papiClass.prototype.createProperty("foo", "Web_App_Accel", "1-1TJZH5", 61726, null, undefined, undefined))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testData.foo.create);
+                })
+            );
+        td.when(papiClass.prototype.createProperty("bar", "Web_App_Accel", "1-1TJZH5", 61726, null, undefined, undefined))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testData.bar.create);
+                })
+            );
+
+        td.when(papiClass.prototype.createProperty("prod", "Web_App_Accel", "1-1TJZH5", 61726, null, undefined, undefined))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testData.prod.create);
+                })
+            );
+
+        td.when(papiClass.prototype.createProperty("foo", "Web_App_Accel", "1-1TJZH5", 61726, null, 76543, 75))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testData.foo.create);
+                })
+            );
+        td.when(papiClass.prototype.createProperty("bar", "Web_App_Accel", "1-1TJZH5", 61726, null, 76543, 75))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testData.bar.create);
+                })
+            );
+
+        td.when(papiClass.prototype.createProperty("prod", "Web_App_Accel", "1-1TJZH5", 61726, null, 76543, 75))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testData.prod.create);
+                })
+            );
+
+
+        td.when(papiClass.prototype.createProperty("foo", "Web_App_Accel", "1-1TJZH5", 61726, null, 98789, 75))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testData.foo.create);
+                })
+            );
+        td.when(papiClass.prototype.createProperty("bar", "Web_App_Accel", "1-1TJZH5", 61726, null, 98789, 75))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testData.bar.create);
+                })
+            );
+
+        td.when(papiClass.prototype.createProperty("prod", "Web_App_Accel", "1-1TJZH5", 61726, null, 98789, 75))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testData.prod.create);
+                })
+            );
+
+        td.when(papiClass.prototype.latestPropertyVersion(411089))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testData.foo.latestVersion);
+                })
+            );
+        td.when(papiClass.prototype.latestPropertyVersion(411090))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testData.bar.latestVersion);
+                })
+            );
+        td.when(papiClass.prototype.latestPropertyVersion(411091))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testData.prod.latestVersion);
+                })
+            );
+        td.when(papiClass.prototype.latestPropertyVersion(76543))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testData.bluePrint.latestVersion);
+                })
+            );
+
+        td.when(papiClass.prototype.latestPropertyVersion(98789))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testData.userVarProperty.latestVersion);
+                })
+            );
+
+        td.when(papiClass.prototype.getPropertyVersionRules(98789, 75, "v2018-02-27"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(existingRuleTreeUserVar);
+                })
+            );
+
+        td.when(papiClass.prototype.getPropertyVersionRules(98789, 75, "v2017-06-19"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(existingRuleTreeUserVar);
+                })
+            );
+
+        td.when(papiClass.prototype.getPropertyVersionRules(98789, 75, "latest"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    let existingRuleTreeCopy = helpers.clone(existingRuleTreeUserVar);
+                    existingRuleTreeCopy.warnings = [
+                        {
+                            "title": "Unstable rule format",
+                            "type": "https://problems.luna.akamaiapis.net/papi/v0/unstable_rule_format",
+                            "detail": "This property is using `latest` rule format, which is designed to reflect interface changes immediately. We suggest converting the property to a stable rule format such as `v2017-06-19` to minimize the risk of interface changes breaking your API client program.",
+                            "currentRuleFormat": "latest",
+                            "suggestedRuleFormat": "v2017-06-19"
+                        }
+                    ];
+                    existingRuleTreeCopy.ruleFormat = "latest";
+                    resolve(existingRuleTreeCopy);
+                })
+            );
+
+        td.when(papiClass.prototype.getPropertyVersionRules(411089, 1, undefined))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testRuleTree);
+                })
+            );
+
+        td.when(papiClass.prototype.getPropertyVersionRules(411089, 1, "v2018-02-27"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    let testRuleTreeCopy = helpers.clone(testRuleTree);
+                    delete testRuleTreeCopy["warnings"];
+                    resolve(testRuleTreeCopy);
+                })
+            );
+
+        td.when(papiClass.prototype.getPropertyVersionRules(76543, 75, "latest"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    let existingRuleTreeCopy = helpers.clone(existingRuleTree);
+                    existingRuleTreeCopy.warnings = [
+                        {
+                            "title": "Unstable rule format",
+                            "type": "https://problems.luna.akamaiapis.net/papi/v0/unstable_rule_format",
+                            "detail": "This property is using `latest` rule format, which is designed to reflect interface changes immediately. We suggest converting the property to a stable rule format such as `v2017-06-19` to minimize the risk of interface changes breaking your API client program.",
+                            "currentRuleFormat": "latest",
+                            "suggestedRuleFormat": "v2017-06-19"
+                        }
+                    ];
+                    existingRuleTreeCopy.ruleFormat = "latest";
+                    resolve(existingRuleTreeCopy);
+                })
+            );
+
+        td.when(papiClass.prototype.getPropertyVersionRules(76543, 75, "v2018-02-27"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(existingRuleTree);
+                })
+            );
+
+        devops = createDevOps({
+            devopsHome : devopsHome,
+            papiClass: papiClass,
+            projectClass: TestProject,
+            version: "0.1.10"
+        });
+    });
+
+    it('createPipeline with correct params (custom property names)', async function() {
+        await devops.createPipeline({
+            projectName: projectName,
+            productId: "Web_App_Accel",
+            contractId: "1-1TJZH5",
+            customPropertyName: true,
+            groupIds: [61726],
+            environments: [
+                "foo",
+                "bar",
+                "prod"
+            ],
+            environmentGroupIds: {
+                foo: 61726,
+                bar: 61726,
+                prod: 61726
+            }
+        });
+    });
+
+    it('createPipeline with propertyId (custom property names)', async function() {
+        await devops.createPipeline({
+            projectName: projectName,
+            environments: [
+                "foo",
+                "bar",
+                "prod"
+            ],
+            groupIds: [],
+            environmentGroupIds: {
+            },
+            propertyId: 76543,
+            customPropertyName: true
+        });
+    });
+
+    it('createPipeline with propertyId variablemode = no-var (custom property names)', async function() {
+        //This should create a new project "testproject-novar.com" that should be just like testproject.com (no variables)
+        await devops.createPipeline({
+            projectName: testProjectNoVarName,
+            environments: [
+                "foo",
+                "bar",
+                "prod"
+            ],
+            groupIds: [],
+            environmentGroupIds: {
+            },
+            propertyId: 76543,
+            variableMode: "no-var",
+            customPropertyName: true
+        });
+    });
+
+    it('createPipeline with propertyId variablemode = user-var-value (custom property names)', async function() {
+        //This should create a new project "testproject-novar.com" that should be just like testproject.com (no variables)
+        await devops.createPipeline({
+            projectName: testProjectUserVar,
+            environments: [
+                "foo",
+                "bar",
+                "prod"
+            ],
+            groupIds: [],
+            environmentGroupIds: {
+            },
+            propertyId: 98789,
+            variableMode: "user-var-value",
+            customPropertyName: true
+        });
+    });
+
+    it('createPipeline with duplicate environments (custom property names)', async function() {
+        return throwsAsync(function() {
+            return devops.createPipeline({
+                projectName: projectName,
+                productId: "Web_App_Accel",
+                contractId: "1-1TJZH5",
+                groupIds: [61726],
+                environmentGroupIds: {
+                    foo: 61726,
+                    bar: 61726,
+                    prod: 61726
+                },
+                environments: [
+                    "foo",
+                    "bar",
+                    "foo",
+                    "bar",
+                    "foo"
+                ]
+            });
+        }, "Error: Duplicate environment name in argument list: foo");
+    });
+});
 
 describe('merge integration tests', function() {
     let devops;

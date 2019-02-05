@@ -1,0 +1,14 @@
+[
+    {
+        "cnameFrom": "testing-snippets-pull.com",
+        "cnameTo": "testing-snippets-pull.com.edgesuite.net",
+        "cnameType": "EDGE_HOSTNAME",
+        "edgeHostnameId": 3248236
+    },
+    {
+        "cnameFrom": "testing-snippets.com",
+        "cnameTo": "testing-snippets.edgesuite.net",
+        "cnameType": "EDGE_HOSTNAME",
+        "edgeHostnameId": 3216762
+      }
+]

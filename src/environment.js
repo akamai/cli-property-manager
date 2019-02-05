@@ -20,19 +20,8 @@ const logger = require("./logging")
 const EdgeHostnameManager = require('./edgehostname_manager').EdgeHostnameManager;
 const errors = require("./errors");
 
-const Network = {
-    STAGING: "STAGING",
-    PRODUCTION: "PRODUCTION"
-};
-
-const Status = {
-    ACTIVE: "ACTIVE",
-    INACTIVE: "INACTIVE",
-    PENDING: "PENDING",
-    FAILED: "FAILED",
-    ABORTED: "ABORTED",
-    DEACTIVATED: "DEACTIVATED"
-};
+const Network = require('./enums/Network');
+const Status = require('./enums/Status');
 
 const EdgeDomains = require('./edgehostname_manager').EdgeDomains;
 
@@ -52,7 +41,12 @@ class Environment {
         this.getPAPI = dependencies.getPAPI;
         this.getMerger = dependencies.getMerger;
         this.shouldProcessPapiErrors = dependencies.shouldProcessPapiErrors || false;
-        this.propertyName = envName + "." + this.project.getName();
+        let projectInfo = this.project.getProjectInfo();
+        if (_.isBoolean(projectInfo.customPropertyName) && projectInfo.customPropertyName) {
+            this.propertyName = envName;
+        } else {
+            this.propertyName = envName + "." + this.project.getName();
+        }
         this.__envInfo = null;
         this.mergeLoggingWording = `Merge environment: '${this.name}' in pipeline: '${this.project.projectName}'`;
     }
@@ -65,6 +59,17 @@ class Environment {
      */
     async create(createPipelineInfo) {
         let envInfo = this.getEnvironmentInfo();
+        let projectInfo = this.project.getProjectInfo();
+        if (projectInfo.customPropertyName !== createPipelineInfo.customPropertyName) {
+            logger.info('mismatch in customPropertyName field');
+            throw new errors.ArgumentError(
+                `customPropertyName mismatch`,
+                "check_customPropertyName_field", projectInfo.customPropertyName);
+        }
+        if (_.isBoolean(projectInfo.customPropertyName) && projectInfo.customPropertyName) {
+            this.propertyName = this.name;
+            logger.info(`custom property name ${this.propertyName} will be used`);
+        }
         if (!envInfo) {
             envInfo = {
                 name: this.name,
@@ -80,7 +85,7 @@ class Environment {
             let projectInfo = this.project.getProjectInfo();
             //TODO: handle case where create property worked but we never got the data back.
             let propData = await this.getPAPI().createProperty(this.propertyName,
-                projectInfo.productId, projectInfo.contractId, envInfo.groupId);
+                projectInfo.productId, projectInfo.contractId, envInfo.groupId, null, createPipelineInfo.propertyId, createPipelineInfo.propertyVersion);
             logger.info("propData: ", propData);
             envInfo.propertyId = Environment._extractPropertyId(propData);
         }
@@ -98,12 +103,22 @@ class Environment {
         const domain = this.project.projectName;
         const edgeDomain = this.getEnvironmentInfo().isSecure ? EdgeDomains.EDGE_KEY : EdgeDomains.EDGE_SUITE;
 
+        let projectInfo = this.project.getProjectInfo();
+        let cnameFrom, cnameTo;
+        if (_.isBoolean(projectInfo.customPropertyName) && projectInfo.customPropertyName) {
+            cnameFrom = this.name;
+            cnameTo = this.name + edgeDomain;
+        } else {
+            cnameFrom = this.name + "." + domain;
+            cnameTo = this.name + "." + domain + edgeDomain;
+        }
         let hostnames = [{
-            "cnameFrom": this.name + "." + domain,
-            "cnameTo": this.name + "." + domain + edgeDomain,
+            "cnameFrom": cnameFrom,
+            "cnameTo": cnameTo,
             "cnameType": "EDGE_HOSTNAME",
             "edgeHostnameId": null
         }];
+
         this.project.storeEnvironmentHostnames(this.name, hostnames);
     }
 
@@ -655,8 +670,11 @@ class Environment {
                     if (result.propertyVersion === envInfo.latestVersionInfo.propertyVersion) {
                         envInfo.latestVersionInfo = versionInfo;
                     }
-                    if (result.status === Status.ACTIVE) {
+                    if (result.status === Status.ACTIVE && result.activationType === "ACTIVATE") {
                         envInfo["activeIn_" + network + "_Info"] = helpers.clone(versionInfo);
+                    }
+                    if (result.status === Status.ACTIVE && result.activationType === "DEACTIVATE") {
+                        delete envInfo["activeIn_" + network + "_Info"];
                     }
                     let otherNetworkKey = "activeIn_" + Environment.getOtherNetwork(network) + "_Info";
                     let activeInOther = envInfo[otherNetworkKey];
@@ -686,6 +704,86 @@ class Environment {
             promotionStatus: this.getPromotionStatus()
         };
     }
+
+    async updateEnvInfoVersions(envInfo, versionNum, versionType) {
+        let versionMap = {
+            staging: {
+                replaceVersionInfo: "activeIn_STAGING_Info",
+                statusField: "stagingStatus"
+            },
+            production: {
+                replaceVersionInfo: "activeIn_PRODUCTION_Info",
+                statusField: "productionStatus"
+            },
+            latest: {
+                replaceVersionInfo: "latestVersionInfo",
+
+            }
+        }
+
+        let replaceVersionInfo = versionMap[versionType].replaceVersionInfo;
+
+
+        if (versionMap[versionType] === undefined) {
+            throw new errors.UnknownTypeError("Unknown property version type being updated in envInfo.json.  Should be staging, production, or latest.", "unknown_version_type");
+        }
+
+        if (_.isNumber(versionNum)) {
+            let info = await this.getPAPI().getPropertyVersion(envInfo.propertyId, versionNum);
+            info = helpers.clone(info.versions.items[0]);
+            let statusField = versionMap[versionType].statusField;
+
+            if (versionType === "latest" || (statusField !== undefined && info[statusField] === Status.ACTIVE)) {
+                envInfo[replaceVersionInfo] = helpers.clone(info);
+            }
+        } else if (versionNum === null || versionNum === undefined) {
+            //there IS no staging version, make sure to remove staging from the active
+            delete envInfo[replaceVersionInfo];
+        }
+
+    }
+
+    async updateEnvInfo(isSecure) {
+        let envInfo = this.getEnvironmentInfo();
+        if (isSecure !== undefined && _.isBoolean(isSecure)) {
+            envInfo.isSecure = isSecure;
+        }
+        logger.info("Getting property info");
+        let actualPropertyInfo = await this.getPAPI().getPropertyInfo(envInfo.propertyId);
+        let activations = await this.getPAPI().propertyActivateStatus(envInfo.propertyId);
+
+        let stagingVersion, productionVersion, latestVersion;
+        stagingVersion = actualPropertyInfo.properties.items[0].stagingVersion;
+        productionVersion = actualPropertyInfo.properties.items[0].productionVersion;
+        latestVersion = actualPropertyInfo.properties.items[0].latestVersion;
+
+        logger.info("getting latest staging info");
+        await this.updateEnvInfoVersions(envInfo, stagingVersion, "staging");
+
+        logger.info("getting latest production info");
+        await this.updateEnvInfoVersions(envInfo, productionVersion, "production");
+
+        logger.info("getting latest version info");
+        await this.updateEnvInfoVersions(envInfo, latestVersion, "latest");
+
+        envInfo.pendingActivations = {};
+        for (let activation of activations.activations.items) {
+            if (activation.status === Status.PENDING &&
+                helpers.parsePropertyId(activation.propertyId) === envInfo.propertyId &&
+                activation.propertyVersion === envInfo.latestVersionInfo.propertyVersion) {
+
+                envInfo.pendingActivations[activation.network] = helpers.parseActivationId(activation.activationId);
+            }
+        }
+
+        if (_.isEmpty(envInfo.pendingActivations)) {
+            delete envInfo.pendingActivations;
+        }
+
+        this.storeEnvironmentInfo(envInfo);
+    }
+
 }
+
 
 module.exports = Environment;

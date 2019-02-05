@@ -54,5 +54,10 @@ describe('PAPI Tests', function () {
         }));
     });
 
+    it('get property', function(){
+       papi.getPropertyInfo(123456);
+       td.verify(openClient.get('/papi/v0/properties/123456'));
+    });
+
 
 });

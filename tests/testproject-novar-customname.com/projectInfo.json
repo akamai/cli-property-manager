@@ -1,0 +1,19 @@
+{
+    "productId": "Web_App_Accel",
+    "contractId": "1-1TJZH5",
+    "customPropertyName": true,
+    "edgeGridConfig": {
+        "section": "credentials"
+    },
+    "environments": [
+        "foo",
+        "bar",
+        "prod"
+    ],
+    "name": "testproject-novar-customname.com",
+    "groupIds": [
+        61726
+    ],
+    "isSecure": false,
+    "version": "0.1.10"
+}

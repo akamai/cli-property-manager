@@ -15,6 +15,10 @@
 
 const _ = require('underscore');
 
+/*
+ * activation type used as a parameter in activateProperty
+ */
+const ActivationType = require('./enums/ActivationType');
 
 /**
  * PAPI REST client
@@ -32,7 +36,7 @@ class PAPI {
         return this.openClient.post('/papi/v1/search/find-by-value', searchBody);
     }
 
-    createProperty(name, productId, contractId, groupId, ruleFormat) {
+    createProperty(name, productId, contractId, groupId, ruleFormat, propertyId, propertyVersion, copyHostnames = false) {
         let url = `/papi/v0/properties?groupId=${groupId}&contractId=${contractId}`;
         let body = {
             "productId": productId,
@@ -40,6 +44,13 @@ class PAPI {
         };
         if (_.isString(ruleFormat)) {
             body.ruleFormat = ruleFormat;
+        }
+        if (_.isNumber(propertyId) && _.isNumber(propertyVersion)) {
+            body.cloneFrom = {
+                "propertyId": propertyId,
+                "version": propertyVersion,
+                "copyHostnames": copyHostnames
+            };
         }
         return this.openClient.post(url, body);
     }
@@ -124,6 +135,8 @@ class PAPI {
         };
         if (_.isString(ruleFormat)) {
             headers["Content-Type"] = `application/vnd.akamai.papirules.${ruleFormat}+json`;
+            headers.Accept = `application/vnd.akamai.papirules.${ruleFormat}+json`;
+
         }
         return this.openClient.put(url, rules, headers);
     }
@@ -153,7 +166,7 @@ class PAPI {
         return this.openClient.post(url, createRequestBody);
     }
 
-    activateProperty(propertyId, propertyVersion, network, notifyEmails, message) {
+    activateProperty(propertyId, propertyVersion, network, notifyEmails, message, activationType = ActivationType.ACTIVATE) {
         const url = `/papi/v0/properties/${propertyId}/activations`;
         const acknowledgeAllWarnings = true;
         const complianceRecord = {
@@ -166,14 +179,31 @@ class PAPI {
             note,
             notifyEmails,
             acknowledgeAllWarnings,
+            activationType,
             complianceRecord
         });
+    }
+
+    propertyActivateStatus(propertyId) {
+        const url = `/papi/v0/properties/${propertyId}/activations`;
+        return this.openClient.get(url);
     }
 
     activationStatus(propertyId, activationId) {
         let url = `/papi/v0/properties/${propertyId}/activations/${activationId}`;
         return this.openClient.get(url);
     }
+
+    listRuleFormats() {
+        let url = `/papi/v0/rule-formats`;
+        return this.openClient.get(url);
+    }
+
+    getPropertyInfo(propertyId) {
+        let url = `/papi/v0/properties/${propertyId}`;
+        return this.openClient.get(url);
+    }
+
 }
 
 module.exports = PAPI;

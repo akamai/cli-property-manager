@@ -72,7 +72,7 @@ const mainTester = function (mainCaller, verifyCallback) {
             } catch (e) {
                 reject(e);
             }
-        }, 20)
+        }, 60)
     });
 };
 
@@ -89,6 +89,44 @@ describe('Eat white spaces test', function () {
     });
 });
 
+describe('Commands with no action called', function () {
+    it("just -v statement", function() {
+        let cliArgs = createCommand("-v");
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, {}, errorReporter, {});
+        }, errorCatcher => {
+            assert.equal(errorCatcher.error, "Error: No command called")
+        });
+    });
+
+    it("just -f statement", function() {
+        let cliArgs = createCommand("-f");
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, {}, errorReporter, {});
+        }, errorCatcher => {
+            assert.equal(errorCatcher.error, "Error: No command called")
+        });
+    });
+
+    it("just -f json statement", function() {
+        let cliArgs = createCommand("-f", "json");
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, {}, errorReporter, {});
+        }, errorCatcher => {
+            assert.equal(errorCatcher.error, "Error: No command called")
+        });
+    });
+
+    it("just -s statement", function() {
+        let cliArgs = createCommand("-s");
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, {}, errorReporter, {});
+        }, errorCatcher => {
+            assert.equal(errorCatcher.error, "Error: No command called")
+        });
+    });
+
+});
 describe('Devops-prov CLI provide help test', function () {
     const devopsHome = __dirname;
     let createDevOpsFun;
@@ -522,6 +560,34 @@ describe('Devops-prov CLI create new project', function () {
         });
     });
 
+    it('create new project with custom property names', function () {
+       let cliArgs = createCommand("np", "-p", "testproject.com",
+           "-g", "62234", "-c", "XYZ123", "-d", "NiceProduct", "--custom-property-name", "foo", "bar");
+       return mainTester(errorReporter => {
+           main(cliArgs, {
+               "AKAMAI_PROJECT_HOME": __dirname
+           }, createDevOpsFun, errorReporter);
+       }, errorCatcher => {
+           td.verify(devOpsClass.prototype.createPipeline({
+               projectName: "testproject.com",
+               productId: "NiceProduct",
+               contractId: "XYZ123",
+               groupIds: [62234],
+               environments: ["foo", "bar"],
+               environmentGroupIds: {
+                   foo: 62234,
+                   bar: 62234
+               },
+               isInRetryMode: false,
+               customPropertyName: true,
+               propertyId: undefined,
+               propertyName: undefined,
+               propertyVersion: undefined,
+               variableMode: "default"
+           }));
+       });
+    });
+
     it('create new project with variable-mode chosen with no property', function () {
         let cliArgs = createCommand("np", "-p", "testproject2.com", "--variable-mode", "default",
             "-g", "62234", "-c", "XYZ123", "-d", "NiceProduct", "foo", "bar");
@@ -716,6 +782,35 @@ describe('Devops-prov CLI create new project', function () {
                     bar: 62234
                 },
                 isInRetryMode: true,
+                propertyId: undefined,
+                propertyName: undefined,
+                propertyVersion: undefined,
+                variableMode: "default"
+            }));
+        });
+    });
+
+    it('create new project with custom property names and retry', function () {
+        let cliArgs = createCommand("np", "--custom-property-name", "--retry", "-p", "testproject2.com",
+            "-g", "62234", "-c", "XYZ123", "-d", "NiceProduct", "foo", "bar");
+
+        return mainTester(errorCatcher => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": __dirname
+            }, createDevOpsFun, errorCatcher);
+        }, errorCatcher => {
+            td.verify(devOpsClass.prototype.createPipeline({
+                projectName: "testproject2.com",
+                productId: "NiceProduct",
+                contractId: "XYZ123",
+                groupIds: [62234],
+                environments: ["foo", "bar"],
+                environmentGroupIds: {
+                    foo: 62234,
+                    bar: 62234
+                },
+                isInRetryMode: true,
+                customPropertyName: true,
                 propertyId: undefined,
                 propertyName: undefined,
                 propertyVersion: undefined,

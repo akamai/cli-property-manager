@@ -124,6 +124,9 @@ class DevOps {
             if (!_.isBoolean(createPipelineInfo.secureOption)) {
                 createPipelineInfo.secureOption = ruleTree.rules.options.is_secure;
             }
+            if (!createPipelineInfo.propertyVersion) {
+                createPipelineInfo.propertyVersion = propertyInfo.propertyVersion;
+            }
         } else {
             createPipelineInfo.secureOption = createPipelineInfo.secureOption || false;
         }
@@ -269,16 +272,7 @@ class DevOps {
         return this.getEnvironment(projectName, environmentName).save()
     }
 
-    /**
-     * Promote environment of a project
-     * @param projectName {String}
-     * @param environmentName {String}
-     * @param network {String} "STAGING" or "PRODUCTION"
-     * @param emails {Array<String>}
-     */
-    promote(projectName, environmentName, network, emails, message, force) {
-
-        const project = this.getProject(projectName);
+    createEmailSet(emails) {
         let emailSet = new Set([]);
         if (_.isString(emails) && emails.length > 0) {
             for (let e of emails.split(',')) {
@@ -293,7 +287,19 @@ class DevOps {
         }
         this.checkEmails(emailSet);
         logger.info(this.promoteEmailString, emailSet);
+        return emailSet;
+    }
+    /**
+     * Promote environment of a project
+     * @param projectName {String}
+     * @param environmentName {String}
+     * @param network {String} "STAGING" or "PRODUCTION"
+     * @param emails {Array<String>}
+     */
+    promote(projectName, environmentName, network, emails, message, force) {
 
+        const project = this.getProject(projectName);
+        let emailSet = this.createEmailSet(emails);
         return project.promote(environmentName, network, emailSet, message, force);
     }
 

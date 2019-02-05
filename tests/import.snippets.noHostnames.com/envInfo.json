@@ -1,0 +1,17 @@
+{
+    "name": "import.snippets.noHostnames.com",
+    "propertyId": 501778,
+    "propertyName": "import.snippets.noHostnames.com",
+    "groupId": 61726,
+    "isSecure": false,
+    "latestVersionInfo": {
+        "propertyVersion": 1,
+        "updatedByUser": "dummy@gmail.com",
+        "updatedDate": "2018-11-06T15:39:49Z",
+        "productionStatus": "INACTIVE",
+        "stagingStatus": "INACTIVE",
+        "etag": "578b53bfa4ca393dff26581c89774358fdd2a219",
+        "productId": "Web_App_Accel",
+        "ruleFormat": "v2018-09-12"
+    }
+}

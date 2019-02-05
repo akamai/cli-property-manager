@@ -3,6 +3,7 @@ const _ = require('underscore');
 const helpers = require('./helpers');
 const logger = require("./logging")
     .createLogger("devops-prov.edgehostname-manager");
+const errors = require("./errors");
 
 const EdgeDomains = {
     EDGE_SUITE: ".edgesuite.net",
@@ -136,6 +137,20 @@ class EdgeHostnameManager {
                 edgehostname: hostname.cnameTo
             });
         }
+    }
+
+    cleanHostnameIds(hostnames) {
+        logger.debug("cleaning hostname ids");
+        if (!_.isArray(hostnames)) {
+            throw new errors.ArgumentError("Hostnames is not an array", "not_hostnames_array");
+        }
+
+        for (let hostname of hostnames) {
+            if (hostname.edgeHostnameId !== undefined) {
+                hostname.edgeHostnameId = helpers.parseEdgehostnameId(hostname.edgeHostnameId);
+            }
+        }
+        return hostnames;
     }
 }
 module.exports = {

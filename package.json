@@ -1,6 +1,6 @@
 {
   "name": "cli-promotional-deployment",
-  "version": "0.3.0",
+  "version": "0.3.4",
   "engines": {
     "node": ">=8.0.0"
   },
@@ -15,16 +15,16 @@
     "snippets": "./bin/akamai-snippets"
   },
   "devDependencies": {
-    "chai": "^4.1.2",
+    "chai": "^4.2.0",
     "eslint": "^4.12.0",
     "eslint-plugin-node": "^5.2.1",
-    "js-beautify": "^1.7.5",
-    "jsdoc-to-markdown": "^4.0.1",
+    "js-beautify": "^1.8.8",
     "jsdoc": "~3.5.5",
+    "jsdoc-to-markdown": "^4.0.1",
     "mocha": "^4.0.1",
     "nyc": "^11.6.0",
     "pegjs": "^0.10.0",
-    "testdouble": "^3.2.6",
+    "testdouble": "^3.8.2",
     "webpack": "^3.8.1"
   },
   "config": {
@@ -43,14 +43,15 @@
   "dependencies": {
     "ascii-data-table": "^2.1.1",
     "chalk": "^2.3.2",
-    "commander": "^2.11.0",
-    "debug": "^3.1.0",
-    "log4js": "^2.4.1",
+    "commander": "^2.19.0",
+    "debug": "^3.2.6",
+    "email-validator": "2.0.4",
+    "inquirer": "^6.2.0",
+    "log4js": "^3.0.6",
     "moment": "^2.20.1",
-    "request": "^2.83.0",
+    "request": "^2.88.0",
     "request-debug": "^0.2.0",
     "underscore": "^1.9.1",
-    "uuid": "^3.1.0",
-    "email-validator": "2.0.4"
+    "uuid": "^3.3.2"
   }
 }

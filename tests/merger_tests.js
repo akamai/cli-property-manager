@@ -29,6 +29,7 @@ const logger = require("../src/logging")
 const VerifyUtils = require('./verify-utils');
 const createOverlayUtils = require('./overlay-utils');
 const throwsAsync = require("./testutils").throwsAsync;
+const Merger = require("../src/merger");
 
 describe('Merger Tests', function () {
     let project;
@@ -196,4 +197,138 @@ describe('Merger Tests', function () {
         }, "Error: File not found variables.json");
     });
 
+    it('null variable definition and null variable value', function() {
+        let merger = new Merger("test_project", "qa", "dummy");
+        let variableValuesResources = {
+            "resource": { "originHostname": "origin-qa.test-pipeline.com",
+                    "cpCode": 671817,
+                    "sureRouteTestObject": null
+            },
+            "resourcePath": "environments/qa/variables.json"
+        };
+
+        let variableDefinitionsResources = {
+            "resource": {
+                "definitions": {
+                    "originHostname": {
+                        "type": "hostname",
+                        "default": null
+                    },
+                    "cpCode": {
+                        "type": "cpCode",
+                        "default": null
+                    },
+                    "sureRouteTestObject": {
+                        "type": "url",
+                        "default": null
+                    }
+                }
+            },
+            "resourcePath": "environments/variableDefinitions.json"
+        };
+
+        try{
+            merger.checkVariables(variableValuesResources, variableDefinitionsResources);
+        } catch(error){
+            assert.equal(error.toString(),
+                "Error: Variable 'sureRouteTestObject' declared in 'environments/variableDefinitions.json' without default value and no value given in 'environments/qa/variables.json'");
+
+        }
+    });
+    it('null variable definition and empty string variable value', function() {
+        let merger = new Merger("test_project", "qa", "dummy");
+        let variableValuesResources = {
+            "resource": { "originHostname": "origin-qa.test-pipeline.com",
+                "cpCode": 671817,
+                "sureRouteTestObject": ""
+            },
+            "resourcePath": "environments/qa/variables.json"
+        };
+
+        let variableDefinitionsResources = {
+            "resource": {
+                "definitions": {
+                    "originHostname": {
+                        "type": "hostname",
+                        "default": null
+                    },
+                    "cpCode": {
+                        "type": "cpCode",
+                        "default": null
+                    },
+                    "sureRouteTestObject": {
+                        "type": "url",
+                        "default": null
+                    }
+                }
+            },
+            "resourcePath": "environments/variableDefinitions.json"
+        };
+
+        assert.equal(merger.checkVariables(variableValuesResources, variableDefinitionsResources), true);
+    });
+    it('empty string variable definition and null variable value', function() {
+        let merger = new Merger("test_project", "qa", "dummy");
+        let variableValuesResources = {
+            "resource": { "originHostname": "origin-qa.test-pipeline.com",
+                "cpCode": 671817,
+                "sureRouteTestObject": null
+            },
+            "resourcePath": "environments/qa/variables.json"
+        };
+
+        let variableDefinitionsResources = {
+            "resource": {
+                "definitions": {
+                    "originHostname": {
+                        "type": "hostname",
+                        "default": null
+                    },
+                    "cpCode": {
+                        "type": "cpCode",
+                        "default": null
+                    },
+                    "sureRouteTestObject": {
+                        "type": "url",
+                        "default": ""
+                    }
+                }
+            },
+            "resourcePath": "environments/variableDefinitions.json"
+        };
+
+        assert.equal(merger.checkVariables(variableValuesResources, variableDefinitionsResources), true);
+    });
+    it('Empty string variable definition empty string variable value', function() {
+        let merger = new Merger("test_project", "qa", "dummy");
+        let variableValuesResources = {
+            "resource": { "originHostname": "origin-qa.test-pipeline.com",
+                "cpCode": 671817,
+                "sureRouteTestObject": ""
+            },
+            "resourcePath": "environments/qa/variables.json"
+        };
+
+        let variableDefinitionsResources = {
+            "resource": {
+                "definitions": {
+                    "originHostname": {
+                        "type": "hostname",
+                        "default": null
+                    },
+                    "cpCode": {
+                        "type": "cpCode",
+                        "default": null
+                    },
+                    "sureRouteTestObject": {
+                        "type": "url",
+                        "default": ""
+                    }
+                }
+            },
+            "resourcePath": "environments/variableDefinitions.json"
+        };
+
+        assert.equal(merger.checkVariables(variableValuesResources, variableDefinitionsResources), true);
+    });
 });
