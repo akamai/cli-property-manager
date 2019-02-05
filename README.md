@@ -60,7 +60,7 @@ With this client-side application, you can:
 You use `akamai pipeline` command to make changes within an automated Akamai Pipeline. Soon you’ll be able to edit Property Manager configurations locally for an existing property with the `akamai property-manager` command. See the [Workflows](#workflows) section for more information.
 
 # Available commands 
-Want to see all available CLI commands? See the [help for this CLI](docs/cli_command_help.md).
+Want to see all available CLI commands? See this [help for CLI pm commands](docs/cli_pm_commands_help.md) and this [help for Akamai Pipeline commands](docs/pipeline_commands_help.md).
 
 # Stay up to date
 To make sure you always use the latest version of the CLI, run this command: 
