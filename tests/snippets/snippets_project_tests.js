@@ -147,7 +147,7 @@ describe('Snippets Project check migration status test', function () {
     });
 });
 
-describe('Snippets Project Promote Test', function () {
+describe('Snippets Project Promote and Deactivate Test', function () {
     let devops, utils, project;
 
     before(function () {
@@ -164,6 +164,7 @@ describe('Snippets Project Promote Test', function () {
                 name: envName,
                 project: project,
                 promote: function() {},
+                deactivate: function() {},
                 getEnvironmentInfo: function() {},
                 isPendingPromotion: function() {},
                 checkPromotions: function() {},
@@ -190,6 +191,9 @@ describe('Snippets Project Promote Test', function () {
             td.when(tdEnv.promote("STAGING", ["joe@foo.com"], "Akamai PD Activation")).thenReturn({
                 envInfo, pending
             });
+            td.when(tdEnv.deactivate("STAGING", ["joe@foo.com"], "Akamai PD Deactivation")).thenReturn({
+                envInfo, pending
+            });
             td.when(tdEnv.getEnvironmentInfo()).thenReturn(envInfo);
             return tdEnv;
         };
@@ -210,6 +214,16 @@ describe('Snippets Project Promote Test', function () {
             activationId: 12345
         });
         project.promote('new.snippets.com', 'STAGING', ["joe@foo.com"]);
+
+    });
+
+    it('deactivate test', async function() {
+        let result = await project.deactivate('new.snippets.com', 'STAGING', ["joe@foo.com"], "Akamai PD Deactivation");
+        assert.deepEqual(result.pending, {
+            network: "STAGING",
+            activationId: 12345
+        });
+        project.deactivate('new.snippets.com', 'STAGING', ["joe@foo.com"]);
 
     });
 });

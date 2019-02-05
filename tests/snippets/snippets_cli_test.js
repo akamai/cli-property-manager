@@ -71,12 +71,50 @@ const mainTester = function (mainCaller, verifyCallback) {
             } catch (e) {
                 reject(e);
             }
-        }, 20)
+        }, 60)
     });
 };
 
 const baseDir =  path.join(__dirname, "..");
 
+describe('Commands with no action called', function () {
+    it("just -v statement", function() {
+        let cliArgs = createCommand("-v");
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, {}, errorReporter, {});
+        }, errorCatcher => {
+            assert.equal(errorCatcher.error, "Error: No command called")
+        });
+    });
+
+    it("just -f statement", function() {
+        let cliArgs = createCommand("-f");
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, {}, errorReporter, {});
+        }, errorCatcher => {
+            assert.equal(errorCatcher.error, "Error: No command called")
+        });
+    });
+
+    it("just -f json statement", function() {
+        let cliArgs = createCommand("-f", "json");
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, {}, errorReporter, {});
+        }, errorCatcher => {
+            assert.equal(errorCatcher.error, "Error: No command called")
+        });
+    });
+
+    it("just -s statement", function() {
+        let cliArgs = createCommand("-s");
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, {}, errorReporter, {});
+        }, errorCatcher => {
+            assert.equal(errorCatcher.error, "Error: No command called")
+        });
+    });
+
+});
 
 describe('Snippets CLI create new project', function () {
     let createDevOpsFun;
@@ -417,6 +455,61 @@ describe('Snippets CLI create new project', function () {
         });
     });
 });
+
+describe('Snippets CLI import property', function () {
+    let createDevOpsFun;
+    let devOpsClass;
+    let testConsole;
+    let utils = new Utils();
+
+    before(function() {
+        devOpsClass = td.constructor(DevOps);
+        createDevOpsFun = function (deps) {
+            let newDeps = {
+                devOpsClass
+            };
+            Object.assign(deps, newDeps);
+            let devOps = createDevOps(deps);
+            return devOps;
+        };
+
+        td.when(devOpsClass.prototype.importProperty({
+            propertyName: "non_existent_property.com"
+        }))
+            .thenThrow(utils.readFile(path.join(baseDir, "testdata", "import.non.existent.property.output.txt")));
+    });
+
+    it('check if devops import function is called with correct parameters', function () {
+        let cliArgs = createCommand("import", "-p", "propertyName.com");
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": baseDir
+            }, createDevOpsFun, errorReporter);
+        }, errorCatcher => {
+            td.verify(devOpsClass.prototype.importProperty({
+                propertyName: "propertyName.com"
+            }));
+        });
+    });
+
+    it('import non existent property', function () {
+        testConsole = new TestConsole();
+        let cliArgs = createCommand("import", "-p", "non_existent_property.com");
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": baseDir
+            }, createDevOpsFun, errorReporter);
+        }, errorCatcher => {
+            assert.exists(errorCatcher);
+            assert.equal(errorCatcher.error,
+                utils.readFile(path.join(baseDir, "testdata", "import.non.existent.property.output.txt")),
+                    errorCatcher.error.stack);
+        });
+    });
+});
+
 describe('Snippets CLI show rule tree', function () {
     const devopsHome = baseDir;
     let createDevOpsFun;
@@ -460,6 +553,79 @@ describe('Snippets CLI show rule tree', function () {
             assert.equal(testConsole.logs.length, 1);
             let output = testConsole.logs[0][0];
             assert.equal(output, '"{some rule tree stuff}"');
+        });
+    });
+});
+
+
+describe('Snippets CLI PULL command', function () {
+    const devopsHome = baseDir;
+    let getProject;
+    let project;
+    before(function () {
+        getProject = td.func();
+        extractProjectName = td.func();
+
+        project = td.object(["updateProperty", "getName", "loadEnvironmentInfo"]);
+
+        td.when(project.getName()).thenReturn("testproject.com");
+        td.when(project.loadEnvironmentInfo()).thenReturn({
+            latestVersionInfo : {
+                propertyVersion : 9
+            }
+        });
+
+    });
+
+    it('update local output', function () {
+        let createDevOpsFun = function (deps) {
+            let newDeps = {
+                devopsHome
+            };
+            Object.assign(deps, newDeps);
+
+            let devOps = createDevOps(deps);
+            devOps.updateProperty = function(){
+                return project;
+            };
+            return devOps;
+        };
+
+        let cliArgs = createCommand("update-local", "-p", "testproject.com", "--force-update");
+        let testConsole = new TestConsole();
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            assert.equal(errorCatcher, null);
+            assert.equal(testConsole.logs.length, 2);
+            let output = testConsole.logs.join("\n");
+            assert.equal(output, 'Updating and overwriting local files for testproject.com from PAPI...\nUpdated testproject.com to the latest: v9');
+        });
+    });
+
+    it('update local output -no property', function () {
+
+        let basedir2 =  path.join(__dirname, "..","..","tests_no_default");
+
+
+        let createDevOpsFun2 = function (deps) {
+            let newDeps = {
+                devopsHome : basedir2
+            };
+            Object.assign(deps, newDeps);
+
+            let devOps = createDevOps(deps);
+            devOps.updateProperty = function(){
+                return project;
+            }
+            return devOps;
+        };
+        let cliArgs = createCommand("update-local", "--force-update");
+        let testConsole = new TestConsole();
+        return mainTester(errorReporter => {
+            main(cliArgs, {devopsHome :  path.join(__dirname, "..")}, createDevOpsFun2, errorReporter, testConsole);
+        }, errorCatcher => {
+            assert.equal(errorCatcher.error, 'Error: Can\'t read default property name from snippetsSettings.json and no property name provided per -p <property name> option');
         });
     });
 });
@@ -1506,6 +1672,366 @@ describe('Snippets activation tests', function () {
     });
 
 });
+
+describe('Snippets deactivation tests', function () {
+    let createDevOpsFun;
+    let testConsole;
+    let utils = new Utils();
+    let devOpsClass;
+
+    let checkPromotionsObject ={
+        promotionUpdates: {
+            "PRODUCTION": {
+                "activationId": "5355534",
+                "propertyName": "dev.devopsdemolive.com",
+                "propertyId": "429569",
+                "propertyVersion": 1,
+                "network": "PRODUCTION",
+                "activationType": "DEACTIVATE",
+                "status": "INACTIVE",
+                "submitDate": "2018-01-26T16:11:44Z",
+                "updateDate": "2018-01-26T16:19:55Z",
+                "note": "   ",
+                "notifyEmails": ["j@m.com"]
+            },
+            "STAGING": {
+                "activationId": "5355810",
+                "propertyName": "dev.devopsdemolive.com",
+                "propertyId": "429569",
+                "propertyVersion": 3,
+                "network": "STAGING",
+                "activationType": "DEACTIVATE",
+                "status": "ACTIVE",
+                "submitDate": "2018-01-30T18:37:23Z",
+                "updateDate": "2018-01-30T18:38:41Z",
+                "note": "   ",
+                "notifyEmails": ["j@m.com"],
+                "fmaActivationState": "steady",
+                "fallbackInfo": {
+                    "fastFallbackAttempted": false,
+                    "fallbackVersion": 1,
+                    "canFastFallback": true,
+                    "steadyStateTime": 1517337521,
+                    "fastFallbackExpirationTime": 1517341121,
+                    "fastFallbackRecoveryState": null
+                }
+            }
+        }
+    };
+
+    let envInfoObj = {
+        envInfo: {
+            "name": "old.snippets.com",
+            "propertyName": "old.snippets.comm",
+            "propertyId": 429569,
+            "latestVersionInfo": {
+                "propertyVersion": 1,
+                "updatedByUser": "jpws7ubcv5jjsv37",
+                "updatedDate": "2018-01-19T22:21:15Z",
+                "productionStatus": "ACTIVE",
+                "stagingStatus": "PENDING",
+                "etag": "ab1d556620690bea03c7a671230589b50808a71c",
+                "productId": "Web_App_Accel",
+                "ruleFormat": "latest"
+            },
+            "environmentHash": "65552d50550e97f1ec9d4c42b8ad97e3069f1a6a5a0df34230b199cd75d7c222",
+            "ruleTreeHash": "9816b34c7e3ecbeab3b9086bff48a8b1221bc9bdc981759a0a4d96235de65b65",
+            "lastSavedHash": "65552d50550e97f1ec9d4c42b8ad97e3069f1a6a5a0df34230b199cd75d7c222",
+            "lastSavedHostnamesHash": "b37548ddec7ced2fd63422383b3f57acaad83218f2b3dd740b2a74ebb4fc9057",
+            "activeIn_STAGING_Info": {
+                "propertyVersion": 1,
+                "updatedByUser": "jpws7ubcv5jjsv37",
+                "updatedDate": "2018-01-19T22:21:15Z",
+                "productionStatus": "ACTIVE",
+                "stagingStatus": "ACTIVE",
+                "etag": "ab1d556620690bea03c7a671230589b50808a71c",
+                "productId": "Web_App_Accel",
+                "ruleFormat": "latest"
+            },
+            "pendingActivations": {"STAGING": 5355534}
+        },
+        pending: {
+            network: "STAGING",
+            activationId: 5355534
+        }
+    };
+
+        let envInfoObj2 = {
+            envInfo: {
+                "name": "old.snippets.com",
+                "propertyName": "old.snippets.comm",
+                "propertyId": 429569,
+                "latestVersionInfo": {
+                    "propertyVersion": 1,
+                    "updatedByUser": "jpws7ubcv5jjsv37",
+                    "updatedDate": "2018-01-19T22:21:15Z",
+                    "productionStatus": "PENDING",
+                    "stagingStatus": "ACTIVE",
+                    "etag": "ab1d556620690bea03c7a671230589b50808a71c",
+                    "productId": "Web_App_Accel",
+                    "ruleFormat": "latest"
+                },
+                "environmentHash": "65552d50550e97f1ec9d4c42b8ad97e3069f1a6a5a0df34230b199cd75d7c222",
+                "ruleTreeHash": "9816b34c7e3ecbeab3b9086bff48a8b1221bc9bdc981759a0a4d96235de65b65",
+                "lastSavedHash": "65552d50550e97f1ec9d4c42b8ad97e3069f1a6a5a0df34230b199cd75d7c222",
+                "lastSavedHostnamesHash": "b37548ddec7ced2fd63422383b3f57acaad83218f2b3dd740b2a74ebb4fc9057",
+                "activeIn_STAGING_Info": {
+                    "propertyVersion": 1,
+                    "updatedByUser": "jpws7ubcv5jjsv37",
+                    "updatedDate": "2018-01-19T22:21:15Z",
+                    "productionStatus": "ACTIVE",
+                    "stagingStatus": "ACTIVE",
+                    "etag": "ab1d556620690bea03c7a671230589b50808a71c",
+                    "productId": "Web_App_Accel",
+                    "ruleFormat": "latest"
+                },
+                "pendingActivations": {"PRODUCTION": 5355534}
+            },
+            pending: {
+                network: "PRODUCTION",
+                activationId: 5355534
+            }
+    };
+
+
+    after(function (){
+        td.when(devOpsClass.prototype.checkPromotions("new.snippets.com", "new.snippets.com"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(checkPromotionsObject);
+                })
+            );
+    });
+
+    before(function () {
+        devOpsClass = td.constructor(DevOps);
+
+        td.when(devOpsClass.prototype.extractProjectName(td.matchers.isA(Object)))
+            .thenReturn("old.snippets.com");
+
+        td.when(devOpsClass.prototype.deactivate("old.snippets.com", "STAGING",
+            "test@foo.com", undefined))
+            .thenResolve(envInfoObj);
+
+        td.when(devOpsClass.prototype.deactivate("old.snippets.com", "STAGING",
+            "test@foo.com", "Message"))
+            .thenResolve(envInfoObj);
+
+        td.when(devOpsClass.prototype.deactivate("old.snippets.com", "PRODUCTION",
+            "test@foo.com", undefined))
+            .thenResolve(envInfoObj2);
+
+        td.when(devOpsClass.prototype.checkPromotions("old.snippets.com", "old.snippets.com"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(checkPromotionsObject);
+                })
+            );
+        td.when(devOpsClass.prototype.deactivate("old.snippets.com", "PRODUCTION", undefined, undefined))
+            .thenThrow("PM CLI Error: 'no_property_active_error' occurred: \n" +
+                " No version of the property with id = 494097 is active on STAGING network");
+
+        let devopsHome = baseDir;
+
+        createDevOpsFun = function (deps) {
+            let newDeps = {
+                devOpsClass,
+                devopsHome
+            };
+            Object.assign(deps, newDeps);
+
+            let devOps = createDevOps(deps);
+            devOps.devopsSettings = {
+                outputFormat: "table"
+            };
+            return devOps;
+        };
+    });
+
+    it('test deactivate', function () {
+        testConsole = new TestConsole();
+        let cliArgs = createCommand("deactivate", "-n", "STAGING", "-e", "test@foo.com", "--force-deactivate");
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            let output = testConsole.logs[1][0];
+            assert.equal(output, utils.readFile(path.join(baseDir, "testdata", "snippets.deactivate.output.txt")))
+        }, createDevOpsFun);
+    });
+
+    it('test deactivate with -m message', function () {
+        testConsole = new TestConsole();
+        let cliArgs = createCommand("deactivate", "-m", "Message", "-n", "STAGING", "-e", "test@foo.com", "--force-deactivate");
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            let output = testConsole.logs[1][0];
+            assert.equal(output, utils.readFile(path.join(baseDir, "testdata", "snippets.deactivate.output.txt")))
+        }, createDevOpsFun);
+    });
+
+    it('test deactivate II', function () {
+        testConsole = new TestConsole();
+        let cliArgs = createCommand("deactivate", "-n", "s", "-e", "test@foo.com", "--force-deactivate");
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            let output = testConsole.logs[1][0];
+            assert.equal(output, utils.readFile(path.join(baseDir, "testdata", "snippets.deactivate.output.txt")))
+        }, createDevOpsFun);
+    });
+
+    it('test deactivate when nothing is active', function () {
+        testConsole = new TestConsole();
+        let cliArgs = createCommand("deactivate", "-n", "p", "--force-deactivate");
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            assert.equal(errorCatcher.error, "PM CLI Error: 'no_property_active_error' occurred: \n" +
+                " No version of the property with id = 494097 is active on STAGING network")
+        }, createDevOpsFun);
+    });
+
+    it('test deactivate -w', function () {
+        testConsole = new TestConsole();
+        let cliArgs = createCommand("deactivate", "-w", "-n", "PRODUCTION", "-e", "test@foo.com", "--force-deactivate");
+
+        td.when(devOpsClass.prototype.checkPromotions("old.snippets.com", "old.snippets.com"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "PENDING";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "PENDING";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    resolve(checkPromotionsObject);
+                })
+            );
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            testConsole.logs.splice(testConsole.logs.length -3, 1);
+            let output = testConsole.logs.join("\n");
+            assert.equal(output, utils.readFile(path.join(baseDir, "testdata", "snippets.deactivate.wait.output.txt")))
+        }, createDevOpsFun);
+    });
+
+    it('test deactivate -w failed', function () {
+        testConsole = new TestConsole();
+        let cliArgs = createCommand("deactivate", "-w", "-n", "PRODUCTION", "-e", "test@foo.com", "--force-deactivate");
+
+        td.when(devOpsClass.prototype.checkPromotions("old.snippets.com", "old.snippets.com"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "PENDING";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "PENDING";
+                    resolve(clone);
+                }),
+                new Promise((resolve, reject) => {
+                    let clone = helpers.clone(checkPromotionsObject);
+                    clone.promotionUpdates.PRODUCTION.status = "FAILED";
+                    resolve(clone);                })
+            );
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            testConsole.logs.splice(testConsole.logs.length -3, 1);
+            let output = testConsole.logs.join("\n");
+            assert.equal(output, utils.readFile(path.join(baseDir, "testdata", "snippets.deactivate.wait.failed.output.txt")))
+        }, createDevOpsFun);
+    });
+
+    it('test deactivate -w wrong network name', function () {
+        testConsole = new TestConsole();
+        let cliArgs = createCommand("deactivate", "-n", "foo", "--force-deactivate");
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            assert.equal(errorCatcher.error, "Error: Illegal network name: 'foo'");
+        }, createDevOpsFun);
+    });
+
+    it('test deactivate no network name', function () {
+        testConsole = new TestConsole();
+        let cliArgs = createCommand("deactivate", "--force-deactivate");
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            assert.equal(errorCatcher.error, "Error: Need network name, staging or production");
+        }, createDevOpsFun);
+    });
+
+    it('test deactivate wrong network name', function () {
+        testConsole = new TestConsole();
+        let cliArgs = createCommand("deactivate", "-w", "-n", "foo", "--force-deactivate");
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            assert.equal(errorCatcher.error, "Error: Illegal network name: 'foo'");
+        }, createDevOpsFun);
+    });
+
+});
+
+describe('Snippets Deactivate missing property name', function () {
+    const devopsHome = baseDir;
+    let getProject;
+    let project;
+    before(function () {
+        getProject = td.func();
+        extractProjectName = td.func();
+
+        project = td.object(["updateProperty", "getName", "loadEnvironmentInfo"]);
+
+        td.when(project.getName()).thenReturn("testproject.com");
+        td.when(project.loadEnvironmentInfo()).thenReturn({
+            latestVersionInfo : {
+                propertyVersion : 9
+            }
+        });
+
+    });
+
+    it('deactivate output -no property', function () {
+
+        let basedir2 =  path.join(__dirname, "..","..","tests_no_default");
+
+        let createDevOpsFun2 = function (deps) {
+            let newDeps = {
+                devopsHome : basedir2
+            };
+            Object.assign(deps, newDeps);
+
+            let devOps = createDevOps(deps);
+            devOps.updateProperty = function(){
+                return project;
+            }
+            return devOps;
+        };
+        let cliArgs = createCommand("datv", "--force-deactivate");
+        let testConsole = new TestConsole();
+        return mainTester(errorReporter => {
+            main(cliArgs, {devopsHome :  path.join(__dirname, "..")}, createDevOpsFun2, errorReporter, testConsole);
+        }, errorCatcher => {
+            assert.equal(errorCatcher.error, 'Error: Can\'t read default property name from snippetsSettings.json and no property name provided per -p <property name> option');
+        });
+    });
+});
+
 
 describe('Snippets activate tests with exceptions', function () {
     let createDevOpsFun;

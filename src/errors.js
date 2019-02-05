@@ -87,7 +87,11 @@ class AlreadyActiveError extends AkamaiPDError {
         super(message, messageId, network, id);
     }
 }
-
+class NotActiveError extends AkamaiPDError {
+    constructor(message, messageId, network, id) {
+        super(message, messageId, network, id);
+    }
+}
 module.exports = {
     ExitError,
     AkamaiPDError,
@@ -100,5 +104,6 @@ module.exports = {
     UnusedVariableError,
     ValidationError,
     PendingActivationError,
-    AlreadyActiveError
+    AlreadyActiveError,
+    NotActiveError
 };

@@ -277,6 +277,9 @@ class CommonCli {
         try {
             let data = await devops.checkPromotions(devops.extractProjectName(options), envName);
             let results = _.map(data.promotionUpdates, function(activation, network) {
+                if (activation.activationType === "DEACTIVATE" && activation.status === "ACTIVE") {
+                    return [envName, network, activation.activationId, "DEACTIVATED"];
+                }
                 return [envName, network, activation.activationId, activation.status];
             });
             if (!options.waitForActivate) {

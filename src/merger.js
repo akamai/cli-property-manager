@@ -117,7 +117,7 @@ class Merger {
         });
         for (let unusedKey of unused) {
             let definition = variableDefinitions[unusedKey];
-            if (!definition.default) {
+            if (definition.default === null || definition.default === undefined) {
                 throw new errors.UnusedVariableError(`Variable '${unusedKey}' declared in '${definitionsFile}' without default ` +
                     `value and no value given in '${valuesFile}'`, "unused_variable", unusedKey);
             }
@@ -130,6 +130,7 @@ class Merger {
                 `'${definitionsFile}' but value assigned in '${valuesFile}'`,
                 "undefined_variables", ...undef);
         }
+        return true;
     }
 }
 

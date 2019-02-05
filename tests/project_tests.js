@@ -73,7 +73,53 @@ describe('Project Tests', function () {
     });
 });
 
+describe('Project Tests (custom property name)', function () {
+    let dummyUtil;
+    let data;
+    let devops;
+    let utils;
 
+    before(function () {
+        utils = new VerifyUtils();
+        data = [];
+
+        dummyUtil = new Proxy({}, {
+            get(receiver, name) {
+                return function (...args) {
+                    let params = args.slice();
+                    params.unshift(name);
+                    data.push(params);
+                }
+            }
+        });
+
+        devops = {
+            devopsHome : "homeSweetHome"
+        }
+    });
+
+    it('create Project (custom property name)', function () {
+        let project = new Project("Foobar", {
+            devops: devops,
+            getUtils: function () {
+                return dummyUtil;
+            },
+            version: "0.1.11"
+        });
+        assert.equal(project.getName(), "Foobar");
+        project.createProjectFolders({
+            projectName: "Foobar",
+            productId: "WAA",
+            contractId: "ABF543",
+            groupIds: [76342],
+            environments: ["foo", "bar", "prod"],
+            "customPropertyName": true
+
+        });
+        let testDataFile = path.join(__dirname, "project_tests_custom_name.data.json");
+        utils.writeJsonFile(testDataFile, data);
+    });
+});
 describe('Project check migration status test', function () {
     let devops, utilsProto;
 

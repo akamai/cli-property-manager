@@ -521,7 +521,7 @@ describe('Snippets Create environment tests', function () {
         td.when(project.loadEnvironmentInfo("testenv")).thenReturn(null);
 
         papi = td.object(['createProperty', 'latestPropertyVersion']);
-        td.when(papi.createProperty(projectName, "WAA", "BAZ234", 666)).thenReturn({
+        td.when(papi.createProperty(projectName, "WAA", "BAZ234", 666, null, undefined, undefined)).thenReturn({
             "propertyLink": "/papi/v0/properties/prp_410651?groupId=grp_61726&contractId=ctr_1-1TJZH5"
         });
         td.when(papi.latestPropertyVersion(410651)).thenReturn({

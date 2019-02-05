@@ -147,7 +147,7 @@ class ProjectPropertyManager extends project {
      * Setup templates.  We can "use" a conversion file but as of right now we don't want any variables.
      * @returns {Promise.<void>}
      */
-    async setupPropertyTemplate(ruleTree, variableMode) {
+    async setupPropertyTemplate(ruleTree, variableMode, update = false) {
         let suggestedRuleFormat;
         let projectInfo = this.getProjectInfo();
         let createTemplates = true;
@@ -172,7 +172,11 @@ class ProjectPropertyManager extends project {
         let resourceData = this.loadAndSubstituteProjectResourceData("snippets.converter.data.json", {
             environment: env
         });
-        ruleTree.rules.options.is_secure = projectInfo.isSecure;
+
+        //if we are doing an "update" we shouldn't overwrite the ruletree with whats on local
+        if (!update) {
+            ruleTree.rules.options.is_secure = projectInfo.isSecure;
+        }
         let template = this.dependencies.getTemplate(ruleTree, resourceData, productId);
         let templateData = template.process(variableMode);
         if (createTemplates) {
@@ -229,6 +233,19 @@ class ProjectPropertyManager extends project {
     async promote(projectName, network, emails, message) {
         logger.info(`Activating property '${projectName}' on network '${network}'`);
         return this.getEnvironment(projectName).promote(network, emails, message);
+    }
+
+    /**
+     * Deactivate a property
+     * @param projectName
+     * @param network
+     * @param emails
+     * @param message
+     * @returns {Promise<Promise<*>|Promise<{envInfo: *, pending: {network: *, activationId: Number}}>|*>}
+     */
+    async deactivate(projectName, network, emails, message) {
+        logger.info(`Deactivating property '${projectName}' on network '${network}'`);
+        return this.getEnvironment(projectName).deactivate(network, emails, message);
     }
 }
 

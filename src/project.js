@@ -142,6 +142,9 @@ class Project {
                 section: this.devopsSettings.edgeGridConfig.section
             };
         }
+        if (_.isBoolean(createProjectInfo.customPropertyName) && createProjectInfo.customPropertyName) {
+            this.projectInfo.customPropertyName = createProjectInfo.customPropertyName;
+        }
         this.projectInfo.name = this.projectName;
         //todo: what other stuff can go here?
         let infoPath = path.join(this.projectFolder, "projectInfo.json");

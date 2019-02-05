@@ -246,6 +246,9 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         if (_.isBoolean(options.insecure)) {
             createPipelineInfo.secureOption = !options.insecure;
         }
+        if (_.isBoolean(options.customPropertyName)) {
+            createPipelineInfo.customPropertyName = options.customPropertyName;
+        }
         if (dryRun) {
             consoleLogger.info("create pipeline info: ", helpers.jsonStringify(createPipelineInfo));
         } else {
@@ -388,14 +391,11 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
      * @param options
      */
     const showRuletree = function(devops, environmentName, options) {
-        devops.getProject(devops.extractProjectName(options))
+        return devops.getProject(devops.extractProjectName(options))
             .getRuleTree(environmentName)
             .then(data => {
                 consoleLogger.info(helpers.jsonStringify(data));
             })
-            .catch(error => {
-                consoleLogger.error(error);
-            });
     }
 
     /**
@@ -455,12 +455,13 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
             "its own group, provide the same number of groupIds as environments by using multiple -g options.", helpers.repeatable(helpers.parseGroupId), [])
         .option('-c, --contractId [contractId]', "Contract ID, optional if -e propertyId/Name is used", helpers.prefixeableString('ctr_'))
         .option('-d, --productId [productId]', "Product ID, optional if -e propertyId/Name is used", helpers.prefixeableString('prd_'))
-        .option('-e, --propertyId [propertyId]', "Use existing property as blue print for pipeline templates. " +
+        .option('-e, --propertyId [propertyId/propertyName]', "Use existing property as blue print for pipeline templates. " +
             "Either pass property ID or exact property name. Akamai pipeline will lookup account information like group id, " +
             "contract id and product id of the existing property and use the information for creating pipeline properties")
-        .option('-n, --version [version]', "Specify version of property, if omitted, use latest", helpers.parsePropertyVersion)
+        .option('-n, --version [version]', "Can be used only if option '-e' is being used. Specify version of existing property being used as blue print, if omitted, use latest", helpers.parsePropertyVersion)
         .option('--secure', "Make new pipeline secure, all environment properties are going to be secure")
         .option('--insecure', "Make all environment properties not secure")
+        .option('--custom-property-name', "To use custom property names")
         .option('--variable-mode [variableMode]', `Choose how your new pipeline will pull in variable.  Allowed values are ${printAllowedModes()}.  Only works when creating a pipeline from an existing property`)
         .alias("np")
         .action(function(...args) {
@@ -671,6 +672,9 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
                     });
                 }
             }
+        } else {
+            throw new errors.ArgumentError(`No command called`,
+                "cli_unexpected_parameters");
         }
     } catch (error) {
         if (error instanceof errors.ExitError) {

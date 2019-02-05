@@ -1,0 +1,17 @@
+{
+    "name": "bar",
+    "propertyName": "bar",
+    "groupId": 61726,
+    "isSecure": false,
+    "propertyId": 411090,
+    "latestVersionInfo": {
+        "propertyVersion": 1,
+        "updatedByUser": "jpws7ubcv5jjsv37",
+        "updatedDate": "2017-11-13T21:49:19Z",
+        "productionStatus": "INACTIVE",
+        "stagingStatus": "INACTIVE",
+        "etag": "7791f7985b1a08f74b57bb5e35e57c75d00324ce",
+        "productId": "Web_App_Accel",
+        "ruleFormat": "latest"
+    }
+}

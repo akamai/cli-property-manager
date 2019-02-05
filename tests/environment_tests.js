@@ -522,7 +522,7 @@ describe('Create environment tests', function () {
         td.when(project.loadEnvironmentInfo("testenv")).thenReturn(null);
 
         papi = td.object(['createProperty', 'latestPropertyVersion']);
-        td.when(papi.createProperty("testenv." + projectName, "WAA", "BAZ234", 666)).thenReturn({
+        td.when(papi.createProperty("testenv." + projectName, "WAA", "BAZ234", 666,null, undefined, undefined)).thenReturn({
             "propertyLink": "/papi/v0/properties/prp_410651?groupId=grp_61726&contractId=ctr_1-1TJZH5"
         });
         td.when(papi.latestPropertyVersion(410651)).thenReturn({
@@ -622,6 +622,88 @@ describe('Create environment tests', function () {
         let testRuleTree = utils.readJsonFile(path.join(__dirname, "testdata", "testruletree.waa.json"));
         await myProject.setupPropertyTemplate(testRuleTree);
     });
+});
+
+describe('Create environment tests (custom property name', function () {
+    let papi;
+    let project;
+    let projectName = "awesomeproject.com";
+    before(function () {
+        project = td.object(['storeEnvironmentInfo', 'storeEnvironmentHostnames', 'loadEnvironmentInfo', 'getProjectInfo', 'getName']);
+        td.when(project.getProjectInfo()).thenReturn({
+            name: projectName,
+            productId: "WAA",
+            contractId: "BAZ234",
+            groupId: 666,
+            customPropertyName: true,
+            environments: ["testenv_custom_name", "blubb", "zuck"]
+        });
+        td.when(project.getName()).thenReturn(projectName);
+        td.when(project.loadEnvironmentInfo("testenv_custom_name")).thenReturn(null);
+
+        papi = td.object(['createProperty', 'latestPropertyVersion']);
+        td.when(papi.createProperty("testenv_custom_name", "WAA", "BAZ234", 666, null, undefined, undefined)).thenReturn({
+            "propertyLink": "/papi/v0/properties/prp_410651?groupId=grp_61726&contractId=ctr_1-1TJZH5"
+        });
+        td.when(papi.latestPropertyVersion(410651)).thenReturn({
+            "propertyId": "410651",
+            "propertyName": "testenv_custom_name",
+            "accountId": "1-1TJZFB",
+            "contractId": "1-1TJZH5",
+            "groupId": "61726",
+            "assetId": "10501028",
+            "versions": {
+                "items": [
+                    {
+                        "propertyVersion": 1,
+                        "updatedByUser": "jpws7ubcv5jjsv37",
+                        "updatedDate": "2017-11-07T19:45:55Z",
+                        "productionStatus": "INACTIVE",
+                        "stagingStatus": "INACTIVE",
+                        "etag": "42f95e8b3cd22579a09cd68f27a477f53cfd2f5e",
+                        "productId": "Web_App_Accel",
+                        "ruleFormat": "latest"
+                    }
+                ]
+            }
+        });
+    });
+
+    it('create Environment (custom property name)', async function () {
+        let env = new Environment('testenv_custom_name', {
+            project: project,
+            getPAPI: function() {
+                return papi;
+            },
+            getTemplate: function(pmData, rules) {
+                return new Template(pmData, rules)
+            }
+        });
+        await env.create({
+            isInRetryMode: false,
+            customPropertyName: true,
+            environmentGroupIds: {
+                testenv_custom_name: 666
+            },
+            secureOption: false
+        });
+        td.verify(project.storeEnvironmentInfo(td.matchers.contains({
+            name: "testenv_custom_name",
+            propertyId: 410651,
+            propertyName: "testenv_custom_name",
+            latestVersionInfo: {
+                propertyVersion: 1,
+                updatedByUser: "jpws7ubcv5jjsv37",
+                updatedDate: "2017-11-07T19:45:55Z",
+                productionStatus: "INACTIVE",
+                stagingStatus: "INACTIVE",
+                etag: "42f95e8b3cd22579a09cd68f27a477f53cfd2f5e",
+                productId: "Web_App_Accel",
+                ruleFormat: "latest"
+            }
+        })));
+    });
+
 });
 
 describe('create edgehostname tests', function () {

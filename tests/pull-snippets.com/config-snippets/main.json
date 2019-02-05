@@ -1,0 +1,77 @@
+{
+    "rules": {
+        "name": "default",
+        "children": [
+            "#include:compression.json",
+            "#include:static.json",
+            "#include:dynamic.json"
+        ],
+        "behaviors": [
+            {
+                "name": "origin",
+                "options": {
+                    "cacheKeyHostname": "ORIGIN_HOSTNAME",
+                    "compress": true,
+                    "enableTrueClientIp": false,
+                    "forwardHostHeader": "REQUEST_HOST_HEADER",
+                    "httpPort": 80,
+                    "originType": "CUSTOMER"
+                }
+            },
+            {
+                "name": "cpCode",
+                "options": {}
+            },
+            {
+                "name": "caching",
+                "options": {
+                    "behavior": "NO_STORE"
+                }
+            },
+            {
+                "name": "sureRoute",
+                "options": {
+                    "enabled": true,
+                    "forceSslForward": false,
+                    "raceStatTtl": "30m",
+                    "toHostStatus": "INCOMING_HH",
+                    "type": "PERFORMANCE"
+                }
+            },
+            {
+                "name": "tieredDistribution",
+                "options": {
+                    "enabled": true,
+                    "tieredDistributionMap": "CH2"
+                }
+            },
+            {
+                "name": "prefetch",
+                "options": {
+                    "enabled": true
+                }
+            },
+            {
+                "name": "allowPost",
+                "options": {
+                    "allowWithoutContentLength": false,
+                    "enabled": true
+                }
+            },
+            {
+                "name": "report",
+                "options": {
+                    "logAcceptLanguage": false,
+                    "logCookies": "OFF",
+                    "logCustomLogField": false,
+                    "logHost": false,
+                    "logReferer": false,
+                    "logUserAgent": true
+                }
+            }
+        ],
+        "options": {
+            "is_secure": false
+        }
+    }
+}

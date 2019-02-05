@@ -59,7 +59,7 @@ const deepMerge = function(obj1, obj2) {
 
 const parseNumericResourceId = function(id, prefix, idName, errorId) {
     let parsedValue = id;
-    if (_.isString(prefix) && id.startsWith(prefix)) {
+    if (_.isString(id) && _.isString(prefix) && id.startsWith(prefix)) {
         parsedValue = id.slice(prefix.length);
     }
     parsedValue = parseInteger(parsedValue);
@@ -121,8 +121,12 @@ module.exports = {
         return parseNumericResourceId(propertyId, "prp_", "propertyId", "illegal_property_id");
     },
 
-    parseEdgehostnameId: function(propertyId) {
-        return parseNumericResourceId(propertyId, "ehn_", "edgehostnameId", "illegal_edgehostname_id");
+    parseActivationId: function(activationId) {
+        return parseNumericResourceId(activationId, "atv_", "activationId", "illegal_activation_id");
+    },
+
+    parseEdgehostnameId: function(edgehostnameId) {
+        return parseNumericResourceId(edgehostnameId, "ehn_", "edgehostnameId", "illegal_edgehostname_id");
     },
 
     parsePropertyVersion: function(versionNum) {

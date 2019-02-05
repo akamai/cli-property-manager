@@ -1,0 +1,100 @@
+{
+    "rules": {
+        "name": "default",
+        "children": [
+            "#include:compression.json",
+            "#include:static.json",
+            "#include:dynamic.json"
+        ],
+        "behaviors": [
+            {
+                "name": "origin",
+                "options": {
+                    "cacheKeyHostname": "ORIGIN_HOSTNAME",
+                    "hostname": "{{user.PMUSER_HOSTNAME}}",
+                    "compress": true,
+                    "enableTrueClientIp": false,
+                    "forwardHostHeader": "REQUEST_HOST_HEADER",
+                    "httpPort": 80,
+                    "originType": "CUSTOMER"
+                }
+            },
+            {
+                "name": "cpCode",
+                "options": {
+                    "value": {
+                        "id": 372773
+                    }
+                }
+            },
+            {
+                "name": "caching",
+                "options": {
+                    "behavior": "NO_STORE"
+                }
+            },
+            {
+                "name": "sureRoute",
+                "options": {
+                    "enabled": true,
+                    "type": "PERFORMANCE",
+                    "testObjectUrl": "/sureroute-test-object.html",
+                    "toHostStatus": "INCOMING_HH",
+                    "raceStatTtl": "30m",
+                    "forceSslForward": true,
+                    "enableCustomKey": false
+                }
+            },
+            {
+                "name": "tieredDistribution",
+                "options": {
+                    "enabled": true,
+                    "tieredDistributionMap": "CH2"
+                }
+            },
+            {
+                "name": "prefetch",
+                "options": {
+                    "enabled": true
+                }
+            },
+            {
+                "name": "allowPost",
+                "options": {
+                    "allowWithoutContentLength": false,
+                    "enabled": true
+                }
+            },
+            {
+                "name": "report",
+                "options": {
+                    "logAcceptLanguage": false,
+                    "logCookies": "OFF",
+                    "logCustomLogField": false,
+                    "logHost": false,
+                    "logReferer": false,
+                    "logUserAgent": true
+                }
+            }
+        ],
+        "options": {
+            "is_secure": false
+        },
+        "variables": [
+            {
+                "name": "PMUSER_HOSTNAME",
+                "value": "www.example-origin.com",
+                "description": "",
+                "hidden": false,
+                "sensitive": false
+            },
+            {
+                "name": "PMUSER_FOO",
+                "value": "fooooo",
+                "description": "",
+                "hidden": false,
+                "sensitive": false
+            }
+        ]
+    }
+}

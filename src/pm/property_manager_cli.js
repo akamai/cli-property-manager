@@ -26,7 +26,7 @@ const errors = require('../errors');
 const logging = require('../logging');
 const helpers = require('../helpers');
 const commonCliClass = require('../common/common_cli');
-
+const inquirer = require('inquirer');
 
 const reportLabel = {
     table: "Property",
@@ -364,8 +364,107 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         }
     };
 
+    /**
+     * deactivate property in staging or production network.
+     * @type {Function}
+     */
+    const deactivate = async function(devops, options) {
+        let runDatv = options.forceDeactivate;
+        let propertyName = devops.extractProjectName(options);
+        let network = commonCli.checkNetworkName(options);
+        if (!runDatv) {
+            var questions = [{
+                type: 'confirm',
+                name: 'DeactivateConfirmed',
+                message: `WARNING:  This will deactivate the property '${propertyName}' on network '${network}'.
+Are you sure you want to Deactivate the property '${propertyName}' on network '${network}'?`,
+                default: false
+            }];
+            let answer = await inquirer.prompt(questions);
+            runDatv = answer.DeactivateConfirmed;
+        }
+        if (runDatv) {
+            let data = await devops.deactivate(propertyName, network, options.emails, options.message);
+            let pending = data.pending;
+            if (devops.devopsSettings.outputFormat === 'table') {
+                consoleLogger.info("Following deactivations are now pending:");
+                data = [
+                    ["Property", "Network", "Activation Id"],
+                    [propertyName, pending.network, pending.activationId]
+                ];
+                consoleLogger.info(AsciiTable.table(data, 30));
+            } else {
+                data = {
+                    property: propertyName,
+                    network: pending.network,
+                    activationId: pending.activationId
+                };
+                consoleLogger.info(helpers.jsonStringify(data));
+            }
+            if (options.waitForActivate) {
+                return checkActivations(devops, options);
+            }
+        }
+    };
+
     const checkActivations = async function(devops, options) {
         return commonCli.checkActivations(devops, devops.extractProjectName(options), options);
+    };
+
+    const importProperty = async function(devops, options) {
+        let propertyName = options.property;
+        if (!propertyName || _.isBoolean(propertyName)) {
+            throw new errors.DependencyError("Missing property option! Use akamai pm import -p <property name> ...",
+                "missing_property_name");
+        }
+        consoleLogger.info(`Importing and creating local files for ${propertyName} from Property Manager...`);
+        let createPropertyInfo = {
+            propertyName
+        };
+        let dryRun = options.dryRun;
+        if (dryRun) {
+            consoleLogger.info("update property info: ", helpers.jsonStringify(createPropertyInfo));
+        } else {
+            let project = await devops.importProperty(createPropertyInfo);
+            consoleLogger.info(`Imported ${project.getName()}. The latest version is: v${project.loadEnvironmentInfo().latestVersionInfo.propertyVersion}`);
+
+        }
+    };
+
+    const update = async function(devops, options) {
+        let runPull = options.forceUpdate;
+        let projectName = devops.extractProjectName(options);
+
+        if (!runPull) {
+            var questions = [{
+                type: 'confirm',
+                name: 'pullConfirmed',
+                message: `WARNING: This will overwrite the local files for the property '${projectName}'.  Please ensure you have saved your work to your local repository!\nAre you sure you want to pull?`,
+                default: false
+            }];
+            let answer = await inquirer.prompt(questions);
+            runPull = answer.pullConfirmed;
+        }
+
+        if (runPull) {
+            let variableMode = helpers.allowedModes[1];
+            let createPropertyInfo = {
+                projectName,
+                variableMode
+            };
+
+            let dryRun = options.dryRun || false;
+
+
+            if (dryRun) {
+                consoleLogger.info("update property info: ", helpers.jsonStringify(createPropertyInfo));
+            } else {
+                consoleLogger.info(`Updating and overwriting local files for ${projectName} from PAPI...`);
+                let project = await devops.updateProperty(createPropertyInfo);
+                consoleLogger.info(`Updated ${project.getName()} to the latest: v${project.loadEnvironmentInfo().latestVersionInfo.propertyVersion}`);
+            }
+        }
+
     };
 
     let actionCalled;
@@ -388,10 +487,10 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         .option('-g, --groupId [groupId]', "Group ID, optional if -e propertyId/Name is used", helpers.parseGroupId)
         .option('-c, --contractId [contractId]', "Contract ID, optional if -e propertyId/Name is used", helpers.prefixeableString('ctr_'))
         .option('-d, --productId [productId]', "Product ID, optional if -e propertyId/Name is used", helpers.prefixeableString('prd_'))
-        .option('-e, --propertyId [propertyId]', "Use existing property as blue print for PM CLI property. " +
+        .option('-e, --propertyId [propertyId/propertyName]', "Use existing property as blue print for PM CLI property. " +
             "Either pass property ID or exact property name. PM CLI will lookup account information like group id, " +
             "contract id and product id of the existing property and use the information for creating PM CLI properties")
-        .option('-n, --version [version]', "Specify version of property, if omitted, use latest", helpers.parsePropertyVersion)
+        .option('-n, --version [version]', "Can be used only if option '-e' is being used. Specify version of existing property being used as blue print, if omitted, use latest", helpers.parsePropertyVersion)
         .option('--secure', "Make new property secure")
         .option('--insecure', "Make new property not secure")
         .alias("np")
@@ -534,6 +633,21 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         });
 
     commander
+        .command("deactivate",
+            "Deactivate a PM CLI property. This command will check if the property is active and then deactivate it")
+        .option('-p, --property [propertyName]', 'PM CLI property name')
+        .option('-n, --network <network>', "Network, either 'production' or 'staging', can be abbreviated to 'p' or 's'")
+        .option('-e, --emails [emails]', "Comma separated list of email addresses. Optional if default emails were previously set with set-default")
+        .option('-m, --message [message]', "deactivation message passed to backend")
+        .option('-w, --wait-for-activate', "Return after the property is deactivated.")
+        .option('--force-deactivate', 'WARNING:  This option will bypass the confirmation prompt and will Deactivate your property on the network')
+        .alias("datv")
+        .action(function(...args) {
+            argumentsUsed = args;
+            actionCalled = deactivate
+        });
+
+    commander
         .command("check-activation-status", "Check status of activation of a PM CLI property.")
         .option('-p, --property [propertyName]', 'PM CLI property name')
         .option('-w, --wait-for-activate', "Return after activation of a PM CLI property is active.")
@@ -541,6 +655,27 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         .action(function(...args) {
             argumentsUsed = args;
             actionCalled = checkActivations
+        });
+
+    commander
+        .command("update-local", "Update local property with the latest from Property Manager.")
+        .option('-p, --property [propertyName]', 'PM CLI property name')
+        .option('--dry-run', 'Just parse the parameters and print out the json generated that would normally call the create property funtion.')
+        .option('--force-update', 'WARNING:  This option will bypass the confirmation prompt and will overwrite your local files')
+        .alias("ul")
+        .action(function(...args) {
+            argumentsUsed = args;
+            actionCalled = update
+        });
+
+    commander
+        .command("import", "Import a property from Property Manager.")
+        .option('-p, --property [propertyName]', 'PM CLI property name')
+        .option('--dry-run', 'Just parse the parameters and print out the json generated that would normally call the create property funtion.')
+        .alias("i")
+        .action(function(...args) {
+            argumentsUsed = args;
+            actionCalled = importProperty
         });
 
     commander
@@ -593,6 +728,9 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
                     });
                 }
             }
+        } else {
+            throw new errors.ArgumentError(`No command called`,
+                "cli_unexpected_parameters");
         }
     } catch (error) {
         if (error instanceof errors.ExitError) {
