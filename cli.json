@@ -6,13 +6,13 @@
     {
       "name": "snippets",
       "aliases": ["pm", "property-manager"],
-      "version": "0.3.5",
+      "version": "0.3.6",
       "description": "Property Manager CLI for DevOps"
     },
     {
       "name": "pipeline",
       "aliases": ["pl", "pipeline", "pd", "proddeploy"],
-      "version": "0.3.5",
+      "version": "0.3.6",
       "description": "Akamai Pipeline for DevOps"
     }
   ]
