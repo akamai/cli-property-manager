@@ -1171,6 +1171,20 @@ describe('list tests', function () {
             assert.equal(output, utils.readFile(path.join(__dirname, "testdata", "groupList.output.txt")))
         }, createDevOpsFun);
     });
+
+    it('listGroups called twice, no subcommand should be called by commander.js', function () {
+        let cliArgs = createCommand("lg", "lg");
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": __dirname
+            }, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            assert.exists(errorCatcher);
+            assert.equal(errorCatcher.error,
+                "Error: Didn't expect these parameters: 'lg'", errorCatcher.error.stack);
+        }, createDevOpsFun);
+    });
 });
 
 describe('merge tests', function () {

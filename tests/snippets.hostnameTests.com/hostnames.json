@@ -6,8 +6,21 @@
     "edgeHostnameId": null
   },
   {
+    "cnameFrom": "qa.secureTestproject.com",
+    "cnameTo": "qa.testproject.com.edgekey.net",
+    "cnameType": "EDGE_HOSTNAME",
+    "certEnrollmentId" : 123456,
+    "edgeHostnameId": null
+  },
+  {
     "cnameFrom": "qa.securesite.com",
     "cnameTo": "qa.securesite.com.edgekey.net",
+    "cnameType": "EDGE_HOSTNAME",
+    "edgeHostnameId": null
+  },
+  {
+    "cnameFrom": "qa.customEdgeHostname.com",
+    "cnameTo": "qa.testproject.com.customEdgeHostname.net",
     "cnameType": "EDGE_HOSTNAME",
     "edgeHostnameId": null
   },
@@ -18,7 +31,7 @@
     "edgeHostnameId": null
   },{
     "cnameFrom": "qa.securesiteNoCreate.com",
-    "cnameTo": "qa.notfound.com.edgekey.net",
+    "cnameTo": "qa.noCertEnrollmentId.com.edgekey.net",
     "cnameType": "EDGE_HOSTNAME",
     "edgeHostnameId": null
   },

@@ -54,6 +54,7 @@ In order to create a new property you also need to specify a group Id, product I
      -d, --productId [productId]                 Product ID, optional if -e propertyId/Name is used
      -e, --propertyId [propertyId/propertyName]  Use existing property as blue print for PM CLI property. Either pass property ID or exact property name. PM CLI will lookup account information like group id, contract id and product id of the existing property and use the information for creating PM CLI properties
      -n, --version [version]                     Can be used only if option '-e' is being used. Specify version of existing property being used as blue print, if omitted, use latest
+     --variable-mode [variableMode]              Choose how your new property will pull in variable.  Allowed values are 'default', 'no-var', and 'user-var-value'.  Only works when creating a property from an existing property
      --secure                                    Make new property secure
      --insecure                                  Make new property not secure
      -h, --help                                  output usage information
@@ -68,9 +69,10 @@ In order to create a new property you also need to specify a group Id, product I
    Import a property from Property Manager.
    
    Options:
-     -p, --property [propertyName]  PM CLI property name
-     --dry-run                      Just parse the parameters and print out the json generated that would normally call the create property funtion.
-     -h, --help                     output usage information
+     -p, --property [propertyName]   PM CLI property name
+     --dry-run                       Just parse the parameters and print out the json generated that would normally call the create property funtion.
+     --variable-mode [variableMode]  Choose how your import will pull in variables.  Allowed values are 'no-var' and 'user-var-value'.  Default functionality is no-var
+     -h, --help                      output usage information
    
    
 ## <a name="pull"></a>Update property
@@ -81,10 +83,11 @@ Update local property with the latest from papi.
    Update local property with the latest from Property Manager.
    
    Options:
-     -p, --property [propertyName]  PM CLI property name
-     --dry-run                      Just parse the parameters and print out the json generated that would normally call the create property funtion.
-     --force-update                 WARNING:  This option will bypass the confirmation prompt and will overwrite your local files
-     -h, --help                     output usage information
+     -p, --property [propertyName]   PM CLI property name
+     --dry-run                       Just parse the parameters and print out the json generated that would normally call the create property funtion.
+     --variable-mode [variableMode]  Choose how your update-local will pull in variables.  Allowed values are 'no-var' and 'user-var-value'.  Default functionality is no-var
+     --force-update                  WARNING:  This option will bypass the confirmation prompt and will overwrite your local files
+     -h, --help                      output usage information
    
    
 ## <a name="merge"></a>Merge

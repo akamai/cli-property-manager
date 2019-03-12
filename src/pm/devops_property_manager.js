@@ -127,10 +127,10 @@ class DevopsPropertyManager extends Devops {
         logger.info(`Attempting to load rule tree for property id: ${createPropertyInfo.propertyId} and version: ${createPropertyInfo.propertyVersion}`);
         let ruleTree = await project.getPropertyRuleTree(createPropertyInfo.propertyId, createPropertyInfo.propertyVersion);
         createPropertyInfo.groupId = helpers.parseGroupId(propertyInfo.groupId);
-        createPropertyInfo.contractId = propertyInfo.contractId;
-        createPropertyInfo.productId = propertyInfo.productId;
+        createPropertyInfo.contractId = helpers.prefixeableString('ctr_')(propertyInfo.contractId);
+        createPropertyInfo.productId = helpers.prefixeableString('prd_')(propertyInfo.productId);
         createPropertyInfo.secureOption = ruleTree.rules.options.is_secure;
-        createPropertyInfo.variableMode = helpers.allowedModes[1];
+        createPropertyInfo.variableMode = createPropertyInfo.variableMode || helpers.allowedModes[1];
 
         logger.info('Importing existing property with data: ', helpers.jsonStringify(createPropertyInfo));
 

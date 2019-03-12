@@ -1,0 +1,22 @@
+{
+    "name": "merger.variables.snippets.com",
+    "propertyName": "merger.variables.com",
+    "environmentHash": "e0ff694ab387e42e5697a93297808132f51d4cf33fac80dacb3be675f8b372c2",
+    "ruleTreeHash": "99098cceffd2e1ebfa92b350e2b3134c9463e5d18ba3fc6201d7ddd27226c520",
+    "groupId": 61726,
+    "isSecure": false,
+    "lastSaveErrors": [],
+    "lastSaveWarnings": [],
+    "lastValidatedHash": "f91b2efb777cc1a6124d844e4a707676c9e2c105b8852f4700071193b221aaa2",
+    "propertyId": 411089,
+    "latestVersionInfo": {
+        "propertyVersion": 1,
+        "updatedByUser": "jpws7ubcv5jjsv37",
+        "updatedDate": "2017-11-13T21:49:05Z",
+        "productionStatus": "INACTIVE",
+        "stagingStatus": "INACTIVE",
+        "etag": "7cf327786d5a73aa6340452a064fb77589f750b0",
+        "productId": "Web_App_Accel",
+        "ruleFormat": "latest"
+    }
+}

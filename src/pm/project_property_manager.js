@@ -115,20 +115,45 @@ class ProjectPropertyManager extends project {
         }
     }
 
-    /*
-     *  Don't store variable definitions for PM.  Overwriting to do nothing
-     */
-    storeVariableDefinitions() {}
 
-    /*
-     *  Don't load variable definitions for PM.  Overwriting to do nothing
-     */
-    loadVariableDefinitions() {}
+    storeVariableDefinitions(variables) {
+        let resourcePath = path.join(this.projectFolder, "variableDefinitions.json");
+        this.utils.writeJsonFile(resourcePath, variables);
+        return resourcePath;
+    }
 
-    /*
-     *  Don't store variables for PM.  Overwriting to do nothing
-     */
-    storeEnvironmentVariableValues() {}
+    loadVariableDefinitions() {
+        let resourcePath = path.join(this.projectFolder, "variableDefinitions.json");
+        return {
+            resource: this.utils.readJsonFile(resourcePath),
+            resourcePath: path.join("variableDefinitions.json")
+        }
+    }
+    variableDefinitionsExist() {
+        let resourcePath = path.join(this.projectFolder, "variableDefinitions.json");
+        return this.utils.fileExists(resourcePath);
+    }
+
+
+    storeEnvironmentVariableValues(variableValues) {
+        let resourcePath = path.join(this.projectFolder, "variables.json");
+        this.utils.writeJsonFile(resourcePath, variableValues);
+        return resourcePath;
+    }
+
+    variablesExist() {
+        let resourcePath = path.join(this.projectFolder, "variables.json");
+        return this.utils.fileExists(resourcePath);
+    }
+
+    loadEnvironmentVariableValues() {
+        let resourcePath = path.join(this.projectFolder, "variables.json");
+        return {
+            resource: this.utils.readJsonFile(resourcePath),
+            resourcePath: path.join("variables.json")
+        }
+    }
+
 
     checkInfoPath(infoPath) {
         if (!this.utils.fileExists(infoPath)) {
@@ -136,12 +161,6 @@ class ProjectPropertyManager extends project {
                 "missing_pm_cli_info_file", infoPath);
         }
     }
-
-
-    /*
-     *  Don't load variables for snippets.  Overwriting to do nothing
-     */
-    loadEnvironmentVariableValues() {}
 
     /**
      * Setup templates.  We can "use" a conversion file but as of right now we don't want any variables.
@@ -184,7 +203,11 @@ class ProjectPropertyManager extends project {
             _.each(templateData.templates, (value, key) => {
                 this.storeTemplate(key, value);
             }, this);
-
+            //Only write to variable definitions if there already exists a variable definitions file
+            //or if we are using 'user-var-value' mode for user variables
+            if (this.variableDefinitionsExist() || !_.isEmpty(templateData.variables.definitions)) {
+                this.storeVariableDefinitions(templateData.variables);
+            }
         }
 
         createTemplates = false;

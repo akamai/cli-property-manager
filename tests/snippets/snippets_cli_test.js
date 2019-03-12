@@ -168,21 +168,6 @@ describe('Snippets CLI create new project', function () {
         });
     });
 
-    it('fail on create new project with variable-mode', function () {
-        let cliArgs = createCommand("np", "-p", "testproject2.com", "--variable-mode", "default",
-            "-g", "62234", "-c", "XYZ123", "-d", "NiceProduct",  "-e", "foo.com");
-
-        return mainTester(errorReporter => {
-            main(cliArgs, {
-                "AKAMAI_PROJECT_HOME": baseDir
-            }, createDevOpsFun, errorReporter);
-        }, errorCatcher => {
-            assert.exists(errorCatcher);
-            assert.equal(errorCatcher.error,
-                "Error: Unknown option: '--variable-mode'");
-        });
-    });
-
     it('create new project with secure option', function () {
         let cliArgs = createCommand("np", "-p", "testproject2.com",
             "-g", "62234", "-c", "XYZ123", "--secure", "-d", "NiceProduct");
@@ -474,7 +459,8 @@ describe('Snippets CLI import property', function () {
         };
 
         td.when(devOpsClass.prototype.importProperty({
-            propertyName: "non_existent_property.com"
+            propertyName: "non_existent_property.com",
+            variableMode: "no-var"
         }))
             .thenThrow(utils.readFile(path.join(baseDir, "testdata", "import.non.existent.property.output.txt")));
     });
@@ -488,7 +474,8 @@ describe('Snippets CLI import property', function () {
             }, createDevOpsFun, errorReporter);
         }, errorCatcher => {
             td.verify(devOpsClass.prototype.importProperty({
-                propertyName: "propertyName.com"
+                propertyName: "propertyName.com",
+                variableMode: "no-var"
             }));
         });
     });

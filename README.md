@@ -40,8 +40,7 @@
 
     * [Retrieving a specific rule from Property Manager](#retrieving-a-specific-rule-from-property-manager)
  
-    * [Using Property Manager user variables with Akamai Pipeline
-](#using-property-manager-user-variables-with-akamai-pipeline)
+    * [Using Property Manager user variables](#using-property-manager-user-variables)
 
     * [Using attributes that vary across environments with Akamai Pipeline](#using-attributes-that-vary-across-environments-with-akamai-pipeline)
 
@@ -458,17 +457,20 @@ You may want to manually retrieve the new rules from the Property Manager UI wit
 
 To get the JSON syntax for these rules, open the property version in the Property Manager application, select a rule, and click **View Rule JSON** to display the syntax. You can then copy the JSON and [create a new snippet](#add-a-new-snippet) for the rule.
 
-## Using Property Manager user variables with Akamai Pipeline
+## Using Property Manager user variables
 
-Some Property Manager behaviors, like Origin Server ([`origin`](https://developer.akamai.com/api/core_features/property_manager/v2018-02-27.html#origin)), let you define custom user variables for certain settings. 
+Some Property Manager behaviors, like Origin Server [`origin`](https://developer.akamai.com/api/core_features/property_manager/v2018-02-27.html#origin), let you define custom user variables for certain settings. 
 
-If you have an existing property that includes user variables, Akamai Pipeline recognizes these variables and automatically populates the `variabledefinitions.json` and the environment-specific `variables.json` files to support these variables. 
+Before using a property as a template for a pipeline or a local property configuration, see whether it contains custom variables. If it does, review these custom variables in the Property Manager application and adjust as needed. 
+When you’re finally ready to run the command to create the pipeline or local configuration, use the `--variable-mode user-var-value` option with one of these values:
 
-As a best practice, review your property's custom variables in the Property Manager application before creating a new pipeline and adjust as needed. If you’re creating a pipeline from an existing property, you can use the `--variable-mode user-var-value` option with a value of `user-var-value` when running the `akamai new-pipeline` command.  
+* `user-var-value`. Creates local versions of the custom variables that the CLI can use. 
 
-See the Property Manager help system for more information about setting user variables in the GUI application.
+* `no-var`. Does not create local versions of the custom variables.
 
-If you need to declare new user variables after you create your pipeline, you'll need to revise the `../environments/variableDefinitions.json` and `../environments/{environment}/variables.json` files using the [syntax for Property Manager API variables](https://developer.akamai.com/api/core_features/property_manager/v1.html#declaringvariables).
+If you’re creating a new property from scratch, you can also use the `default` value, which replaces parts of the template configuration, like the `origin` behavior, with Property Manager’s default settings.
+
+If you've already created a pipeline and want declare a new user variable, you can revise the `../environments/variableDefinitions.json` and `../environments/{environment}/variables.json` files using the [syntax for Property Manager API variables](https://developer.akamai.com/api/core_features/property_manager/v1.html#declaringvariables).
 
 ## Using attributes that vary across environments with Akamai Pipeline
 
@@ -552,17 +554,48 @@ If you want to use multiple edge hostnames with any environment in your pipeline
 	[
 		{
 			"cnameFrom": "www.example.com",
-			"cnameTo": "www.example.edgekey.net",
+			"cnameTo": "www.example.edgesuite.net",
 			"cnameType": "EDGE_HOSTNAME",
 			"edgeHostnameId": null
 		},
 		{
 			"cnameFrom": "www.example-1.com",
 			"cnameTo": "www.example-1.edgekey.net",
+			"certEnrollmentId": "12356666",
 			"cnameType": "EDGE_HOSTNAME",
 			"edgeHostnameId": null
 		}
 	]
+
+When entering the `cnameTo` value, remember that the domain suffix is different for each type of edge hostname:
+
+<table>
+  <tr>
+    <th>Edge hostname type</th>
+    <th>Domain suffix</th>
+	<th>Additional tasks</th>
+  </tr>
+  <tr>
+    <td>enhanced TLS</td>
+    <td>edgekey.net</td>
+    <td><p>Include the enrollment ID:</p> 
+	    <ol>
+	    <li>Retrieve the <code>enrollment-id</code> from the <a href="https://github.com/akamai/cli-cps">CPS CLI</a></li>
+	    <li>Enter the ID as the <code>certEnrollmentId</code> value.</li>
+		</ol>
+	</td>
+  </tr>
+  <tr>
+    <td>standard Transport Layer Security (TLS)</td>
+    <td>edgesuite.net</td>
+    <td>Not applicable.</td>
+  </tr>
+  <tr>
+    <td>shared certificate</td>
+    <td>akamaized.net</td>
+    <td>Not applicable.</td>
+  </tr>
+</table>
 
 When you run the `akamai pipeline save` command, the CLI will create edge hostnames for each block, or find the right block if the edge hostname already exists for the environment.
     
