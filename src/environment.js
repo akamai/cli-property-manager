@@ -429,7 +429,7 @@ class Environment {
                     this.processValidationResults(envInfo, validationResult, results);
                     this.storeEnvironmentInfo(envInfo);
                 } catch (error) {
-                    if (error instanceof errors.RestApiError) {
+                    if (error instanceof errors.RestApiError && error.args[1]["type"] !== undefined && error.args[1]["type"].includes("json-schema-invalid")) {
                         results.validationPerformed = true;
                         this.processValidationResults(envInfo, error.args[1], results);
                         this.storeEnvironmentInfo(envInfo);
@@ -499,7 +499,7 @@ class Environment {
                 this.processValidationResults(envInfo, response, results);
                 this.storeEnvironmentInfo(envInfo);
             } catch (error) {
-                if (error instanceof errors.RestApiError) {
+                if (error instanceof errors.RestApiError && error.args[1]["type"] !== undefined && error.args[1]["type"].includes("json-schema-invalid")) {
                     this.processValidationResults(envInfo, error.args[1], results);
                     this.storeEnvironmentInfo(envInfo);
                 } else {
@@ -513,8 +513,9 @@ class Environment {
             results.edgeHostnames = await this.createEdgeHostnames(hostnames);
             this.checkForLastSavedHostnameErrors(envInfo, results);
             if (results.edgeHostnames.errors.length === 0) {
-                await papi.storePropertyVersionHostnames(envInfo.propertyId,
+                let versionHostnamesResponse = await papi.storePropertyVersionHostnames(envInfo.propertyId,
                     envInfo.latestVersionInfo.propertyVersion, hostnames, this.project.getProjectInfo().contractId, envInfo.groupId);
+                envInfo.latestVersionInfo.etag = versionHostnamesResponse.etag;
                 results.storedHostnames = true;
             }
             hostnamesHash = helpers.createHash(hostnames);

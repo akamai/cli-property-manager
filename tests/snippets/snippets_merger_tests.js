@@ -140,3 +140,94 @@ describe('Merger Tests', function () {
     });
 
 });
+
+describe('Merger Tests with variables', function () {
+    let project;
+    let devops;
+    let projectName = "merger.variables.snippets.com";
+
+    before(function () {
+        let papiClass = td.constructor(PAPI);
+        let utils = new VerifyUtils();
+        let validationResults = utils.readJsonFile(path.join(baseDir, "testdata", "testruletree.waa.json"));
+        validationResults.errors = [];
+        validationResults.warnings = [];
+        td.when(papiClass.prototype.validatePropertyVersionRules(
+            td.matchers.anything(), td.matchers.anything(), td.matchers.anything(), td.matchers.anything()))
+            .thenReturn(validationResults);
+
+        devops = createDevOps({
+            devopsHome: devopsHome,
+            utilsClass: VerifyUtils,
+            papiClass: papiClass,
+            devOpsClass,
+            projectClass,
+            environmentClass,
+            mergerClass
+        });
+        project = devops.getProject(projectName);
+    });
+
+    it('Regular merge: qa', async function () {
+        let goodUtils = project.utils;
+        project.utils = createOverlayUtils(VerifyUtils, function (path, data) {
+            if (path.endsWith("envInfo.json")) {
+                data["lastValidatedHash"] = "f91b2efb777cc1a6124d844e4a707676c9e2c105b8852f4700071193b221aaa2";
+            }
+            return data;
+        });
+        await project.getEnvironment("qa").merge();
+        project.utils = goodUtils;
+    });
+
+    it('resolvePath test', function () {
+        let environment = project.getEnvironment("qa");
+        assert.deepEqual(environment.resolvePath("rules/children/0/criteria/0/name"), {
+            "template": "config-snippets/compression.json",
+            "value": "contentType",
+            "location": "criteria/0/name",
+            "variables": []
+        });
+        assert.deepEqual(environment.resolvePath("rules/behaviors/0/options/hostname"), {
+            "template": "config-snippets/main.json",
+            "location": "rules/behaviors/0/options/hostname",
+            "value": "origin-new.snippets.com",
+            "variables": []
+        });
+
+        assert.deepEqual(environment.resolvePath("rules/behaviors/2"), {
+            "template": "config-snippets/main.json",
+            "location": "rules/behaviors/2",
+            "value": {
+                "name": "caching",
+                "options": {
+                    "behavior": "NO_STORE"
+                }
+            },
+            "variables": []
+        });
+        assert.deepEqual(environment.resolvePath("rules/children/1/behaviors/1/options/httpsPort"), {
+            "location": "behaviors/1/options/httpsPort",
+            "template": "config-snippets/static.json",
+            "value": undefined,
+            "variables": []
+        });
+    });
+
+    it('Bad template include', function () {
+        project.utils = createOverlayUtils(VerifyUtils, function (path, data) {
+            if (path.endsWith("main.json")) {
+                data.rules.children.push("#include:foobar.json");
+            }
+            if (path.endsWith("variables.json")) {
+                data.cpCode = 98765;
+            }
+            return data;
+        });
+
+        return throwsAsync(function() {
+            return project.getEnvironment("merger.variables.snippets.com").merge();
+        }, "Error: Can't load config snippet include: 'foobar.json'");
+    });
+
+})

@@ -1,0 +1,8 @@
+[
+    {
+        "cnameFrom": "import-uservar.snippets.com",
+        "cnameTo": "import-uservar.snippets.com.edgesuite.net",
+        "cnameType": "EDGE_HOSTNAME",
+        "edgeHostnameId": 12345
+    }
+]

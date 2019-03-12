@@ -102,6 +102,11 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
     const showDefaults = commonCli.showDefaults.bind(commonCli);
     const search = commonCli.search.bind(commonCli);
 
+
+    const printAllowedModes = commonCli.printAllowedModes;
+
+    const checkVariableModeOptions = commonCli.checkVariableModeOptions;
+
     /**
      * Constructs a new DevOps instances based on command line options.
      * This allows for customizations of dependencies like the record to file, replay from file open client.
@@ -175,16 +180,6 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         showDefaults(devops);
     };
 
-    const allowedModes = helpers.allowedModes;
-
-    const printAllowedModes = function() {
-        return `'${allowedModes.slice(0, allowedModes.length - 1).join(`', '`)}', and '${allowedModes.slice(-1)}'`;
-    };
-
-    const checkVariableModeOptions = function(mode) {
-        const allowedVarModes = new Set(allowedModes);
-        return allowedVarModes.has(mode);
-    };
     /**
      * Creates a new devops pipeline (devops pipeline)
      * @type {Function}
@@ -219,7 +214,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
 
         let environmentGroupIds = associateEnvironmentsGroupIds(environments, groupIds);
 
-        let variableMode = options.variableMode || allowedModes[0];
+        let variableMode = options.variableMode || helpers.allowedModes[0];
         if (options.variableMode && !(propertyId || propertyName)) {
             throw new errors.ArgumentError(`Variable Mode usable only with an existing property.`,
                 "variable_mode_needs_existing_property");

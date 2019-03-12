@@ -717,6 +717,8 @@ describe('create edgehostname tests', function () {
         papi = td.object(['createEdgeHostname', 'listEdgeHostnames']);
         td.when(papi.createEdgeHostname("1-1TJZH5", 61726, td.matchers.isA(Object))).thenReturn(    {
                 edgeHostnameLink: '/papi/v0/edgehostnames/2683119?contractId=1-1TJZH5&groupId=61726'
+            }, {
+                edgeHostnameLink: '/papi/v0/edgehostnames/2683120?contractId=1-1TJZH5&groupId=61726'
             }
         );
 
@@ -744,20 +746,29 @@ describe('create edgehostname tests', function () {
         assert.deepEqual(reportData, {
             "errors": [
                 {
+                    "edgehostname": "qa.testproject.com.customEdgeHostname.net",
+                    "message": "'qa.testproject.com.customEdgeHostname.net' is not a supported edge hostname for creation, only edge hostnames under 'edgesuite.net' or 'edgekey.net' domains can be created. Please create manually",
+                    "messageId": "unsupported_edgehostname",
+                },
+                {
                     "edgehostname": null,
                     "message": "hostname.cnameTo can not be set to null",
                     "messageId": "null_hostname_cnameTo",
                 },
                 {
-                    "edgehostname": "qa.notfound.com.edgekey.net",
-                    "message": "'qa.notfound.com.edgekey.net' is not a supported edge hostname for creation, only edge hostnames under 'edgesuite.net' domain can be created. Please create manually",
-                    "messageId": "unsupported_edgehostname",
+                    "edgehostname": "qa.noCertEnrollmentId.com.edgekey.net",
+                    "message": "Need 'certEnrollmentId' of hostname in order to create secure edge hostname",
+                    "messageId": "missing_certEnrollmentId",
                 }
             ],
             "hostnamesCreated": [
                 {
                     "id": 2683119,
                     "name": "qa.testproject.com.edgesuite.net"
+                },
+                {
+                    "id": 2683120,
+                    "name": "qa.testproject.com.edgekey.net"
                 }
             ],
             "hostnamesFound": [
@@ -769,7 +780,8 @@ describe('create edgehostname tests', function () {
         });
         let hostnames = utils.readJsonFile(path.join(__dirname, "hostnameTests.com/environments/qa/hostnames.json"));
         assert.strictEqual(hostnames[0].edgeHostnameId, 2683119);
-        assert.strictEqual(hostnames[1].edgeHostnameId, 2922843);
+        assert.strictEqual(hostnames[1].edgeHostnameId, 2683120);
+        assert.strictEqual(hostnames[2].edgeHostnameId, 2922843);
     });
 });
 
@@ -864,6 +876,93 @@ describe('Environment save with errors test', function () {
         }]);
     });
 });
+
+describe('Environment save with bad-request response test', function () {
+    let papi, merger, project, devOps, qaEnvironment;
+    let utils = new RoUtils();
+
+    before(function () {
+        devOps = {
+            "devopsHome": __dirname
+        };
+
+        project = new Project("testproject.com", {
+            devops: devOps,
+            getUtils: function () {
+                return utils;
+            }
+        });
+
+        merger = td.object(['merge', 'resolvePath']);
+
+        td.when(merger.merge("main.json")).thenReturn({
+            "hash": "33e96e8ff7288ead357e4e866da601cddb3c73e23e9e495665e001b7e1c32d31",
+            "ruleTreeHash": "6ac5ef477dbdc1abbc1c8957a0b6faef28f9d21b2f92e5771f29391da00a7744",
+            "ruleTree": utils.readJsonFile(path.join(__dirname, "testproject.com", "dist", "qa.testproject.com.papi.json"))
+        });
+
+        td.when(merger.resolvePath("rules/behaviors/1/options/value/id", "main.json")).thenReturn({
+            template: "templates/main.json",
+            variables: [
+                "environments/qa/variables.json"
+            ],
+            location: "rules/behaviors/1/options/value/id",
+            value: "9876543"
+        });
+
+        papi = td.object(['storePropertyVersionRules']);
+
+        let badRequestError = {
+            "type": "https://problems.luna-dev.akamaiapis.net/-/pep-authn/request-error",
+            "title": "Bad request",
+            "status": 400,
+            "detail": "Invalid timestamp",
+            "instance": "https://akaa-ccfpy4b4dprx6i6v-zbi3gwyae7fir2qh.luna-dev.akamaiapis.net/papi/v0/properties/516701/versions/latest",
+            "method": "GET",
+            "serverIp": "104.97.22.58",
+            "clientIp": "72.246.3.14",
+            "requestId": "51a792b",
+            "requestTime": "2019-02-19T13:16:33Z"
+        };
+
+        td.when(papi.storePropertyVersionRules(411089, 1, td.matchers.isA(Object), td.matchers.anything()))
+            .thenThrow(new errors.RestApiError("error message", "api_client_error", 400, badRequestError));
+
+
+        qaEnvironment = new Environment('qa', {
+            project: project,
+            shouldProcessPapiErrors: true,
+            getPAPI: function () {
+                return papi;
+            },
+            getMerger: function () {
+                return merger;
+            }
+        });
+    });
+
+    it('save test with bad-request response', async function () {
+        let badRequestError = {
+            "type": "https://problems.luna-dev.akamaiapis.net/-/pep-authn/request-error",
+            "title": "Bad request",
+            "status": 400,
+            "detail": "Invalid timestamp",
+            "instance": "https://akaa-ccfpy4b4dprx6i6v-zbi3gwyae7fir2qh.luna-dev.akamaiapis.net/papi/v0/properties/516701/versions/latest",
+            "method": "GET",
+            "serverIp": "104.97.22.58",
+            "clientIp": "72.246.3.14",
+            "requestId": "51a792b",
+            "requestTime": "2019-02-19T13:16:33Z"
+        };
+        try {
+            await qaEnvironment.save();
+            return false;
+        } catch (error){
+            assert.deepEqual(error.args[1], badRequestError);
+        }
+    });
+});
+
 
 
 /**
@@ -1053,6 +1152,27 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
                 } ]
             }
         }));
+
+        //IMPORTANT This etag is what is used to save when a hostname is present (last to save)
+        td.when(papi.storePropertyVersionHostnames(td.matchers.anything(), td.matchers.anything(), td.matchers.anything(), td.matchers.anything(), td.matchers.anything())).thenReturn(
+            {
+                "accountId" : "act_1-1TJZFB",
+                "contractId" : "ctr_1-1TJZH5",
+                "groupId" : "grp_15225",
+                "propertyId" : "prp_521554",
+                "propertyName" : "james-sqa2-uservar-test6",
+                "propertyVersion" : 1,
+                "etag" : "7cf327786d5a73aa6340452a064fb77589f750b0",
+                "hostnames" : {
+                    "items" : [ {
+                        "cnameType" : "EDGE_HOSTNAME",
+                        "edgeHostnameId" : "ehn_3444495",
+                        "cnameFrom" : "james-sqa2-uservar-test6.com",
+                        "cnameTo" : "james-sqa2-uservar-test6.edgesuite.net"
+                    } ]
+                }
+            }
+        );
 
         td.when(papi.activationStatus(411089, 5355557)).thenReturn({
             "accountId" : "1-1TJZFB",
@@ -1575,7 +1695,7 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
         }, "Error: Latest version already active in 'PRODUCTION' network");
     });
 
-    it('Merge test with validation errors and 400 error response', async function () {
+    it('Merge test with and without validation errors and 400 error response', async function () {
         utils.clear(); //clears all the changes in RoUtils.
         let validationError = {
             "type" : "https://problems.luna.akamaiapis.net/papi/v0/json-schema-invalid",
@@ -1593,9 +1713,23 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
             } ]
         };
 
+        let badRequestError = {
+            "type": "https://problems.luna-dev.akamaiapis.net/-/pep-authn/request-error",
+            "title": "Bad request",
+            "status": 400,
+            "detail": "Invalid timestamp",
+            "instance": "https://akaa-ccfpy4b4dprx6i6v-zbi3gwyae7fir2qh.luna-dev.akamaiapis.net/papi/v0/properties/516701/versions/latest",
+            "method": "GET",
+            "serverIp": "104.97.22.58",
+            "clientIp": "72.246.3.14",
+            "requestId": "51a792b",
+            "requestTime": "2019-02-19T13:16:33Z"
+        }
         td.when(papi.validatePropertyVersionRules(411089, 1, td.matchers.isA(Object), td.matchers.anything())).thenThrow(
             new errors.RestApiError(`Request failed, status code: 400,` +
-                `\nResponse Body: '${validationError}'`, "api_client_error", 400, validationError)
+                `\nResponse Body: '${validationError}'`, "api_client_error", 400, validationError),
+            new errors.RestApiError(`Request failed, status code: 400,` +
+                `\nResponse Body: '${badRequestError}'`, "api_client_error", 400, badRequestError)
         );
 
         qaEnvironment.__envInfo = null;
@@ -1621,6 +1755,13 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
             },
             "schemaLocation": "/definitions/catalog/behaviors/tieredDistribution/properties/options/properties/tieredDistributionMap"
         }]);
+
+        try {
+            await qaEnvironment.merge();
+            return false;
+        } catch (error){
+            assert.deepEqual(error.args[1], badRequestError);
+        }
     });
 
 });
@@ -1652,6 +1793,28 @@ describe('Environment merge and save new version after activation', function () 
 
         papi = td.object(['validatePropertyVersionRules', 'setRuleFormat', 'storePropertyVersionHostnames',
             'getPropertyVersion', 'listEdgeHostnames', 'storePropertyVersionRules', 'createNewPropertyVersion']);
+
+        //IMPORTANT This etag is what is used to save when a hostname is present (last to save)
+        td.when(papi.storePropertyVersionHostnames(td.matchers.anything(), td.matchers.anything(), td.matchers.anything(), td.matchers.anything(), td.matchers.anything())).thenReturn(
+            {
+                "accountId" : "act_1-1TJZFB",
+                "contractId" : "ctr_1-1TJZH5",
+                "groupId" : "grp_15225",
+                "propertyId" : "prp_521554",
+                "propertyName" : "james-sqa2-uservar-test6",
+                "propertyVersion" : 1,
+                "etag" : "7cf327786d5a73aa6340452a064fb77589f750b0",
+                "hostnames" : {
+                    "items" : [ {
+                        "cnameType" : "EDGE_HOSTNAME",
+                        "edgeHostnameId" : "ehn_3444495",
+                        "cnameFrom" : "james-sqa2-uservar-test6.com",
+                        "cnameTo" : "james-sqa2-uservar-test6.edgesuite.net"
+                    } ]
+                }
+            }
+        );
+
 
         let edgeHostnames = utils.readJsonFile(path.join(__dirname, "testdata", "edgeHostnames.json"));
 
@@ -1760,6 +1923,27 @@ describe('Environment merge and save new version after abort', function () {
             'getPropertyVersion', 'listEdgeHostnames', 'storePropertyVersionRules', 'createNewPropertyVersion']);
 
         let edgeHostnames = utils.readJsonFile(path.join(__dirname, "testdata", "edgeHostnames.json"));
+
+        //IMPORTANT This etag is what is used to save when a hostname is present (last to save)!
+        td.when(papi.storePropertyVersionHostnames(td.matchers.anything(), td.matchers.anything(), td.matchers.anything(), td.matchers.anything(), td.matchers.anything())).thenReturn(
+            {
+                "accountId" : "act_1-1TJZFB",
+                "contractId" : "ctr_1-1TJZH5",
+                "groupId" : "grp_15225",
+                "propertyId" : "prp_521554",
+                "propertyName" : "james-sqa2-uservar-test6",
+                "propertyVersion" : 1,
+                "etag" : "7cf327786d5a73aa6340452a064fb77589f750b0",
+                "hostnames" : {
+                    "items" : [ {
+                        "cnameType" : "EDGE_HOSTNAME",
+                        "edgeHostnameId" : "ehn_3444495",
+                        "cnameFrom" : "james-sqa2-uservar-test6.com",
+                        "cnameTo" : "james-sqa2-uservar-test6.edgesuite.net"
+                    } ]
+                }
+            }
+        );
 
         td.when(papi.listEdgeHostnames("1-1TJZH5", 61726)).thenReturn(edgeHostnames);
 

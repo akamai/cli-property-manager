@@ -452,5 +452,26 @@ class CommonCli {
         });
     }
 
+    printAllowedModes() {
+        let allowedModes = helpers.allowedModes;
+        return `'${allowedModes.slice(0, allowedModes.length - 1).join(`', '`)}', and '${allowedModes.slice(-1)}'`;
+    }
+
+    printAllowedModesUpdateOrImport() {
+        let allowedModesImportUpdateLocal = helpers.allowedModesImportUpdateLocal;
+        return `'${allowedModesImportUpdateLocal.slice(0, allowedModesImportUpdateLocal.length - 1).join(`', '`)}' and '${allowedModesImportUpdateLocal.slice(-1)}'`;
+    }
+
+    checkVariableModeOptions(mode) {
+        let allowedModes = helpers.allowedModes;
+        const allowedVarModes = new Set(allowedModes);
+        return allowedVarModes.has(mode);
+    }
+    checkVariableModeOptionsImportUpdateLocal(mode) {
+        let allowedModesImportUpdateLocal = helpers.allowedModesImportUpdateLocal;
+        const allowedVarModes = new Set(allowedModesImportUpdateLocal);
+        return allowedVarModes.has(mode);
+    }
+
 }
 module.exports = CommonCli;

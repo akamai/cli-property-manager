@@ -79,7 +79,16 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         };
     }
 
+
     const commonCli = new commonCliClass(cmdArgs, procEnv, overrideDevopsFactoryFunction, overrideErrorReporter, consoleLogger, reportLabel, reportError, verbose);
+
+    const printAllowedModes = commonCli.printAllowedModes;
+
+    const printAllowedModesUpdateOrImport = commonCli.printAllowedModesUpdateOrImport;
+
+    const checkVariableModeOptions = commonCli.checkVariableModeOptions;
+
+    const checkVariableModeOptionsImportUpdateLocal = commonCli.checkVariableModeOptionsImportUpdateLocal;
 
     const useVerboseLogging = function(options) {
         if (options.parent) {
@@ -239,6 +248,14 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         let variableMode;
 
         variableMode = (propertyId || propertyName) ? helpers.allowedModes[1] : helpers.allowedModes[0];
+        variableMode = options.variableMode || variableMode;
+        if (options.variableMode && !(propertyId || propertyName)) {
+            throw new errors.ArgumentError(`Variable Mode usable only with an existing property.`,
+                "variable_mode_needs_existing_property");
+        } else if (!checkVariableModeOptions(variableMode)) {
+            throw new errors.ArgumentError(`Invalid variable mode option selected.  Valid modes are ${printAllowedModes()}`,
+                "invalid_variable_mode");
+        }
         let createPropertyInfo = {
             projectName,
             productId,
@@ -421,6 +438,15 @@ Are you sure you want to Deactivate the property '${propertyName}' on network '$
         let createPropertyInfo = {
             propertyName
         };
+
+        let variableMode = helpers.allowedModes[1];
+        variableMode = options.variableMode || variableMode;
+        createPropertyInfo.variableMode = variableMode;
+        if (!checkVariableModeOptionsImportUpdateLocal(variableMode)) {
+            throw new errors.ArgumentError(`Invalid variable mode option selected.  Valid modes are ${printAllowedModesUpdateOrImport()}`,
+                "invalid_variable_mode");
+        }
+
         let dryRun = options.dryRun;
         if (dryRun) {
             consoleLogger.info("update property info: ", helpers.jsonStringify(createPropertyInfo));
@@ -448,6 +474,11 @@ Are you sure you want to Deactivate the property '${propertyName}' on network '$
 
         if (runPull) {
             let variableMode = helpers.allowedModes[1];
+            variableMode = options.variableMode || variableMode;
+            if (!checkVariableModeOptionsImportUpdateLocal(variableMode)) {
+                throw new errors.ArgumentError(`Invalid variable mode option selected.  Valid modes are ${printAllowedModesUpdateOrImport()}`,
+                    "invalid_variable_mode");
+            }
             let createPropertyInfo = {
                 projectName,
                 variableMode
@@ -491,6 +522,7 @@ Are you sure you want to Deactivate the property '${propertyName}' on network '$
             "Either pass property ID or exact property name. PM CLI will lookup account information like group id, " +
             "contract id and product id of the existing property and use the information for creating PM CLI properties")
         .option('-n, --version [version]', "Can be used only if option '-e' is being used. Specify version of existing property being used as blue print, if omitted, use latest", helpers.parsePropertyVersion)
+        .option('--variable-mode [variableMode]', `Choose how your new property will pull in variable.  Allowed values are ${printAllowedModes()}.  Only works when creating a property from an existing property`)
         .option('--secure', "Make new property secure")
         .option('--insecure', "Make new property not secure")
         .alias("np")
@@ -661,6 +693,7 @@ Are you sure you want to Deactivate the property '${propertyName}' on network '$
         .command("update-local", "Update local property with the latest from Property Manager.")
         .option('-p, --property [propertyName]', 'PM CLI property name')
         .option('--dry-run', 'Just parse the parameters and print out the json generated that would normally call the create property funtion.')
+        .option('--variable-mode [variableMode]', `Choose how your update-local will pull in variables.  Allowed values are ${printAllowedModesUpdateOrImport()}.  Default functionality is no-var`)
         .option('--force-update', 'WARNING:  This option will bypass the confirmation prompt and will overwrite your local files')
         .alias("ul")
         .action(function(...args) {
@@ -672,6 +705,7 @@ Are you sure you want to Deactivate the property '${propertyName}' on network '$
         .command("import", "Import a property from Property Manager.")
         .option('-p, --property [propertyName]', 'PM CLI property name')
         .option('--dry-run', 'Just parse the parameters and print out the json generated that would normally call the create property funtion.')
+        .option('--variable-mode [variableMode]', `Choose how your import will pull in variables.  Allowed values are ${printAllowedModesUpdateOrImport()}.  Default functionality is no-var`)
         .alias("i")
         .action(function(...args) {
             argumentsUsed = args;

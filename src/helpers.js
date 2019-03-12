@@ -32,6 +32,8 @@ class HashMaker {
 }
 
 const allowedModes = ["default", "no-var", "user-var-value"];
+const allowedModesImportUpdateLocal = ["no-var", "user-var-value"];
+
 
 
 const INTEGER = /^(0|[1-9][0-9]*)$/;
@@ -97,6 +99,8 @@ module.exports = {
     parseInteger: parseInteger,
 
     allowedModes: allowedModes,
+
+    allowedModesImportUpdateLocal: allowedModesImportUpdateLocal,
 
     repeatable: function(parseFunction) {
         return function(value, memo) {

@@ -140,6 +140,8 @@ describe('Snippets createPipeline integration tests', function() {
     let utils;
     let projectName = "new.snippets.com";
     let testProjectExistingName = "new.snipppets.existing.com";
+    let testProjectUserVar = "snippets-uservar.com";
+
     let devops;
 
     class TestProject extends SnippetsProject {
@@ -187,6 +189,11 @@ describe('Snippets createPipeline integration tests', function() {
                 })
             );
 
+        td.when(papiClass.prototype.createProperty(testProjectUserVar, "Web_App_Accel", "1-1TJZH5", 61726, null, 98789, 75))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testData.qa.create);
+                })
+            );
 
         td.when(papiClass.prototype.latestPropertyVersion(411089))
             .thenReturn(new Promise((resolve, reject) => {
@@ -297,6 +304,17 @@ describe('Snippets createPipeline integration tests', function() {
             productId: "Web_App_Accel",
             contractId: "1-1TJZH5",
             groupId: 61726
+        });
+    });
+
+    it('createPipeline with propertyId variablemode = user-var-value', async function() {
+        //This should create a new project "testproject-uservar.com" that should be just like testproject.com (user-var-values)
+        await devops.createProperty({
+            projectName: testProjectUserVar,
+            contractId: null,
+            groupId: null,
+            propertyId: 98789,
+            variableMode: "user-var-value"
         });
     });
 
@@ -555,6 +573,218 @@ describe('Snippets Import property Tests', function () {
     });
 
 });
+
+
+
+describe('Snippets Import property Tests', function () {
+    let utils;
+    let projectName = "import-uservar.snippets.com";
+    let devops;
+    let environment;
+    let project;
+
+    class TestProject extends SnippetsProject {
+        constructor(projectName, dependencies) {
+            dependencies.getUtils = function() {
+                return utils;
+            };
+            super(projectName, dependencies);
+        }
+    }
+
+    before(function () {
+        //these changes represent user edits after project creation.
+        utils = new VerifyUtils(pretendEmpty = true);
+        utils.touch(path.join(baseDir, "..", "resources", "snippets.converter.data.json"));
+        utils.touch(path.join(baseDir,"import-uservar.snippets.com", "projectInfo.json"));
+        let regularUtils = new Utils();
+        let existingRuleTreeUserVar = regularUtils.readJsonFile(path.join(baseDir, "testdata", "import.testruletree.variables.json"));
+        let papiClass = td.constructor(PAPI);
+
+        td.when(papiClass.prototype.findProperty("import-uservar.snippets.com"))
+            .thenReturn(new Promise((resolve, reject) => {
+                resolve({
+                    "versions" : {
+                        "items" : [{
+                            "propertyId": 501778
+                        }]
+                    }
+                })
+            }));
+        td.when(papiClass.prototype.getClientSettings())
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve({
+                        "ruleFormat" : "v2018-02-27",
+                        "usePrefixes" : false
+                    });
+                })
+            );
+
+        td.when(papiClass.prototype.getPropertyVersionRules(501778, 1, "v2018-02-27"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(existingRuleTreeUserVar);
+                })
+            );
+
+
+        td.when(papiClass.prototype.getPropertyInfo(501778))
+            .thenReturn(new Promise((resolve, reject) => {
+                    let testRuleTreeCopy = {
+                        "properties": {
+                            "items": [
+                                {
+                                    "accountId": "1-1TJZFB",
+                                    "contractId": "1-1TJZH5",
+                                    "groupId": "15225",
+                                    "propertyId": "501778",
+                                    "propertyname": "import-uservar.snippets.com",
+                                    "latestVersion": 1,
+                                    "stagingVersion": 1,
+                                    "productionVersion": 1,
+                                    "assetId": "10597561"
+                                }
+                            ]
+                        }
+                    };
+                    resolve(testRuleTreeCopy);
+                })
+            );
+
+        td.when(papiClass.prototype.getPropertyVersion(501778, 1))
+            .thenReturn(new Promise((resolve, reject) => {
+                    let info = {
+                        "versions": {
+                            "items": [
+                                {
+                                    propertyVersion: 1,
+                                    updatedByUser: 'dummy@gmail.com',
+                                    updatedDate: '2018-11-06T15:39:49Z',
+                                    productionStatus: 'INACTIVE',
+                                    stagingStatus: 'INACTIVE',
+                                    etag: '578b53bfa4ca393dff26581c89774358fdd2a219',
+                                    productId: 'Web_App_Accel',
+                                    ruleFormat: 'v2018-09-12'
+                                }
+                            ]
+                        }
+                    }
+                    resolve(info);
+                })
+            );
+
+        td.when(papiClass.prototype.getPropertyVersionHostnames(501778, 1))
+            .thenReturn(new Promise((resolve, reject) => {
+                    let info = {
+                        "hostnames": {
+                            "items": [{
+                                "cnameFrom": "import-uservar.snippets.com",
+                                "cnameTo": "import-uservar.snippets.com.edgesuite.net",
+                                "cnameType": "EDGE_HOSTNAME",
+                                "edgeHostnameId": 12345
+                            }]
+
+                        }
+                    }
+                    resolve(info);
+                })
+            );
+
+
+        td.when(papiClass.prototype.latestPropertyVersion(501778))
+            .thenReturn(new Promise((resolve, reject) => {
+                    let info = {
+                        propertyId: 501778,
+                        propertyName: "import.snippets.com",
+                        groupId: 61726,
+                        contractId: "1-1TJZH5",
+                        updatedByUser: 'dummy@gmail.com',
+                        updatedDate: '2018-11-06T15:39:49Z',
+                        productionStatus: 'INACTIVE',
+                        stagingStatus: 'INACTIVE',
+                        etag: '578b53bfa4ca393dff26581c89774358fdd2a219',
+                        ruleFormat: 'v2018-09-12',
+                        versions: {
+                            items: [
+                                {
+                                    propertyVersion: 1,
+                                    updatedByUser: 'dummy@gmail.com',
+                                    updatedDate: '2018-11-06T15:39:49Z',
+                                    productionStatus: 'INACTIVE',
+                                    stagingStatus: 'INACTIVE',
+                                    etag: '578b53bfa4ca393dff26581c89774358fdd2a219',
+                                    productId: 'Web_App_Accel',
+                                    ruleFormat: 'v2018-09-12'
+                                }
+                            ]
+                        }
+                    }
+                    resolve(info);
+                })
+            );
+        devops = createDevOps({
+            devopsHome : devopsHome,
+            papiClass: papiClass,
+            projectClass: TestProject,
+            devOpsClass: DevOpsSnippets,
+            environmentClass: EnvironmentSnippets,
+            version: "0.1.10"
+        });
+
+        project = devops.getProject(projectName, false);
+        environment = project.getEnvironment(projectName);
+
+        let existsTD= td.function();
+        td.when(existsTD()).thenReturn(false, false, true);
+        project.exists = existsTD;
+
+        let createHostnamesFileTD = td.function();
+        td.when(createHostnamesFileTD()).thenDo(function(){
+                const domain = this.project.projectName;
+                const edgeDomain = this.getEnvironmentInfo().isSecure ? EdgeDomains.EDGE_KEY : EdgeDomains.EDGE_SUITE;
+
+                let hostnames = [{
+                    "cnameFrom": domain,
+                    "cnameTo": domain + edgeDomain,
+                    "cnameType": "EDGE_HOSTNAME",
+                    "edgeHostnameId": 12345
+                }];
+                this.project.storeEnvironmentHostnames(this.name, hostnames);
+            }, function(){
+                const domain = this.project.projectName;
+                const edgeDomain = this.getEnvironmentInfo().isSecure ? EdgeDomains.EDGE_KEY : EdgeDomains.EDGE_SUITE;
+
+                let hostnames = [{
+                    "cnameFrom": domain,
+                    "cnameTo": domain + edgeDomain,
+                    "cnameType": "EDGE_HOSTNAME",
+                    "edgeHostnameId": null
+                }];
+                this.project.storeEnvironmentHostnames(this.name, hostnames);
+            }
+        );
+
+        environment.createHostnamesFile = createHostnamesFileTD;
+
+    });
+
+    it('user-var import property with correct params and has edges with id', async function() {
+        devops.getProject = function(){
+            return project;
+        }
+        project.getEnvironment = function(projectName){
+            return environment;
+        }
+        await devops.importProperty({
+            propertyName: projectName,
+            productId: "Web_App_Accel",
+            contractId: "1-1TJZH5",
+            groupId: 61726,
+            variableMode: "user-var-value"
+
+        });
+    });
+});
+
 
 describe('Snippets Import property test without EdgeHostnameID', function () {
     let utils;
@@ -1211,6 +1441,280 @@ describe('Snippets update property integration tests', function() {
     });
 });
 
+
+describe('Snippets update uservar property integration tests', function() {
+    let utils;
+    let testProjectExistingName = "pull-snippets-uservar.com";
+    let devops;
+    let regularUtils;
+
+    class TestProject extends SnippetsProject {
+        constructor(projectName, dependencies) {
+            dependencies.getUtils = function() {
+                return utils;
+            };
+            super(projectName, dependencies);
+
+        }
+
+        exists() {
+            return this.projectName === testProjectExistingName;
+        }
+
+        loadEnvironmentInfo() {
+            let infoPath = path.join(this.projectFolder, "envInfo.json");
+            utils.touch(infoPath);
+            if (this.utils.fileExists(infoPath)) {
+                return this.utils.readJsonFile(infoPath);
+            }
+            return null;
+        }
+
+        checkInfoPath(infoPath){
+            utils.touch(infoPath);
+        }
+    }
+
+    before(function () {
+        //these changes represent user edits after project creation.
+        utils = new VerifyUtils(pretendEmpty = true);
+        utils.touch(path.join(baseDir, "..", "resources", "snippets.converter.data.json"));
+        let regularUtils = new Utils();
+        let testRuleTree = regularUtils.readJsonFile(path.join(baseDir, "testdata", "import.testruletree.variables.json"));
+
+        let testData = regularUtils.readJsonFile(path.join(baseDir, "testdata", "createProjectData.json"));
+        let papiClass = td.constructor(PAPI);
+
+        let searchResultPath = path.join(baseDir, "testdata/update.json");
+        let result = regularUtils.readJsonFile(searchResultPath);
+        td.when(papiClass.prototype.findProperty(testProjectExistingName)).thenReturn(
+            new Promise((resolve, reject) => {
+                resolve(result);
+            })
+        );
+
+        td.when(papiClass.prototype.getClientSettings())
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve({
+                        "ruleFormat" : "v2018-02-27",
+                        "usePrefixes" : false
+                    });
+                })
+            );
+
+        td.when(papiClass.prototype.latestPropertyVersion(411089))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testData.qa.latestVersion);
+                })
+            );
+
+
+        td.when(papiClass.prototype.getPropertyVersionRules(411089, 1, "v2018-02-27"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    let testRuleTreeCopy = helpers.clone(testRuleTree);
+                    delete testRuleTreeCopy["warnings"];
+                    resolve(testRuleTreeCopy);
+                })
+            );
+
+        td.when(papiClass.prototype.getPropertyInfo(411089))
+            .thenReturn(new Promise((resolve, reject) => {
+                    let testRuleTreeCopy = {
+                        "properties": {
+                            "items": [
+                                {
+                                    "accountId": "1-1TJZFB",
+                                    "contractId": "1-1TJZH5",
+                                    "groupId": "15225",
+                                    "propertyId": "411089",
+                                    "propertyName": "pull-snippets.com",
+                                    "latestVersion": 9,
+                                    "stagingVersion": 4,
+                                    "productionVersion": 2,
+                                    "assetId": "10597561"
+                                }
+                            ]
+                        }
+                    };
+                    resolve(testRuleTreeCopy);
+                })
+            );
+
+
+        td.when(papiClass.prototype.propertyActivateStatus(411089))
+            .thenReturn(new Promise((resolve, reject) => {
+                    let activations = {
+                        "accountId": "act_1-1TJZFB",
+                        "contractId": "ctr_1-1TJZH5",
+                        "groupId": "grp_15225",
+                        "activations": {
+                            "items": [
+                                {
+                                    "activationId": "atv_6405831",
+                                    "propertyName": "pull-snippets.com",
+                                    "propertyId": "prp_411089",
+                                    "propertyVersion": 2,
+                                    "network": "PRODUCTION",
+                                    "activationType": "ACTIVATE",
+                                    "status": "ACTIVE",
+                                    "submitDate": "2019-01-15T14:06:47Z",
+                                    "updateDate": "2019-01-15T14:06:50Z",
+                                    "note": "Property Manager CLI Activation",
+                                    "notifyEmails": [
+                                        "jachin@akamai.com"
+                                    ]
+                                },
+                                {
+                                    "activationId": "atv_6405830",
+                                    "propertyName": "pull-snippets.com",
+                                    "propertyId": "prp_411089",
+                                    "propertyVersion": 4,
+                                    "network": "STAGING",
+                                    "activationType": "ACTIVATE",
+                                    "status": "ACTIVE",
+                                    "submitDate": "2019-01-15T14:05:42Z",
+                                    "updateDate": "2019-01-15T14:06:40Z",
+                                    "note": "Property Manager CLI Activation",
+                                    "notifyEmails": [
+                                        "jachin@akamai.com"
+                                    ],
+                                    "fmaActivationState": "deployed"
+                                }
+                            ]
+                        }
+                    };
+                    resolve(activations);
+                })
+            );
+
+
+
+        td.when(papiClass.prototype.getPropertyVersion(411089,9))
+            .thenReturn(new Promise((resolve, reject) => {
+                    let testRuleTreeCopy = {
+                        "propertyId" : "411089",
+                        "propertyName" : "pull-snippets.com",
+                        "accountId" : "1-1TJZFB",
+                        "contractId" : "1-1TJZH5",
+                        "groupId" : "15225",
+                        "assetId" : "10597561",
+                        "versions" : {
+                            "items" : [ {
+                                "propertyVersion" : 9,
+                                "updatedByUser" : "z35aszfk53n362pc",
+                                "updatedDate" : "2018-09-27T18:30:45Z",
+                                "productionStatus" : "INACTIVE",
+                                "stagingStatus" : "INACTIVE",
+                                "etag" : "mcvzcvxc",
+                                "productId" : "Web_App_Accel",
+                                "ruleFormat" : "v2018-02-27"
+                            } ]
+                        }
+                    };
+                    resolve(testRuleTreeCopy);
+                })
+            );
+
+        td.when(papiClass.prototype.getPropertyVersion(411089,2))
+            .thenReturn(new Promise((resolve, reject) => {
+                    let testRuleTreeCopy = {
+                        "propertyId" : "411089",
+                        "propertyName" : "pull-snippets.com",
+                        "accountId" : "1-1TJZFB",
+                        "contractId" : "1-1TJZH5",
+                        "groupId" : "15225",
+                        "assetId" : "10597561",
+                        "versions" : {
+                            "items" : [ {
+                                "propertyVersion" : 2,
+                                "updatedByUser" : "z35aszfk53n362pc",
+                                "updatedDate" : "2018-09-27T18:30:45Z",
+                                "productionStatus" : "ACTIVE",
+                                "stagingStatus" : "INACTIVE",
+                                "etag" : "aababbdbbfbdfbadsf",
+                                "productId" : "Web_App_Accel",
+                                "ruleFormat" : "v2018-02-27"
+                            } ]
+                        }
+                    };
+                    resolve(testRuleTreeCopy);
+                })
+            );
+
+        td.when(papiClass.prototype.getPropertyVersion(411089,4))
+            .thenReturn(new Promise((resolve, reject) => {
+                    let testRuleTreeCopy = {
+                        "propertyId" : "411089",
+                        "propertyName" : "pull-snippets.com",
+                        "accountId" : "1-1TJZFB",
+                        "contractId" : "1-1TJZH5",
+                        "groupId" : "15225",
+                        "assetId" : "10597561",
+                        "versions" : {
+                            "items" : [ {
+                                "propertyVersion" : 4,
+                                "updatedByUser" : "z35aszfk53n362pc",
+                                "updatedDate" : "2018-09-27T18:30:45Z",
+                                "productionStatus" : "INACTIVE",
+                                "stagingStatus" : "ACTIVE",
+                                "etag" : "ea7b3c8240863a7fcd14069228b770194bc8de1b",
+                                "productId" : "Web_App_Accel",
+                                "ruleFormat" : "v2018-02-27"
+                            } ]
+                        }
+                    };
+                    resolve(testRuleTreeCopy);
+                })
+            );
+
+
+        td.when(papiClass.prototype.getPropertyVersionHostnames(411089, 9))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve({
+                        "accountId": "1-1TJZFB",
+                        "contractId": "1-1TJZH5",
+                        "groupId": "15225",
+                        "propertyId": "488349",
+                        "propertyName": "testing-snippets",
+                        "propertyVersion": 9,
+                        "etag": "e2800061ab5e59f7dac292e10ee6e9f3a66eff40",
+                        "hostnames": {
+                            "items": [{
+                                "cnameType": "EDGE_HOSTNAME",
+                                "edgeHostnameId": "3248236",
+                                "cnameFrom": "testing-snippets-pull.com",
+                                "cnameTo": "testing-snippets-pull.com.edgesuite.net"
+                            }, {
+                                "cnameType": "EDGE_HOSTNAME",
+                                "edgeHostnameId": "3216762",
+                                "cnameFrom": "testing-snippets.com",
+                                "cnameTo": "testing-snippets.edgesuite.net"
+                            }]
+                        }
+                    })
+                })
+            );
+
+
+        let envSnippets = td.constructor(EnvironmentSnippets);
+
+        devops = createDevOps({
+            devopsHome : devopsHome,
+            papiClass: papiClass,
+            projectClass: TestProject,
+            devOpsClass: DevOpsSnippets,
+            environmentClass: EnvironmentSnippets,
+            version: "0.1.10"
+        });
+    });
+
+    it('createPipeline with propertyId', async function() {
+        await devops.updateProperty({
+            projectName: testProjectExistingName,
+            variableMode: "user-var-value"
+        });
+    });
+});
 
 describe('Snippets update property integration tests - with pending activations', function() {
     let utils;

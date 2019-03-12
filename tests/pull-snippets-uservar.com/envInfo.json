@@ -1,0 +1,35 @@
+{
+    "propertyName": "pull-snippets-uservar.com",
+    "propertyId": 411089,
+    "isSecure": false,
+    "latestVersionInfo": {
+        "propertyVersion":9,
+        "updatedByUser": "z35aszfk53n362pc",
+        "updatedDate": "2018-09-27T18:30:45Z",
+        "productionStatus": "INACTIVE",
+        "stagingStatus": "INACTIVE",
+        "etag": "mcvzcvxc",
+        "productId": "Web_App_Accel",
+        "ruleFormat": "v2018-02-27"
+    },
+    "activeIn_PRODUCTION_Info": {
+        "etag": "aababbdbbfbdfbadsf",
+        "productId": "Web_App_Accel",
+        "productionStatus": "ACTIVE",
+        "propertyVersion": 2,
+        "ruleFormat": "v2018-02-27",
+        "stagingStatus": "INACTIVE",
+        "updatedByUser": "z35aszfk53n362pc",
+        "updatedDate": "2018-09-27T18:30:45Z"
+    },
+    "activeIn_STAGING_Info": {
+        "etag": "ea7b3c8240863a7fcd14069228b770194bc8de1b",
+        "productId": "Web_App_Accel",
+        "productionStatus": "INACTIVE",
+        "propertyVersion": 4,
+        "ruleFormat": "v2018-02-27",
+        "stagingStatus": "ACTIVE",
+        "updatedByUser": "z35aszfk53n362pc",
+        "updatedDate": "2018-09-27T18:30:45Z"
+    }
+}

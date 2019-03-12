@@ -94,49 +94,44 @@ class EdgeHostnameManager {
             });
             return;
         }
-
-        //currently papi doesn't support creation of edgekey.net hostnames. So there is some dead code ahead.
+        let edgeDomain;
+        let createReq = {
+            productId: this.projectInfo.productId,
+            ipVersionBehavior: "IPV6_COMPLIANCE",
+        };
         if (hostname.cnameTo.endsWith(EdgeDomains.EDGE_SUITE)) {
-            let edgeDomain;
-            if (hostname.cnameTo.endsWith(EdgeDomains.EDGE_SUITE)) {
-                edgeDomain = "edgesuite.net";
-            } else {
-                edgeDomain = "edgekey.net";
+            edgeDomain = "edgesuite.net";
+        } else if (hostname.cnameTo.endsWith(EdgeDomains.EDGE_KEY)) {
+            if (!hostname.certEnrollmentId) {
+                this.errors.push({
+                    message: `Need 'certEnrollmentId' of hostname in order to create secure edge hostname`,
+                    messageId: "missing_certEnrollmentId",
+                    edgehostname: hostname.cnameTo
+                });
+                return;
             }
-            let prefix = hostname.cnameTo.slice(0, hostname.cnameTo.length - (edgeDomain.length + 1));
-
-            let createReq = {
-                productId: this.projectInfo.productId,
-                ipVersionBehavior: "IPV6_COMPLIANCE",
-                domainPrefix: prefix,
-                domainSuffix: edgeDomain //TODO: allow creation of other domains as well.
-            };
-            if (edgeDomain === "edgekey.net") {
-                createReq.secure = true;
-                if (!hostname.slotNumber) {
-                    this.errors.push({
-                        message: `Need 'slotNumber' of hostname in order to create secure edge hostname`,
-                        messageId: "missing_slot_number",
-                        edgehostname: hostname.cnameTo
-                    });
-                    return;
-                }
-                createReq.slotNumber = hostname.slotNumber;
-            }
-            let result = await this.papi.createEdgeHostname(this.projectInfo.contractId, envInfo.groupId, createReq);
-            logger.info("Got create edgehostname result:", result);
-            hostname.edgeHostnameId = EdgeHostnameManager._extractEdgeHostnameId(result);
-            this.hostnamesCreated.push({
-                name: hostname.cnameTo,
-                id: hostname.edgeHostnameId
-            });
+            edgeDomain = "edgekey.net";
+            createReq.secure = true;
+            createReq.certEnrollmentId = hostname.certEnrollmentId
         } else {
             this.errors.push({
-                message: `'${hostname.cnameTo}' is not a supported edge hostname for creation, only edge hostnames under 'edgesuite.net' domain can be created. Please create manually`,
+                message: `'${hostname.cnameTo}' is not a supported edge hostname for creation, only edge hostnames under 'edgesuite.net' or 'edgekey.net' domains can be created. Please create manually`,
                 messageId: "unsupported_edgehostname",
                 edgehostname: hostname.cnameTo
             });
+            return;
         }
+        let prefix = hostname.cnameTo.slice(0, hostname.cnameTo.length - (edgeDomain.length + 1));
+        createReq.domainPrefix = prefix;
+        createReq.domainSuffix = edgeDomain //TODO: allow creation of other domains as well.
+
+        let result = await this.papi.createEdgeHostname(this.projectInfo.contractId, envInfo.groupId, createReq);
+        logger.info("Got create edgehostname result:", result);
+        hostname.edgeHostnameId = EdgeHostnameManager._extractEdgeHostnameId(result);
+        this.hostnamesCreated.push({
+            name: hostname.cnameTo,
+            id: hostname.edgeHostnameId
+        });
     }
 
     cleanHostnameIds(hostnames) {

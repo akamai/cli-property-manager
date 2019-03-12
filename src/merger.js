@@ -26,6 +26,8 @@ class Merger {
         this.project = project;
         this.environment = environment;
         this.getEL = dependencies.getEL;
+        this.errorString = `Can't load template include: `;
+        this.errorId = "cannot_load_template";
     }
 
     __createEL(variables, variableDefinitions, loadFunction) {
@@ -69,8 +71,7 @@ class Merger {
                 hashMaker.update(include.resource);
                 return include
             } catch (error) {
-                throw new errors.DependencyError(`Can't load template include: '${name}'`,
-                    "cannot_load_template", name);
+                throw new errors.DependencyError(this.errorString + `'${name}'`, this.errorId, name);
             }
         });
 
@@ -91,8 +92,7 @@ class Merger {
             try {
                 return this.project.loadTemplate(name);
             } catch (error) {
-                throw new errors.DependencyError(`Can't load template include: '${name}'`,
-                    "cannot_load_template", name);
+                throw new errors.DependencyError(this.errorString + `'${name}'`, this.errorId, name);
             }
         });
 

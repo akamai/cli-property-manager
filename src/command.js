@@ -194,6 +194,10 @@ class DevOpsCommand extends Command {
         }
     }
 
+    // Trying to remove "executeSubCommand" calls so it doesn't try to do that when it "detects" an alias
+    // The way the original author write it is that it will call a subcommand seperately from the framework
+    executeSubCommand() {}
+
     /**
      * Variadic argument with `name` is not the last argument as required.
      *
