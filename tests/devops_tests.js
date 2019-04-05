@@ -738,6 +738,256 @@ describe('createPipeline custom property name integration tests', function() {
     });
 });
 
+describe('createPipeline associate property name integration tests', function() {
+    let utils;
+    let projectName = "new.associate.com";
+    let testProjectNoVarName = "testproject-novar-associate.com";
+    let testProjectUserVar = "testproject-uservar-associate.com";
+    let devops;
+
+    class TestProject extends Project {
+        constructor(projectName, dependencies) {
+            dependencies.getUtils = function() {
+                return utils;
+            };
+            super(projectName, dependencies);
+        }
+
+        exists() {
+            return this.projectName === "existingProject";
+        }
+    }
+
+    before(function () {
+        //these changes represent user edits after project creation.
+        utils = new VerifyUtils(pretendEmpty = true);
+        utils.touch(path.join(__dirname, "..", "resources", "template.converter.data.json"));
+        let regularUtils = new Utils();
+        let testRuleTree = regularUtils.readJsonFile(path.join(__dirname, "testdata", "testruletree.waa.json"));
+        let existingRuleTree = regularUtils.readJsonFile(
+            path.join(__dirname, "testproject.com", "dist", "qa.testproject.com.papi.json"));
+        let existingRuleTreeUserVar = regularUtils.readJsonFile(path.join(__dirname, "testdata", "testruletree.waa.variables.json"));
+
+        let testData = regularUtils.readJsonFile(path.join(__dirname, "testdata", "createProjectDataAssociateName.json"));
+        let papiClass = td.constructor(PAPI);
+        td.when(papiClass.prototype.getClientSettings())
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve({
+                        "ruleFormat" : "v2018-02-27",
+                        "usePrefixes" : false
+                    });
+                })
+            );
+
+        td.when(papiClass.prototype.findProperty("foo"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testData.foo.associate);
+                })
+            );
+
+        td.when(papiClass.prototype.latestPropertyVersion("518928"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testData.foo.latestVersion);
+                })
+            );
+
+        td.when(papiClass.prototype.findProperty("bar"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testData.bar.associate);
+                })
+            );
+
+        td.when(papiClass.prototype.latestPropertyVersion("518929"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testData.bar.latestVersion);
+                })
+            );
+        td.when(papiClass.prototype.findProperty("prod"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testData.prod.associate);
+                })
+            );
+
+        td.when(papiClass.prototype.latestPropertyVersion("518930"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testData.prod.latestVersion);
+                })
+            );
+
+        td.when(papiClass.prototype.getPropertyVersionRules("518928", 2, "v2018-02-27"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(existingRuleTree);
+                })
+            );
+
+        td.when(papiClass.prototype.getPropertyVersionRules("518928", 2, "v2017-06-19"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(existingRuleTree);
+                })
+            );
+
+        td.when(papiClass.prototype.latestPropertyVersion(518928))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testData.foo.latestVersion);
+                })
+            );
+
+        td.when(papiClass.prototype.getPropertyVersionRules(518928, 2, "v2018-02-27"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(existingRuleTree);
+                })
+            );
+
+        td.when(papiClass.prototype.getPropertyVersionRules(518928, 2, "v2017-06-19"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(existingRuleTree);
+                })
+            );
+
+        td.when(papiClass.prototype.latestPropertyVersion(518929))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testData.foo.latestVersion);
+                })
+            );
+
+        td.when(papiClass.prototype.getPropertyVersionRules(518929, 2, "v2018-02-27"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(existingRuleTree);
+                })
+            );
+
+        td.when(papiClass.prototype.getPropertyVersionRules(518929, 2, "v2017-06-19"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(existingRuleTree);
+                })
+            );
+
+        td.when(papiClass.prototype.latestPropertyVersion(518930))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(testData.prod.latestVersion);
+                })
+            );
+
+        td.when(papiClass.prototype.getPropertyVersionRules(518930, 2, "v2018-02-27"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(existingRuleTreeUserVar);
+                })
+            );
+
+        td.when(papiClass.prototype.getPropertyVersionRules(518930, 2, "v2017-06-19"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(existingRuleTreeUserVar);
+                })
+            );
+
+        devops = createDevOps({
+            devopsHome : devopsHome,
+            papiClass: papiClass,
+            projectClass: TestProject,
+            version: "0.1.10"
+        });
+    });
+
+    it('createPipeline with correct params (associate property names)', async function() {
+        await devops.createPipeline({
+            projectName: projectName,
+            productId: "Web_App_Accel",
+            contractId: "1-1TJZH5",
+            customPropertyName: true,
+            associatePropertyName: true,
+            groupIds: [15225],
+            environments: [
+                "foo",
+                "bar",
+                "prod"
+            ],
+            environmentGroupIds: {
+                foo: 15225,
+                bar: 15225,
+                prod: 15225
+            }
+        });
+    });
+
+    it('createPipeline with propertyId (associate property names)', async function() {
+        await devops.createPipeline({
+            projectName: projectName,
+            environments: [
+                "foo",
+                "bar",
+                "prod"
+            ],
+            groupIds: [],
+            environmentGroupIds: {
+            },
+            propertyId: 518928,
+            customPropertyName: true,
+            associatePropertyName: true
+        });
+    });
+
+    it('createPipeline with propertyId variablemode = no-var (associate property names)', async function() {
+        //This should create a new project "testproject-novar-associate.com" that should be just like new.associate.com (no variables)
+        await devops.createPipeline({
+            projectName: testProjectNoVarName,
+            environments: [
+                "foo",
+                "bar",
+                "prod"
+            ],
+            groupIds: [],
+            environmentGroupIds: {
+            },
+            propertyId: 518928,
+            variableMode: "no-var",
+            customPropertyName: true,
+            associatePropertyName: true
+        });
+    });
+
+    it('createPipeline with propertyId variablemode = user-var-value (associate property names)', async function() {
+        //This should create a new project "testproject-useervar-associate.com" that should be just like new.associate.com (no variables)
+        await devops.createPipeline({
+            projectName: testProjectUserVar,
+            environments: [
+                "foo",
+                "bar",
+                "prod"
+            ],
+            groupIds: [],
+            environmentGroupIds: {
+            },
+            propertyId: 518930,
+            variableMode: "user-var-value",
+            customPropertyName: true,
+            associatePropertyName: true
+        });
+    });
+
+    it('createPipeline with duplicate environments (associate property names)', async function() {
+        return throwsAsync(function() {
+            return devops.createPipeline({
+                projectName: projectName,
+                productId: "Web_App_Accel",
+                contractId: "1-1TJZH5",
+                groupIds: [61726],
+                environmentGroupIds: {
+                    foo: 61726,
+                    bar: 61726,
+                    prod: 61726
+                },
+                environments: [
+                    "foo",
+                    "bar",
+                    "foo",
+                    "bar",
+                    "foo"
+                ]
+            });
+        }, "Error: Duplicate environment name in argument list: foo");
+    });
+});
+
 describe('merge integration tests', function() {
     let devops;
 

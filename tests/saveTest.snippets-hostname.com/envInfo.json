@@ -1,0 +1,22 @@
+{
+    "name": "saveTest.snippets.com",
+    "propertyName": "saveTest.snippets.com",
+    "groupId": 61726,
+    "isSecure": false,
+    "propertyId": 411089,
+    "latestVersionInfo": {
+        "propertyVersion": 1,
+        "updatedByUser": "jpws7ubcv5jjsv37",
+        "updatedDate": "2017-11-13T21:49:05Z",
+        "productionStatus": "INACTIVE",
+        "stagingStatus": "INACTIVE",
+        "etag": "7cf327786d5a73aa6340452a064fb77589f750b0",
+        "productId": "Web_App_Accel",
+        "ruleFormat": "latest"
+    },
+    "environmentHash": "11d6a9eb700504cad14a5f31810958781bf717a7fc7b36427656811d2b83d9cd",
+    "lastSavedHash": "11d6a9eb700504cad14a5f31810958781bf717a7fc7b36427656811d2b83d9cd",
+    "ruleTreeHash": "04fd417918c8ab13fb220473facef022b08630e1050bf744d4a2e56dab36d2bf",
+    "lastSaveWarnings": [],
+    "lastSaveErrors": []
+}

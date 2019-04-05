@@ -66,7 +66,17 @@ class Environment {
                 `customPropertyName mismatch`,
                 "check_customPropertyName_field", projectInfo.customPropertyName);
         }
-        if (_.isBoolean(projectInfo.customPropertyName) && projectInfo.customPropertyName) {
+        if (projectInfo.associatePropertyName !== createPipelineInfo.associatePropertyName) {
+            logger.info('mismatch in associatePropertyName field');
+            throw new errors.ArgumentError(
+                `associatePropertyName mismatch`,
+                "check_associatePropertyName_field", projectInfo.associatePropertyName);
+        }
+        if (_.isBoolean(projectInfo.associatePropertyName) && projectInfo.associatePropertyName) {
+            this.propertyName = this.name;
+            logger.info(`associate property name ${this.propertyName} will be used`);
+
+        } else if (_.isBoolean(projectInfo.customPropertyName) && projectInfo.customPropertyName) {
             this.propertyName = this.name;
             logger.info(`custom property name ${this.propertyName} will be used`);
         }
@@ -80,6 +90,27 @@ class Environment {
         }
         if (createPipelineInfo.isInRetryMode && envInfo.propertyId) {
             logger.info(`property '${this.propertyName}' already exists and is tied to environment '${this.name}'`);
+
+        } else if (_.isBoolean(createPipelineInfo.associatePropertyName) && createPipelineInfo.associatePropertyName) {
+            logger.info(`associating property '${this.propertyName}' tied to environment '${this.name}'`);
+            let results = await this.getPAPI().findProperty(this.propertyName);
+            if (results.versions.items.length === 0) {
+                throw new errors.ArgumentError(`Can't find any version of property '${this.propertyName}'`,
+                    "property_does_not_exist_on_server", this.propertyName);
+            }
+            let propertyId = results.versions.items[0].propertyId;
+
+            let latestVersion = 0;
+            for (let i = 0; i < results.versions.items.length; i++) {
+                if (latestVersion < results.versions.items[i].propertyVersion) {
+                    latestVersion = results.versions.items[i].propertyVersion;
+                }
+            }
+            logger.info("Current latest version: ", latestVersion);
+            let latestResult = await this.getPAPI().createNewPropertyVersion(propertyId, latestVersion);
+            logger.info("Creating version: ", latestResult);
+            envInfo.propertyId = propertyId;
+
         } else {
             logger.info(`creating property '${this.propertyName}' tied to environment '${this.name}'`);
             let projectInfo = this.project.getProjectInfo();
@@ -384,6 +415,7 @@ class Environment {
      * @param results {object} optional, if not passed throw exception on validation errors
      */
     checkForLastSavedHostnameErrors(envInfo, results) {
+        //TODO this shouldn't be the same method for both assigning the results object and for doing a check
         if (_.isArray(envInfo.lastSaveHostnameErrors) && envInfo.lastSaveHostnameErrors.length > 0 && !_.isObject(results)) {
             let hostnameErrors = helpers.jsonStringify(envInfo.lastSaveHostnameErrors);
             throw new errors.ValidationError(`Hostname related errors present: '${hostnameErrors}'`,
@@ -392,6 +424,7 @@ class Environment {
         }
         if (_.isObject(results)) {
             results.hostnameErrors = envInfo.lastSaveHostnameErrors;
+            results.hostnameWarnings = envInfo.lastSaveHostnameWarnings;
         }
     }
 
@@ -516,7 +549,20 @@ class Environment {
                 let versionHostnamesResponse = await papi.storePropertyVersionHostnames(envInfo.propertyId,
                     envInfo.latestVersionInfo.propertyVersion, hostnames, this.project.getProjectInfo().contractId, envInfo.groupId);
                 envInfo.latestVersionInfo.etag = versionHostnamesResponse.etag;
+                //unless a 400 or 500 is thrown, it will always save/store to the version.
                 results.storedHostnames = true;
+                envInfo.lastSaveHostnameErrors = [];
+                envInfo.lastSaveHostnameWarnings = [];
+                results.hostnameErrors = [];
+                results.hostnameWarnings = [];
+                if (_.isArray(versionHostnamesResponse.errors) && versionHostnamesResponse.errors.length > 0) {
+                    envInfo.lastSaveHostnameErrors = versionHostnamesResponse.errors;
+                    results.hostnameErrors = envInfo.lastSaveHostnameErrors;
+                }
+                if (_.isArray(versionHostnamesResponse.warnings) && versionHostnamesResponse.warnings.length > 0) {
+                    envInfo.lastSaveHostnameWarnings = versionHostnamesResponse.warnings;
+                    results.hostnameWarnings = envInfo.lastSaveHostnameWarnings;
+                }
             }
             hostnamesHash = helpers.createHash(hostnames);
             envInfo.lastSavedHostnamesHash = hostnamesHash;

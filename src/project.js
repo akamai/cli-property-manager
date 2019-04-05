@@ -145,6 +145,9 @@ class Project {
         if (_.isBoolean(createProjectInfo.customPropertyName) && createProjectInfo.customPropertyName) {
             this.projectInfo.customPropertyName = createProjectInfo.customPropertyName;
         }
+        if (_.isBoolean(createProjectInfo.associatePropertyName) && createProjectInfo.associatePropertyName) {
+            this.projectInfo.associatePropertyName = createProjectInfo.associatePropertyName;
+        }
         this.projectInfo.name = this.projectName;
         //todo: what other stuff can go here?
         let infoPath = path.join(this.projectFolder, "projectInfo.json");
@@ -376,7 +379,7 @@ class Project {
         if (_.isString(suggestedRuleFormat)) {
             await papi.setRuleFormat(suggestedRuleFormat);
         }
-        return ruleTree
+        return ruleTree;
     }
 
     loadAndSubstituteProjectResourceData(fileName, context) {

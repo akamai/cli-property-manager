@@ -27,7 +27,7 @@ Use akamai pl help to get general help about all pipeline commands.
      list-products|lp [options]                         List products available under provided contract ID and client ID available to current user credentials and setup
      list-groups|lg                                     List groups available to current user credentials and setup
      list-cpcodes|lcp [options]                         List cpcodes available to current user credentials and setup.
-     show-ruletree|sr [options] <environment>           Fetch latest version of property rule tree for provided environment
+     show-ruletree|sr [options] <environment>           Shows the rule tree of a local property for provided environment
      save|sv [options] <environment>                    Save rule tree and hostnames for provided environment. Edge hostnames are also created if needed.
      list-edgehostnames|leh [options]                   List edge hostnames available to current user credentials and setup (this could be a long list).
      list-status|lstat [options]                        Show status of pipeline
@@ -58,6 +58,7 @@ a group Id, product Id and contract Id. These ids can be obtained by using the l
      --secure                                    Make new pipeline secure, all environment properties are going to be secure
      --insecure                                  Make all environment properties not secure
      --custom-property-name                      To use custom property names
+     --associate-property-name                   To use existing properties in the pipeline
      --variable-mode [variableMode]              Choose how your new pipeline will pull in variable.  Allowed values are 'default', 'no-var', and 'user-var-value'.  Only works when creating a pipeline from an existing property
      -h, --help                                  output usage information
    
@@ -264,7 +265,7 @@ This command might get removed in the future or expanded in some way to make it 
 
    Usage: show-ruletree|sr [options] <environment>
    
-   Fetch latest version of property rule tree for provided environment
+   Shows the rule tree of a local property for provided environment
    
    Options:
      -p, --pipeline [pipelineName]  pipeline name

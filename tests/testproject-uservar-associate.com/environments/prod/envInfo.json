@@ -1,0 +1,17 @@
+{
+    "name": "prod",
+    "propertyName": "prod",
+    "groupId": 15225,
+    "propertyId": "518930",
+    "isSecure": false,
+    "latestVersionInfo": {
+        "propertyVersion": 2,
+        "updatedByUser": "4hcpfgsuqewr56a2",
+        "updatedDate": "2019-03-18T17:25:23Z",
+        "productionStatus": "INACTIVE",
+        "stagingStatus": "INACTIVE",
+        "etag": "352d5a5257affecf49472f92de17fb90ae4f0903",
+        "productId": "Web_App_Accel",
+        "ruleFormat": "v2018-02-27"
+    }
+}

@@ -24,7 +24,7 @@
     list-products|lp [options]                         List products available under provided contract ID and client ID available to current user credentials and setup
     list-groups|lg                                     List groups available to current user credentials and setup
     list-cpcodes|lcp [options]                         List cpcodes available to current user credentials and setup.
-    show-ruletree|sr [options] <environment>           Fetch latest version of property rule tree for provided environment
+    show-ruletree|sr [options] <environment>           Shows the rule tree of a local property for provided environment
     save|sv [options] <environment>                    Save rule tree and hostnames for provided environment. Edge hostnames are also created if needed.
     list-edgehostnames|leh [options]                   List edge hostnames available to current user credentials and setup (this could be a long list).
     list-status|lstat [options]                        Show status of pipeline
