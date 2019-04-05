@@ -785,6 +785,425 @@ describe('create edgehostname tests', function () {
     });
 });
 
+describe('pipeline Environment save with hostnames - creating edge hostname', function () {
+    let papi, merger, project, devOps, qaEnvironment;
+    let utils = new RoUtils();
+
+    before(function () {
+        devOps = {
+            "devopsHome": __dirname
+        };
+
+        project = new Project("testproject-hostnames.com", {
+            devops: devOps,
+            getUtils: function () {
+                return utils;
+            }
+        });
+
+        merger = td.object(['merge', 'resolvePath']);
+
+        td.when(merger.merge("main.json")).thenReturn({
+            "hash": "f91b2efb777cc1a6124d844e4a707676c9e2c105b8852f4700071193b221aaa2",
+            "ruleTreeHash": "6ac5ef477dbdc1abbc1c8957a0b6faef28f9d21b2f92e5771f29391da00a7744",
+            "ruleTree": utils.readJsonFile(path.join(__dirname, "testproject-hostnames.com", "dist", "qa.testproject-hostnames.com.papi.json"))
+        });
+
+        td.when(merger.resolvePath("rules/behaviors/1/options/value/id", "main.json")).thenReturn({
+            template: "templates/main.json",
+            variables: [
+                "environments/qa/variables.json"
+            ],
+            location: "rules/behaviors/1/options/value/id",
+            value: "9876543"
+        });
+
+        papi = td.object(['storePropertyVersionRules', 'listEdgeHostnames', 'createEdgeHostname']);
+
+        td.when(papi.listEdgeHostnames("1-1TJZH5",61726)).thenReturn(
+            {
+                "accountId": "act_1-1TJZFB",
+                "contractId": "ctr_1-1TJZH5",
+                "groupId": "grp_15225",
+                "edgeHostnames": {
+                    "items": [{
+                        "edgeHostnameId": "ehn_3448422",
+                        "domainPrefix": "193release.com",
+                        "domainSuffix": "edgesuite.net",
+                        "status": "CREATED",
+                        "ipVersionBehavior": "IPV6_COMPLIANCE",
+                        "secure": false,
+                        "edgeHostnameDomain": "193release.com.edgesuite.net"
+                    }]
+                }
+            }
+        );
+
+
+        qaEnvironment = new Environment('qa', {
+            project: project,
+            shouldProcessPapiErrors: true,
+            getPAPI: function () {
+                return papi;
+            },
+            getMerger: function () {
+                return merger;
+            }
+        });
+    });
+
+
+    it('create hostname test with 400', async function () {
+        td.when(papi.createEdgeHostname("1-1TJZH5",61726, td.matchers.anything())).thenReject(new errors.RestApiError("error message", "api_client_error", 400, {
+            "type": "https://problems.luna.akamaiapis.net/papi/v0/invalid-record-name",
+            "title": "record name is invalid",
+            "status": 400,
+            "detail" : "Name james-sqa2-snippets-hostname-..bug555 is invalid for creating a hostname",
+            "instance": "https://akaa-tatppzhhc4l6xvmi-baxl5ufbibzjxtmb.luna-dev.akamaiapis.net/papi/v0/properties/470629/versions/1/rules#6054d222-c3a8-4b44-94ac-3d24c40a446f"}))
+        try {
+            let results = await qaEnvironment.save();
+        }catch(exception){
+            assert.equal(exception.args[1], {"type":"https://problems.luna.akamaiapis.net/papi/v0/invalid-record-name","title":"record name is invalid","status":400,"detail":"Name james-sqa2-snippets-hostname-..bug555 is invalid for creating a hostname","instance":"https://akaa-tatppzhhc4l6xvmi-baxl5ufbibzjxtmb.luna-dev.akamaiapis.net/papi/v0/properties/470629/versions/1/rules#6054d222-c3a8-4b44-94ac-3d24c40a446f"});
+        }
+    });
+
+});
+
+describe('pipeline Environment save with hostnames - associating hostname with property', function () {
+    let papi, merger, project, devOps, qaEnvironment, brokenError, someWarning;
+    let utils = new RoUtils();
+
+    before(function () {
+        devOps = {
+            "devopsHome": __dirname
+        };
+
+        project = new Project("testproject-hostnames.com", {
+            devops: devOps,
+            getUtils: function () {
+                return utils;
+            }
+        });
+
+        merger = td.object(['merge', 'resolvePath']);
+
+        td.when(merger.merge("main.json")).thenReturn({
+            "hash": "f91b2efb777cc1a6124d844e4a707676c9e2c105b8852f4700071193b221aaa2",
+            "ruleTreeHash": "6ac5ef477dbdc1abbc1c8957a0b6faef28f9d21b2f92e5771f29391da00a7744",
+            "ruleTree": utils.readJsonFile(path.join(__dirname, "testproject-hostnames.com", "dist", "qa.testproject-hostnames.com.papi.json"))
+        });
+
+        td.when(merger.resolvePath("rules/behaviors/1/options/value/id", "main.json")).thenReturn({
+            template: "templates/main.json",
+            variables: [
+                "environments/qa/variables.json"
+            ],
+            location: "rules/behaviors/1/options/value/id",
+            value: "9876543"
+        });
+
+        papi = td.object(['storePropertyVersionRules', 'listEdgeHostnames', 'createEdgeHostname', "storePropertyVersionHostnames"]);
+
+        td.when(papi.listEdgeHostnames("1-1TJZH5",61726)).thenReturn(
+            {
+                "accountId": "act_1-1TJZFB",
+                "contractId": "ctr_1-1TJZH5",
+                "groupId": "grp_15225",
+                "edgeHostnames": {
+                    "items": [{
+                        "edgeHostnameId": "ehn_3448422",
+                        "domainPrefix": "193release.com",
+                        "domainSuffix": "edgesuite.net",
+                        "status": "CREATED",
+                        "ipVersionBehavior": "IPV6_COMPLIANCE",
+                        "secure": false,
+                        "edgeHostnameDomain": "193release.com.edgesuite.net"
+                    }]
+                }
+            }
+        );
+         brokenError = {
+            "broken":"something broken"
+        }
+
+        someWarning = {
+            "warn":"a warning about something"
+        }
+
+
+        td.when(papi.storePropertyVersionHostnames(td.matchers.anything(), td.matchers.anything(),td.matchers.anything(),"1-1TJZH5",61726 )).thenReturn(
+            {
+                "accountId" : "act_1-1TJZFB",
+                "contractId" : "ctr_1-1TJZH5",
+                "groupId" : "grp_15225",
+                "propertyId" : "prp_525933",
+                "propertyName" : "james-sqa2-snippets-hostname-bug1",
+                "propertyVersion" : 1,
+                "etag" : "f16cb5339b68af378d30fa56aced3a1f62c6c56e",
+                "hostnames" : {
+                    "items" : [ {
+                        "cnameType" : "EDGE_HOSTNAME",
+                        "edgeHostnameId" : "ehn_3449359",
+                        "cnameFrom" : "james-sqa2-snippets-hostname-bug1.com",
+                        "cnameTo" : "james-sqa2-snippets-hostname-bug1.edgesuite.net"
+                    }, {
+                        "cnameType" : "EDGE_HOSTNAME",
+                        "edgeHostnameId" : "ehn_3449434",
+                        "cnameFrom" : "james-sqa2-snippets-hostname-bug123.com",
+                        "cnameTo" : "james-sqa2-snippets-hostname-bug111.edgesuite.net"
+                    }, {
+                        "cnameType" : "EDGE_HOSTNAME",
+                        "edgeHostnameId" : "ehn_3449409",
+                        "cnameFrom" : "james-sqa2-snippets-hostname-bug789.com",
+                        "cnameTo" : "james-sqa2-snippets-hostname-bug789.edgesuite.net"
+                    } ]
+                },
+                "errors": [
+                    brokenError
+                ],
+                "warnings": [
+                    someWarning
+                ]
+            }
+        )
+
+
+
+        qaEnvironment = new Environment('qa', {
+            project: project,
+            shouldProcessPapiErrors: true,
+            getPAPI: function () {
+                return papi;
+            },
+            getMerger: function () {
+                return merger;
+            }
+        });
+    });
+
+    it('save hostname test - 200 with validation and warnings', async function () {
+        td.when(papi.createEdgeHostname("1-1TJZH5",61726, td.matchers.anything())).thenReturn({
+            edgeHostnameLink: '/papi/v0/edgehostnames/2683119?contractId=1-1TJZH5&groupId=61726'
+        })
+        let results = await qaEnvironment.save();
+
+        assert.equal(results.storedHostnames, true);
+        assert.equal(results.hostnameErrors[0].broken, brokenError.broken);
+        assert.equal(results.hostnameWarnings[0].warn, someWarning.warn);
+    });
+});
+
+describe('pipeline Environment save with hostnames - clear warnings and errors', function () {
+    let papi, merger, project, devOps, qaEnvironment, brokenError, someWarning;
+    let utils = new RoUtils();
+
+    before(function () {
+        devOps = {
+            "devopsHome": __dirname
+        };
+
+        project = new Project("testproject-hostnames.com", {
+            devops: devOps,
+            getUtils: function () {
+                return utils;
+            }
+        });
+
+        merger = td.object(['merge', 'resolvePath']);
+
+        td.when(merger.merge("main.json")).thenReturn({
+            "hash": "f91b2efb777cc1a6124d844e4a707676c9e2c105b8852f4700071193b221aaa2",
+            "ruleTreeHash": "6ac5ef477dbdc1abbc1c8957a0b6faef28f9d21b2f92e5771f29391da00a7744",
+            "ruleTree": utils.readJsonFile(path.join(__dirname, "testproject-hostnames.com", "dist", "qa.testproject-hostnames.com.papi.json"))
+        });
+
+        td.when(merger.resolvePath("rules/behaviors/1/options/value/id", "main.json")).thenReturn({
+            template: "templates/main.json",
+            variables: [
+                "environments/qa/variables.json"
+            ],
+            location: "rules/behaviors/1/options/value/id",
+            value: "9876543"
+        });
+
+        papi = td.object(['storePropertyVersionRules', 'listEdgeHostnames', 'createEdgeHostname', "storePropertyVersionHostnames"]);
+
+        td.when(papi.listEdgeHostnames("1-1TJZH5",61726)).thenReturn(
+            {
+                "accountId": "act_1-1TJZFB",
+                "contractId": "ctr_1-1TJZH5",
+                "groupId": "grp_15225",
+                "edgeHostnames": {
+                    "items": [{
+                        "edgeHostnameId": "ehn_3448422",
+                        "domainPrefix": "193release.com",
+                        "domainSuffix": "edgesuite.net",
+                        "status": "CREATED",
+                        "ipVersionBehavior": "IPV6_COMPLIANCE",
+                        "secure": false,
+                        "edgeHostnameDomain": "193release.com.edgesuite.net"
+                    }]
+                }
+            }
+        );
+        brokenError = {
+            "broken":"something broken"
+        }
+
+        someWarning = {
+            "warn":"a warning about something"
+        }
+
+
+        td.when(papi.storePropertyVersionHostnames(td.matchers.anything(), td.matchers.anything(),td.matchers.anything(),"1-1TJZH5",61726 )).thenReturn(
+            {
+                "accountId" : "act_1-1TJZFB",
+                "contractId" : "ctr_1-1TJZH5",
+                "groupId" : "grp_15225",
+                "propertyId" : "prp_525933",
+                "propertyName" : "james-sqa2-snippets-hostname-bug1",
+                "propertyVersion" : 1,
+                "etag" : "f16cb5339b68af378d30fa56aced3a1f62c6c56e",
+                "hostnames" : {
+                    "items" : [ {
+                        "cnameType" : "EDGE_HOSTNAME",
+                        "edgeHostnameId" : "ehn_3449359",
+                        "cnameFrom" : "james-sqa2-snippets-hostname-bug1.com",
+                        "cnameTo" : "james-sqa2-snippets-hostname-bug1.edgesuite.net"
+                    }, {
+                        "cnameType" : "EDGE_HOSTNAME",
+                        "edgeHostnameId" : "ehn_3449434",
+                        "cnameFrom" : "james-sqa2-snippets-hostname-bug123.com",
+                        "cnameTo" : "james-sqa2-snippets-hostname-bug111.edgesuite.net"
+                    }, {
+                        "cnameType" : "EDGE_HOSTNAME",
+                        "edgeHostnameId" : "ehn_3449409",
+                        "cnameFrom" : "james-sqa2-snippets-hostname-bug789.com",
+                        "cnameTo" : "james-sqa2-snippets-hostname-bug789.edgesuite.net"
+                    } ]
+                }
+            }
+        )
+
+
+
+        qaEnvironment = new Environment('qa', {
+            project: project,
+            shouldProcessPapiErrors: true,
+            getPAPI: function () {
+                return papi;
+            },
+            getMerger: function () {
+                return merger;
+            }
+        });
+    });
+
+
+
+    it('save hostname test - clear warning', async function () {
+        td.when(papi.createEdgeHostname("1-1TJZH5",61726, td.matchers.anything())).thenReturn({
+            edgeHostnameLink: '/papi/v0/edgehostnames/2683119?contractId=1-1TJZH5&groupId=61726'
+        })
+        qaEnvironment.getEnvironmentInfo = td.function();
+        let envInfoPath = path.join(__dirname, "testproject-hostnames.com/environments/qa/envInfo.json");
+        let envInfo = utils.readJsonFile(envInfoPath);
+        envInfo.lastSaveHostnameWarnings=[someWarning];
+        envInfo.lastSaveHostnameErrors=[brokenError];
+
+
+        td.when(qaEnvironment.getEnvironmentInfo()).thenReturn(envInfo);
+
+        let results = await qaEnvironment.save();
+
+        assert.equal(results.storedHostnames, true);
+        assert.isEmpty(results.hostnameErrors);
+        assert.isEmpty(results.hostnameWarnings);
+    });
+
+
+});
+
+describe('pipeline Environment save with hostnames - replay warnings and errors', function () {
+    let papi, merger, project, devOps, qaEnvironment, brokenError, someWarning;
+    let utils = new RoUtils();
+
+    before(function () {
+        devOps = {
+            "devopsHome": __dirname
+        };
+
+        project = new Project("testproject-hostnames.com", {
+            devops: devOps,
+            getUtils: function () {
+                return utils;
+            }
+        });
+
+        merger = td.object(['merge', 'resolvePath']);
+
+        td.when(merger.merge("main.json")).thenReturn({
+            "hash": "f91b2efb777cc1a6124d844e4a707676c9e2c105b8852f4700071193b221aaa2",
+            "ruleTreeHash": "6ac5ef477dbdc1abbc1c8957a0b6faef28f9d21b2f92e5771f29391da00a7744",
+            "ruleTree": utils.readJsonFile(path.join(__dirname, "testproject-hostnames.com", "dist", "qa.testproject-hostnames.com.papi.json"))
+        });
+
+        td.when(merger.resolvePath("rules/behaviors/1/options/value/id", "main.json")).thenReturn({
+            template: "templates/main.json",
+            variables: [
+                "environments/qa/variables.json"
+            ],
+            location: "rules/behaviors/1/options/value/id",
+            value: "9876543"
+        });
+
+        papi = td.object(['storePropertyVersionRules', 'listEdgeHostnames', 'createEdgeHostname', "storePropertyVersionHostnames"]);
+
+
+        brokenError = {
+            "broken":"something broken"
+        }
+
+        someWarning = {
+            "warn":"a warning about something"
+        }
+
+
+        qaEnvironment = new Environment('qa', {
+            project: project,
+            shouldProcessPapiErrors: true,
+            getPAPI: function () {
+                return papi;
+            },
+            getMerger: function () {
+                return merger;
+            }
+        });
+    });
+    it('save hostname test - replay warnings and errors', async function () {
+        td.when(papi.createEdgeHostname("1-1TJZH5",61726, td.matchers.anything())).thenReturn({
+            edgeHostnameLink: '/papi/v0/edgehostnames/2683119?contractId=1-1TJZH5&groupId=61726'
+        })
+        qaEnvironment.getEnvironmentInfo = td.function();
+        let envInfoPath = path.join(__dirname, "testproject-hostnames.com/environments/qa/envInfo.json");
+        let envInfo = utils.readJsonFile(envInfoPath);
+        envInfo.lastSaveHostnameWarnings=[someWarning];
+        envInfo.lastSaveHostnameErrors=[brokenError];
+        envInfo.lastSavedHostnamesHash = "7025ec29346aa8d39efa7c70cb483bbc1f9d5b8bc73e4f77dbc256b1168dacb0"
+
+        td.when(qaEnvironment.getEnvironmentInfo()).thenReturn(envInfo);
+
+        let results = await qaEnvironment.save();
+
+
+        assert.isNotEmpty(results.hostnameWarnings);
+        assert.equal(results.hostnameWarnings[0], someWarning);
+        assert.isNotEmpty(results.hostnameErrors);
+        assert.equal(results.hostnameErrors[0], brokenError);
+    });
+
+});
+
 
 describe('Environment save with errors test', function () {
     let papi, merger, project, devOps, qaEnvironment;
@@ -1380,6 +1799,7 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
             lastValidatedHash: "33e96e8ff7288ead357e4e866da601cddb3c73e23e9e495665e001b7e1c32d31",
             lastSaveErrors: [],
             lastSaveHostnameErrors: [],
+            lastSaveHostnameWarnings: [],
             lastSaveWarnings: [],
             latestVersionInfo: {
                 propertyVersion: 1,
@@ -1464,6 +1884,7 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
             lastValidatedHash: "33e96e8ff7288ead357e4e866da601cddb3c73e23e9e495665e001b7e1c32d31",
             lastSaveErrors: [],
             lastSaveHostnameErrors: [],
+            lastSaveHostnameWarnings: [],
             lastSaveWarnings: [],
             latestVersionInfo:
             {
@@ -1542,6 +1963,7 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
             lastValidatedHash: "33e96e8ff7288ead357e4e866da601cddb3c73e23e9e495665e001b7e1c32d31",
             lastSaveErrors: [],
             lastSaveHostnameErrors: [],
+            lastSaveHostnameWarnings: [],
             lastSaveWarnings: [],
             latestVersionInfo:
                 {
@@ -1591,6 +2013,7 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
             lastValidatedHash: "33e96e8ff7288ead357e4e866da601cddb3c73e23e9e495665e001b7e1c32d31",
             lastSaveErrors: [],
             lastSaveHostnameErrors: [],
+            lastSaveHostnameWarnings: [],
             lastSaveWarnings: [],
             latestVersionInfo: {
                 propertyVersion: 2,
@@ -1651,6 +2074,7 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
             lastValidatedHash: "33e96e8ff7288ead357e4e866da601cddb3c73e23e9e495665e001b7e1c32d31",
             lastSaveErrors: [],
             lastSaveHostnameErrors: [],
+            lastSaveHostnameWarnings: [],
             lastSaveWarnings: [],
             latestVersionInfo: {
                 propertyVersion: 2,

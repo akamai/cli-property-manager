@@ -44,9 +44,15 @@
 
     * [Using attributes that vary across environments with Akamai Pipeline](#using-attributes-that-vary-across-environments-with-akamai-pipeline)
 
-    * [Reusing secure edge hostnames](#reuse-secure-edge-hostnames)
+    * [Working with edge hostnames](#working-with-edge-hostnames) 
 
-    * [Working with multiple edge hostnames](#working-with-multiple-edge-hostnames)
+        * [Creating edge hostnames](#creating-edge-hostnames)
+        
+        * [Reusing edge hostnames](#reusing-edge-hostnames)
+
+        * [Using multiple edge hostnames](#using-multiple-edge-hostnames)
+
+        * [Domain suffixes for edge hostnames](#domain-suffixes-for-edge-hostnames)
 
     * [Working with advanced behaviors](#working-with-advanced-behaviors)	
 
@@ -182,6 +188,10 @@ Create your local client side snippets to let different teams own different part
 
 ## Create snippets of your Property Manager configuration
 
+1. Select which property configuration you want to create a local instance of. 
+
+1. Determine how to handle any [custom user variables](#using-property-manager-user-variables).
+
 1. Run the `akamai property-manager import` command to create a local instance of your Property Manager configuration. 
 
 1. In your project directory structure, navigate to the new `config-snippets` folder. <br> This folder contains a separate JSON-based configuration snippet for each rule in your property configuration.
@@ -291,9 +301,13 @@ To create a new pipeline:
         akamai pipeline new-pipeline -c <contractId> -g <groupId> -d <productId> -p <pipelineName> <environmentName1 environmentName2...>
 
     For example, if you want to base your pipeline on Ion, you'd enter a command like this: 
-        akamai pipeline new-pipeline -c 1-23ABC -g 12345 -d SPM -p MyPipeline123 qa prod
+      akamai pipeline new-pipeline -c 1-23ABC -g 12345 -d SPM -p MyPipeline123 qa prod
 
-1. If creating a pipeline using an existing property as a template, run this command:  
+5. If creating a pipeline using an existing property as a template: 
+
+    1. Determine how to handle any [custom user variables](#using-property-manager-user-variables).
+    
+    2. Run this command:  
         akamai pipeline new-pipeline -p <pipelineName> -e <propertyId or propertyName> <environment1_name environment2_name...>
     
     For example: `akamai pipeline new-pipeline -p MyPipeline123 -e 123 qa prod`
@@ -470,7 +484,7 @@ When you’re finally ready to run the command to create the pipeline or local c
 
 If you’re creating a new property from scratch, you can also use the `default` value, which replaces parts of the template configuration, like the `origin` behavior, with Property Manager’s default settings.
 
-If you've already created a pipeline and want declare a new user variable, you can revise the `../environments/variableDefinitions.json` and `../environments/{environment}/variables.json` files using the [syntax for Property Manager API variables](https://developer.akamai.com/api/core_features/property_manager/v1.html#declaringvariables).
+If you've already created a pipeline and want declare a new user variable, you can revise the `../environments/variableDefinitions.json` and `../environments/{environment}/variables.json` files using the [syntax for Property Manager variables](https://developer.akamai.com/api/core_features/property_manager/v1.html#declaringvariables).
 
 ## Using attributes that vary across environments with Akamai Pipeline
 
@@ -539,25 +553,36 @@ We need to change the value of `enabled` to a variable. We'll do this in a few s
     ```
 1. Merge, save, and promote your change as needed. 
 
-## Reusing secure edge hostnames
+## Working with edge hostnames 
 
-When you first create a pipeline and run the `akamai pipeline save` command, it saves your pipeline and validates your pipeline’s configuration. In addition, this command creates edge hostnames for you, if the value of the  `edgeHostnameId` is null in the `hostnames.json` file. 
+The Property Manager CLI lets you work with Standard Transport Layer Security (TLS), Enhanced TLS, and shared certificate edge hostnames.
 
-The Property Manager CLI can only create non-secure (HTTP) edge hostnames. If you want to use a secure (HTTPS) edge hostname with your pipeline, you can add an existing secure edge hostname to your `hostnames.json` file. You can also create a new one in Property Manager and add it to your `hostnames.json` file. Just be aware that it might take a while before the system sees the new secure edge hostname.
+### Creating edge hostnames
 
-You can view a list of your existing available edge hostnames by using this command: <br> `akamai property-manager list-edgehostnames -c <contractId> -g <groupId>`
+With this CLI, you can create Standard Transport Layer Security (TLS), Enhanced TLS, and shared certificate edge hostnames. 
 
-## Working with multiple edge hostnames
+When you first create a pipeline, it sets up a directory structure that includes JSON templates for each environment in the pipeline. 
 
-If you want to use multiple edge hostnames with any environment in your pipeline, you can modify the `hostnames.json` file like this:
+To create an edge hostname, follow these steps:
 
-	[
-		{
-			"cnameFrom": "www.example.com",
-			"cnameTo": "www.example.edgesuite.net",
-			"cnameType": "EDGE_HOSTNAME",
-			"edgeHostnameId": null
-		},
+1. In the `hostname.json` template file, make sure the `edgeHostnameId` is set to `null`. It's `null` by default. 
+
+1. Check the entry in the `cnameTo` field. It needs to be brand new and have the correct [domain suffix](#domain-suffixes-for-edge-hostnames). If the `cnameTo` already exists, you'll be [reusing](#reusing-edge-hostnames) an edge hostname, not creating one. 
+
+1. If you want to create an edge hostname that is secure, you'll also have to add an enrollment ID to the `hostname.json` file: 
+
+    1. Retrieve the `enrollment-id` from the [CPS CLI](https://github.com/akamai/cli-cps).
+    
+    1. Add a `certEnrollmentId` member to the `hostname.json` file and enter the `enrollment-id` as the value.
+
+1. Run the `akamai pipeline save` command.
+
+When you run the command the CLI will save your pipeline, validate its configuration, and create edge hostnames for you.
+
+Here's an example of what the entry in the `hostname.json` file might look like before you run the `akamai pipeline save` command:
+
+```
+   [
 		{
 			"cnameFrom": "www.example-1.com",
 			"cnameTo": "www.example-1.edgekey.net",
@@ -566,8 +591,42 @@ If you want to use multiple edge hostnames with any environment in your pipeline
 			"edgeHostnameId": null
 		}
 	]
+```
 
-When entering the `cnameTo` value, remember that the domain suffix is different for each type of edge hostname:
+### Reusing edge hostnames
+
+To reuse an edge hostname with your pipeline, simply add the existing edge hostname to your `hostnames.json` file. You can also create a new edge hostname in Property Manager and add it to your `hostnames.json` file.
+
+You can view a list of your existing available edge hostnames by using this command: 
+   `akamai property-manager list-edgehostnames -c <contractId> -g <groupId>`
+
+### Using multiple edge hostnames
+
+If you want to use multiple edge hostnames with any environment in your pipeline, you can modify the `hostnames.json` file like this:
+
+	[
+		{
+			"cnameFrom": "www.example.com",
+			"cnameTo": "www.example.edgesuite.net",
+			"cnameType": "EDGE_HOSTNAME",
+			"edgeHostnameId": 343477
+		},
+		{
+			"cnameFrom": "www.example-1.com",
+			"cnameTo": "www.example-1.edgekey.net",
+			"certEnrollmentId": "12356666",
+			"cnameType": "EDGE_HOSTNAME",
+			"edgeHostnameId": 224488
+		}
+	]
+
+When entering the `cnameTo` value, remember to use  the correct [domain suffix](#domain-suffixes-for-edge-hostnames).
+
+When you run the `akamai pipeline save` command, the CLI will create edge hostnames for each block, or find the right block if the edge hostname already exists for the environment.	
+
+### Domain suffixes for edge hostnames
+
+Each type of edge hostname has its own domain suffix.  Knowing which one to use is important when setting the `cnameTo` value:
 
 <table>
   <tr>
@@ -576,7 +635,7 @@ When entering the `cnameTo` value, remember that the domain suffix is different 
 	<th>Additional tasks</th>
   </tr>
   <tr>
-    <td>enhanced TLS</td>
+    <td>Enhanced TLS</td>
     <td>edgekey.net</td>
     <td><p>Include the enrollment ID:</p> 
 	    <ol>
@@ -586,7 +645,7 @@ When entering the `cnameTo` value, remember that the domain suffix is different 
 	</td>
   </tr>
   <tr>
-    <td>standard Transport Layer Security (TLS)</td>
+    <td>Standard TLS</td>
     <td>edgesuite.net</td>
     <td>Not applicable.</td>
   </tr>
@@ -597,8 +656,6 @@ When entering the `cnameTo` value, remember that the domain suffix is different 
   </tr>
 </table>
 
-When you run the `akamai pipeline save` command, the CLI will create edge hostnames for each block, or find the right block if the edge hostname already exists for the environment.
-    
 ## Working with advanced behaviors
 
 Does the property you want to use as an Akamai Pipeline template include advanced behaviors? If so, you'll need to convert all advanced behaviors to custom behaviors before creating the pipeline. See [Custom Behaviors for PAPI](https://developer.akamai.com/blog/2018/04/26/custom-behaviors-property-manager-papi) for more information.

@@ -197,6 +197,12 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         propertyName = checkedPropertyInfo.propertyName;
         propertyVersion = checkedPropertyInfo.propertyVersion;
 
+        if (_.isBoolean(options.associatePropertyName) && options.associatePropertyName) {
+            if (!(propertyId || propertyName)) {
+                throw new errors.ArgumentError(`Associate Property Name usable only with an existing property.`,
+                    "associate_property_needs_existing_property");
+            }
+        }
         let groupIds = options.groupIds;
         if (!(propertyId || propertyName) && groupIds.length === 0) {
             throw new errors.DependencyError("At least one groupId needs to be provided as a number", "missing_group_ids");
@@ -243,6 +249,10 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         }
         if (_.isBoolean(options.customPropertyName)) {
             createPipelineInfo.customPropertyName = options.customPropertyName;
+        }
+        if (_.isBoolean(options.associatePropertyName) && options.associatePropertyName) {
+            createPipelineInfo.associatePropertyName = options.associatePropertyName;
+            createPipelineInfo.customPropertyName = true;
         }
         if (dryRun) {
             consoleLogger.info("create pipeline info: ", helpers.jsonStringify(createPipelineInfo));
@@ -333,7 +343,9 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
                     ["hash", data.hash],
                     ["validation performed", data.validationPerformed ? "yes" : "no"],
                     ["validation warnings", helpers.isArrayWithData(data.validationWarnings) ? "yes" : "no"],
-                    ["validation errors", helpers.isArrayWithData(data.validationErrors) ? "yes" : "no"]
+                    ["validation errors", helpers.isArrayWithData(data.validationErrors) ? "yes" : "no"],
+                    ["hostname warnings", helpers.isArrayWithData(data.hostnameWarnings) ? "yes" : "no"],
+                    ["hostname errors", helpers.isArrayWithData(data.hostnameErrors) ? "yes" : "no"]
                 ];
                 consoleLogger.info(AsciiTable.table(mergeData, 200));
                 reportActionErrors(data);
@@ -344,7 +356,9 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
                     hash: data.hash,
                     validationPerformed: data.validationPerformed ? "yes" : "no",
                     validationWarnings: data.validationWarnings,
-                    validationErrors: data.validationErrors
+                    validationErrors: data.validationErrors,
+                    hostnameWarnings: data.hostnameWarnings,
+                    hostnameErrors: data.hostnameErrors
                 };
                 consoleLogger.info(helpers.jsonStringify(mergeData));
             }
@@ -364,7 +378,9 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
                     ["edge hostnames created", helpers.isArrayWithData(data.edgeHostnames.hostnamesCreated) ? "yes" : "no"],
                     ["stored hostnames", data.storedHostnames ? "yes" : "no"],
                     ["validation warnings", helpers.isArrayWithData(data.validationWarnings) ? "yes" : "no"],
-                    ["validation errors", helpers.isArrayWithData(data.validationErrors) ? "yes" : "no"]
+                    ["validation errors", helpers.isArrayWithData(data.validationErrors) ? "yes" : "no"],
+                    ["hostname warnings", helpers.isArrayWithData(data.hostnameWarnings) ? "yes" : "no"],
+                    ["hostname errors", helpers.isArrayWithData(data.hostnameErrors) ? "yes" : "no"]
                 ];
                 consoleLogger.info(AsciiTable.table(saveData));
                 reportActionErrors(data);
@@ -374,7 +390,9 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
                     edgeHostnamesCreated: helpers.isArrayWithData(data.edgeHostnames.hostnamesCreated) ? "yes" : "no",
                     storedHostnames: data.storedHostnames ? "yes" : "no",
                     validationWarnings: data.validationWarnings,
-                    validationErrors: data.validationErrors
+                    validationErrors: data.validationErrors,
+                    hostnameWarnings: data.hostnameWarnings,
+                    hostnameErrors: data.hostnameErrors
                 };
                 consoleLogger.info(helpers.jsonStringify(saveData));
             }
@@ -457,6 +475,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         .option('--secure', "Make new pipeline secure, all environment properties are going to be secure")
         .option('--insecure', "Make all environment properties not secure")
         .option('--custom-property-name', "To use custom property names")
+        .option('--associate-property-name', "To use existing properties in the pipeline")
         .option('--variable-mode [variableMode]', `Choose how your new pipeline will pull in variable.  Allowed values are ${printAllowedModes()}.  Only works when creating a pipeline from an existing property`)
         .alias("np")
         .action(function(...args) {
@@ -555,7 +574,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         });
 
     commander
-        .command("show-ruletree <environment>", "Fetch latest version of property rule tree for provided environment")
+        .command("show-ruletree <environment>", "Shows the rule tree of a local property for provided environment")
         .option('-p, --pipeline [pipelineName]', 'pipeline name')
         .alias("sr")
         .action(function(...args) {

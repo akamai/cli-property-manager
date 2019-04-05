@@ -25,7 +25,7 @@
      list-products|lp [options]            List products available under provided contract ID and client ID available to current user credentials and setup
      list-groups|lg                        List groups available to current user credentials and setup
      list-cpcodes|lcp [options]            List cpcodes available to current user credentials and setup.
-     show-ruletree|sr [options]            Fetch latest version of property rule tree
+     show-ruletree|sr [options]            Shows the rule tree of a local property
      save|sv [options]                     Save rule tree and hostnames for provided PM CLI property. Edge hostnames are also created if needed.
      list-edgehostnames|leh [options]      List edge hostnames available to current user credentials and setup (this could be a long list).
      activate|atv [options]                Activate a PM CLI property. This command also executes the merge and save commands mentioned above by default.
@@ -295,7 +295,7 @@ This command might get removed in the future or expanded in some way to make it 
 
    Usage: show-ruletree|sr [options]
    
-   Fetch latest version of property rule tree
+   Shows the rule tree of a local property
    
    Options:
      -p, --property [propertyName]  property name

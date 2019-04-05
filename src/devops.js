@@ -115,6 +115,39 @@ class DevOps {
                     }
                 });
             }
+            if (_.isBoolean(createPipelineInfo.associatePropertyName) && createPipelineInfo.associatePropertyName) {
+                if (!_.isString(createPipelineInfo.propertyName) && !_.isNumber(createPipelineInfo.propertyId)) {
+                    throw new errors.ArgumentError(`Must provide template property name with '-e'`,
+                        "template_not_provided", this.projectName);
+                }
+                if (_.isString(createPipelineInfo.contractId) && (helpers.prefixeableString('ctr_')(createPipelineInfo.contractId) !== helpers.prefixeableString('ctr_')(propertyInfo.contractId))) {
+                    throw new errors.ArgumentError(`Provided contract ID must match the contract ID of the seed template`,
+                        "contractId_mismatch", createPipelineInfo.contractId);
+                }
+                if (_.isString(createPipelineInfo.productId) && (helpers.prefixeableString('prd_')(createPipelineInfo.productId) !== helpers.prefixeableString('prd_')(propertyInfo.productId))) {
+                    throw new errors.ArgumentError(`Provided product ID must match the product ID of the seed template`,
+                        "productId_mismatch", createPipelineInfo.contractId);
+                }
+
+                for (let envName of createPipelineInfo.environments) {
+
+                    let propertyIdResult = await this.getPAPI().findProperty(envName);
+                    if (propertyIdResult.versions.items.length === 0) {
+                        throw new errors.ArgumentError(`Can't find any versions for property '${envName}'`);
+                    }
+                    let propertyId = helpers.parsePropertyId(propertyIdResult.versions.items[0].propertyId);
+
+                    let currentPropertyInfo = await project.getPropertyInfo(propertyId);
+                    if (currentPropertyInfo.contractId !== propertyInfo.contractId) {
+                        throw new errors.ValidationError(`Contract ID: '${currentPropertyInfo.contractId}' of Property: '${envName} does not match the contract ID: ${propertyInfo.contractId} of seed template`,
+                            "contractId_mismatch");
+                    }
+                    if (currentPropertyInfo.productId !== propertyInfo.productId) {
+                        throw new errors.ValidationError(`Product ID: '${currentPropertyInfo.productId}' of Property: '${envName} does not match the productId ID: ${propertyInfo.productId} of seed template`,
+                            "productId_mismatch");
+                    }
+                }
+            }
             if (!createPipelineInfo.contractId) {
                 createPipelineInfo.contractId = propertyInfo.contractId;
             }
@@ -127,6 +160,7 @@ class DevOps {
             if (!createPipelineInfo.propertyVersion) {
                 createPipelineInfo.propertyVersion = propertyInfo.propertyVersion;
             }
+
         } else {
             createPipelineInfo.secureOption = createPipelineInfo.secureOption || false;
         }

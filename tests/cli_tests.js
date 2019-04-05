@@ -588,6 +588,35 @@ describe('Devops-prov CLI create new project', function () {
        });
     });
 
+    it('create new project with associate property names', function () {
+        let cliArgs = createCommand("np", "-p", "testproject.com", "-e", "seed-template.com",
+            "-g", "62234", "-c", "XYZ123", "-d", "NiceProduct", "--associate-property-name", "foo", "bar");
+        return mainTester(errorReporter => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": __dirname
+            }, createDevOpsFun, errorReporter);
+        }, errorCatcher => {
+            td.verify(devOpsClass.prototype.createPipeline({
+                projectName: "testproject.com",
+                productId: "NiceProduct",
+                contractId: "XYZ123",
+                groupIds: [62234],
+                environments: ["foo", "bar"],
+                environmentGroupIds: {
+                    foo: 62234,
+                    bar: 62234
+                },
+                isInRetryMode: false,
+                customPropertyName: true,
+                associatePropertyName: true,
+                propertyId: undefined,
+                propertyName: "seed-template.com",
+                propertyVersion: undefined,
+                variableMode: "default"
+            }));
+        });
+    });
+
     it('create new project with variable-mode chosen with no property', function () {
         let cliArgs = createCommand("np", "-p", "testproject2.com", "--variable-mode", "default",
             "-g", "62234", "-c", "XYZ123", "-d", "NiceProduct", "foo", "bar");
@@ -1192,31 +1221,15 @@ describe('merge tests', function () {
     let testConsole;
     let utils = new Utils();
 
-    before(function () {
+    let runBefore = function (merge) {
         let devOpsClass = td.constructor(DevOps);
 
         td.when(devOpsClass.prototype.extractProjectName(td.matchers.isA(Object)))
             .thenReturn("testproject.com");
 
-        td.when(devOpsClass.prototype.merge("testproject.com", "qa", true))
+        td.when(devOpsClass.prototype.merge("testproject.com", "qa", td.matchers.isA((Boolean))))
             .thenReturn(new Promise((resolve, reject) => {
-                    resolve({
-                        fileName: "foobar.json",
-                        hash: "hash baby hash",
-                        changesDetected: true,
-                        validationPerformed: true
-                    });
-                })
-            );
-
-        td.when(devOpsClass.prototype.merge("testproject.com", "qa", false))
-            .thenReturn(new Promise((resolve, reject) => {
-                    resolve({
-                        fileName: "foobar.json",
-                        hash: "hash baby hash",
-                        changesDetected: true,
-                        validationPerformed: false
-                    });
+                    resolve(merge);
                 })
             );
 
@@ -1227,17 +1240,23 @@ describe('merge tests', function () {
                 devOpsClass,
                 devopsHome
             };
-            Object.assign(newDeps, deps);
+            Object.assign(deps, newDeps);
 
-            let devOps = createDevOps(newDeps);
+            let devOps = createDevOps(deps);
             devOps.devopsSettings = {
                 outputFormat: "table"
             };
             return devOps;
         };
-    });
+    };
 
     it('test merge', function () {
+        runBefore({
+            fileName: "foobar.json",
+            hash: "hash baby hash",
+            changesDetected: true,
+            validationPerformed: true
+        });
         testConsole = new TestConsole();
         let cliArgs = createCommand("merge", "qa");
 
@@ -1249,7 +1268,90 @@ describe('merge tests', function () {
         }, createDevOpsFun);
     });
 
+    it('test merge validation error', function () {
+        runBefore({
+            fileName: "foobar.json",
+            hash: "hash baby hash",
+            changesDetected: true,
+            validationPerformed: true,
+            validationErrors: [{error:true}]
+        });
+        testConsole = new TestConsole();
+        let cliArgs = createCommand("merge", "qa");
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            let output = testConsole.logs[0][0];
+            assert.equal(output, utils.readFile(path.join(__dirname, "testdata", "merge.output.validation.error.txt")))
+        }, createDevOpsFun);
+    });
+
+    it('test merge validation warning', function () {
+        runBefore({
+            fileName: "foobar.json",
+            hash: "hash baby hash",
+            changesDetected: true,
+            validationPerformed: true,
+            validationWarnings: [{error:true}]
+        });
+        testConsole = new TestConsole();
+        let cliArgs = createCommand("merge", "qa");
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            let output = testConsole.logs[0][0];
+            assert.equal(output, utils.readFile(path.join(__dirname, "testdata", "merge.output.validation.warning.txt")))
+        }, createDevOpsFun);
+    });
+
+    it('test merge hostname error', function () {
+        runBefore({
+            fileName: "foobar.json",
+            hash: "hash baby hash",
+            changesDetected: true,
+            validationPerformed: true,
+            hostnameErrors: [{error:true}]
+        });
+        testConsole = new TestConsole();
+        let cliArgs = createCommand("merge", "qa");
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            let output = testConsole.logs[0][0];
+            assert.equal(output, utils.readFile(path.join(__dirname, "testdata", "merge.output.hostname.error.txt")))
+        }, createDevOpsFun);
+    });
+
+    it('test merge hostname warning', function () {
+        runBefore({
+            fileName: "foobar.json",
+            hash: "hash baby hash",
+            changesDetected: true,
+            validationPerformed: true,
+            hostnameWarnings: [{error:true}]
+        });
+        testConsole = new TestConsole();
+        let cliArgs = createCommand("merge", "qa");
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            let output = testConsole.logs[0][0];
+            assert.equal(output, utils.readFile(path.join(__dirname, "testdata", "merge.output.hostname.warning.txt")))
+        }, createDevOpsFun);
+    });
+
+
     it('test merge with unexpected parameter', function () {
+        runBefore({
+            fileName: "foobar.json",
+            hash: "hash baby hash",
+            changesDetected: true,
+            validationPerformed: true
+        });
         testConsole = new TestConsole();
         let cliArgs = createCommand("merge", "qa", "prod");
         return mainTester(errorReporter => {
@@ -1260,6 +1362,12 @@ describe('merge tests', function () {
     });
 
     it('test merge, missing environment', function () {
+        runBefore({
+            fileName: "foobar.json",
+            hash: "hash baby hash",
+            changesDetected: true,
+            validationPerformed: true
+        });
         testConsole = new TestConsole();
         let cliArgs = createCommand("merge");
         return mainTester(errorReporter => {
@@ -1270,6 +1378,12 @@ describe('merge tests', function () {
     });
 
     it('test merge, no validate', function () {
+        runBefore({
+            fileName: "foobar.json",
+            hash: "hash baby hash",
+            changesDetected: true,
+            validationPerformed: false
+        });
         testConsole = new TestConsole();
         let cliArgs = createCommand("merge", "-n", "qa");
         return mainTester(errorReporter => {

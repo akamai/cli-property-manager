@@ -1,0 +1,173 @@
+{
+  "foo": {
+    "associate": {
+        "versions" : {
+          "items" : [ {
+            "accountId" : "act_1-1TJZFB",
+            "contractId" : "1-1TJZH5",
+            "assetId" : "aid_10642428",
+            "groupId" : "15225",
+            "propertyId" : "518928",
+            "propertyName" : "foo",
+            "propertyVersion" : 1,
+            "updatedByUser" : "4hcpfgsuqewr56a2",
+            "updatedDate" : "2019-03-01T16:25:54Z",
+            "productionStatus" : "INACTIVE",
+            "stagingStatus" : "INACTIVE"
+          } ]
+        }
+      },
+    "latestVersion": {
+        "propertyId": "518928",
+        "propertyName": "foo",
+        "accountId": "act_1-1TJZFB",
+        "contractId": "1-1TJZH5",
+        "groupId": "15225",
+        "assetId": "aid_10642428",
+        "versions": {
+          "items": [
+            {
+              "propertyVersion": 2,
+              "updatedByUser": "4hcpfgsuqewr56a2",
+              "updatedDate": "2019-03-18T17:25:23Z",
+              "productionStatus": "INACTIVE",
+              "stagingStatus": "INACTIVE",
+              "etag": "352d5a5257affecf49472f92de17fb90ae4f0903",
+              "productId": "Web_App_Accel",
+              "ruleFormat": "v2018-02-27"
+            }
+          ]
+        }
+    }
+  },
+  "bar": {
+    "associate": {
+      "versions" : {
+        "items" : [ {
+          "accountId" : "act_1-1TJZFB",
+          "contractId" : "1-1TJZH5",
+          "assetId" : "aid_10642428",
+          "groupId" : "15225",
+          "propertyId" : "518929",
+          "propertyName" : "bar",
+          "propertyVersion" : 1,
+          "updatedByUser" : "4hcpfgsuqewr56a2",
+          "updatedDate" : "2019-03-01T16:25:54Z",
+          "productionStatus" : "INACTIVE",
+          "stagingStatus" : "INACTIVE"
+        } ]
+      }
+    },
+    "latestVersion": {
+      "propertyId": "518929",
+      "propertyName": "bar",
+      "accountId": "act_1-1TJZFB",
+      "contractId": "1-1TJZH5",
+      "groupId": "15225",
+      "assetId": "aid_10642428",
+      "versions": {
+        "items": [
+          {
+            "propertyVersion": 2,
+            "updatedByUser": "4hcpfgsuqewr56a2",
+            "updatedDate": "2019-03-18T17:25:23Z",
+            "productionStatus": "INACTIVE",
+            "stagingStatus": "INACTIVE",
+            "etag": "352d5a5257affecf49472f92de17fb90ae4f0903",
+            "productId": "Web_App_Accel",
+            "ruleFormat": "v2018-02-27"
+          }
+        ]
+      }
+    }
+  },
+  "prod": {
+    "associate": {
+      "versions" : {
+        "items" : [ {
+          "accountId" : "act_1-1TJZFB",
+          "contractId" : "1-1TJZH5",
+          "assetId" : "aid_10642428",
+          "groupId" : "15225",
+          "propertyId" : "518930",
+          "propertyName" : "prod",
+          "propertyVersion" : 1,
+          "updatedByUser" : "4hcpfgsuqewr56a2",
+          "updatedDate" : "2019-03-01T16:25:54Z",
+          "productionStatus" : "INACTIVE",
+          "stagingStatus" : "INACTIVE"
+        } ]
+      }
+    },
+    "latestVersion": {
+      "propertyId": "518930",
+      "propertyName": "prod",
+      "accountId": "act_1-1TJZFB",
+      "contractId": "1-1TJZH5",
+      "groupId": "15225",
+      "assetId": "aid_10642428",
+      "versions": {
+        "items": [
+          {
+            "propertyVersion": 2,
+            "updatedByUser": "4hcpfgsuqewr56a2",
+            "updatedDate": "2019-03-18T17:25:23Z",
+            "productionStatus": "INACTIVE",
+            "stagingStatus": "INACTIVE",
+            "etag": "352d5a5257affecf49472f92de17fb90ae4f0903",
+            "productId": "Web_App_Accel",
+            "ruleFormat": "v2018-02-27"
+          }
+        ]
+      }
+    }
+  },
+  "bluePrint": {
+    "latestVersion": {
+      "propertyId": 76543,
+      "propertyName": "someother.blueprint.com",
+      "accountId": "1-1TJZFB",
+      "contractId": "1-1TJZH5",
+      "groupId": "61726",
+      "assetId": "471243",
+      "versions": {
+        "items": [
+          {
+            "propertyVersion": 75,
+            "updatedByUser": "jpws7ubcv5jjsv37",
+            "updatedDate": "2017-11-13T21:49:31Z",
+            "productionStatus": "INACTIVE",
+            "stagingStatus": "INACTIVE",
+            "etag": "9fdf49fecd0ed31b57eb13a6326f5190b9a14cc2",
+            "productId": "Web_App_Accel",
+            "ruleFormat": "latest"
+          }
+        ]
+      }
+    }
+  },
+  "userVarProperty": {
+    "latestVersion": {
+      "propertyId": 98789,
+      "propertyName": "userVarProperty.com",
+      "accountId": "1-1TJZFB",
+      "contractId": "1-1TJZH5",
+      "groupId": "61726",
+      "assetId": "471243",
+      "versions": {
+        "items": [
+          {
+            "propertyVersion": 75,
+            "updatedByUser": "jpws7ubcv5jjsv37",
+            "updatedDate": "2017-11-13T21:49:31Z",
+            "productionStatus": "INACTIVE",
+            "stagingStatus": "INACTIVE",
+            "etag": "9fdf49fecd0ed31b57eb13a6326f5190b9a14cc2",
+            "productId": "Web_App_Accel",
+            "ruleFormat": "latest"
+          }
+        ]
+      }
+    }
+  }
+}

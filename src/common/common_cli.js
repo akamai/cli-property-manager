@@ -219,6 +219,9 @@ class CommonCli {
         if (helpers.isArrayWithData(data.validationErrors)) {
             this.consoleLogger.error('There are validation errors: \n', helpers.jsonStringify(data.validationErrors));
         }
+        if (helpers.isArrayWithData(data.hostnameWarnings)) {
+            this.consoleLogger.warn('There are hostname warnings: \n', helpers.jsonStringify(data.hostnameWarnings));
+        }
         if (helpers.isArrayWithData(data.hostnameErrors)) {
             this.consoleLogger.error('There are hostname errors: \n', helpers.jsonStringify(data.hostnameErrors));
         }
@@ -258,6 +261,10 @@ class CommonCli {
     async checkActivations(devops, envName, options) {
         //checkPromotionsLogic has logic to report if not waiting
         let resultObject = await this.checkPromotionsLogic(devops, envName, options);
+        if (resultObject.error) {
+            this.reportError(resultObject.error, this.verbose);
+            return;
+        }
         if (options.waitForActivate) {
             let dateStart = new Date();
             resultObject.dateStart = dateStart;
@@ -316,7 +323,7 @@ class CommonCli {
         let outputFormat = devops.devopsSettings.outputFormat;
         if (error) {
             this.reportError(error, this.verbose);
-        } else if (results.length === 0) {
+        } else if (results && results.length === 0) {
             this.reportNoPromotionPending(data, envName, outputFormat, true);
         } else if (this.isActivationPending(results[0][3], outputFormat === 'table')) {
             if (outputFormat === 'table') {

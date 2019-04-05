@@ -252,7 +252,7 @@ describe('Snippets CLI create new project', function () {
                 projectName: "testproject2.com",
                 productId: "NiceProduct",
                 contractId: "XYZ123",
-                groupId: 62234, 
+                groupId: 62234,
                 isInRetryMode: false,
                 propertyId: 3456,
                 propertyName: undefined,
@@ -983,31 +983,15 @@ describe('Snippets list tests', function () {
         let testConsole;
         let utils = new Utils();
 
-        before(function () {
+        let runBefore = function (merge) {
             let devOpsClass = td.constructor(DevOps);
 
             td.when(devOpsClass.prototype.extractProjectName(td.matchers.isA(Object)))
                 .thenReturn("testproject.com");
 
-            td.when(devOpsClass.prototype.merge("testproject.com", true))
+            td.when(devOpsClass.prototype.merge("testproject.com", td.matchers.isA(Boolean)))
                 .thenReturn(new Promise((resolve, reject) => {
-                        resolve({
-                            fileName: "foobar.json",
-                            hash: "hash baby hash",
-                            changesDetected: true,
-                            validationPerformed: true
-                        });
-                    })
-                );
-
-            td.when(devOpsClass.prototype.merge("testproject.com", false))
-                .thenReturn(new Promise((resolve, reject) => {
-                        resolve({
-                            fileName: "foobar.json",
-                            hash: "hash baby hash",
-                            changesDetected: true,
-                            validationPerformed: false
-                        });
+                        resolve(merge);
                     })
                 );
 
@@ -1026,9 +1010,15 @@ describe('Snippets list tests', function () {
                 };
                 return devOps;
             };
-        });
+        }
 
         it('test merge', function () {
+            runBefore({
+                fileName: "foobar.json",
+                hash: "hash baby hash",
+                changesDetected: true,
+                validationPerformed: true
+            });
             testConsole = new TestConsole();
             let cliArgs = createCommand("merge");
 
@@ -1041,6 +1031,12 @@ describe('Snippets list tests', function () {
         });
 
         it('test merge with unexpected parameter', function () {
+            runBefore({
+                fileName: "foobar.json",
+                hash: "hash baby hash",
+                changesDetected: true,
+                validationPerformed: true
+            });
             testConsole = new TestConsole();
             let cliArgs = createCommand("merge", "qa", "prod");
             return mainTester(errorReporter => {
@@ -1051,6 +1047,12 @@ describe('Snippets list tests', function () {
         });
 
         it('test merge, missing environment', function () {
+            runBefore({
+                fileName: "foobar.json",
+                hash: "hash baby hash",
+                changesDetected: true,
+                validationPerformed: true
+            });
             testConsole = new TestConsole();
             let cliArgs = createCommand("merge");
             return mainTester(errorReporter => {
@@ -1062,6 +1064,12 @@ describe('Snippets list tests', function () {
         });
 
         it('test merge, no validate', function () {
+            runBefore({
+                fileName: "foobar.json",
+                hash: "hash baby hash",
+                changesDetected: true,
+                validationPerformed: false
+            });
             testConsole = new TestConsole();
             let cliArgs = createCommand("merge", "-n");
             return mainTester(errorReporter => {
@@ -1071,7 +1079,86 @@ describe('Snippets list tests', function () {
                 assert.equal(output, utils.readFile(path.join(baseDir, "testdata", "merge.noValidate.output.txt")))
             }, createDevOpsFun);
         });
+
+
+        it('test merge validation error', function () {
+            runBefore({
+                fileName: "foobar.json",
+                hash: "hash baby hash",
+                changesDetected: true,
+                validationPerformed: true,
+                validationErrors: [{error:true}]
+            });
+            testConsole = new TestConsole();
+            let cliArgs = createCommand("merge");
+
+            return mainTester(errorReporter => {
+                main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+            }, errorCatcher => {
+                let output = testConsole.logs[0][0];
+                assert.equal(output, utils.readFile(path.join(baseDir, "testdata", "merge.output.validation.error.txt")))
+            }, createDevOpsFun);
+        });
+
+        it('test merge validation warning', function () {
+            runBefore({
+                fileName: "foobar.json",
+                hash: "hash baby hash",
+                changesDetected: true,
+                validationPerformed: true,
+                validationWarnings: [{error:true}]
+            });
+            testConsole = new TestConsole();
+            let cliArgs = createCommand("merge");
+
+            return mainTester(errorReporter => {
+                main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+            }, errorCatcher => {
+                let output = testConsole.logs[0][0];
+                assert.equal(output, utils.readFile(path.join(baseDir, "testdata", "merge.output.validation.warning.txt")))
+            }, createDevOpsFun);
+        });
+
+        it('test merge hostname error', function () {
+            runBefore({
+                fileName: "foobar.json",
+                hash: "hash baby hash",
+                changesDetected: true,
+                validationPerformed: true,
+                hostnameErrors: [{error:true}]
+            });
+            testConsole = new TestConsole();
+            let cliArgs = createCommand("merge");
+
+            return mainTester(errorReporter => {
+                main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+            }, errorCatcher => {
+                let output = testConsole.logs[0][0];
+                assert.equal(output, utils.readFile(path.join(baseDir, "testdata", "merge.output.hostname.error.txt")))
+            }, createDevOpsFun);
+        });
+
+        it('test merge hostname warning', function () {
+            runBefore({
+                fileName: "foobar.json",
+                hash: "hash baby hash",
+                changesDetected: true,
+                validationPerformed: true,
+                hostnameWarnings: [{error:true}]
+            });
+            testConsole = new TestConsole();
+            let cliArgs = createCommand("merge");
+
+            return mainTester(errorReporter => {
+                main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+            }, errorCatcher => {
+                let output = testConsole.logs[0][0];
+                assert.equal(output, utils.readFile(path.join(baseDir, "testdata", "merge.output.hostname.warning.txt")))
+            }, createDevOpsFun);
+        });
     });
+
+
 });
 
 describe('Snippets activation tests', function () {

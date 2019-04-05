@@ -304,7 +304,9 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
                     ["hash", data.hash],
                     ["validation performed", data.validationPerformed ? "yes" : "no"],
                     ["validation warnings", helpers.isArrayWithData(data.validationWarnings) ? "yes" : "no"],
-                    ["validation errors", helpers.isArrayWithData(data.validationErrors) ? "yes" : "no"]
+                    ["validation errors", helpers.isArrayWithData(data.validationErrors) ? "yes" : "no"],
+                    ["hostname warnings", helpers.isArrayWithData(data.hostnameWarnings) ? "yes" : "no"],
+                    ["hostname errors", helpers.isArrayWithData(data.hostnameErrors) ? "yes" : "no"]
                 ];
                 consoleLogger.info(AsciiTable.table(mergeData, 200));
                 reportActionErrors(data);
@@ -315,7 +317,9 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
                     hash: data.hash,
                     validationPerformed: data.validationPerformed ? "yes" : "no",
                     validationWarnings: data.validationWarnings,
-                    validationErrors: data.validationErrors
+                    validationErrors: data.validationErrors,
+                    hostnameWarnings: data.hostnameWarnings,
+                    hostnameErrors: data.hostnameErrors
                 };
                 consoleLogger.info(helpers.jsonStringify(mergeData));
             }
@@ -335,7 +339,9 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
                     ["edge hostnames created", helpers.isArrayWithData(data.edgeHostnames.hostnamesCreated) ? "yes" : "no"],
                     ["stored hostnames", data.storedHostnames ? "yes" : "no"],
                     ["validation warnings", helpers.isArrayWithData(data.validationWarnings) ? "yes" : "no"],
-                    ["validation errors", helpers.isArrayWithData(data.validationErrors) ? "yes" : "no"]
+                    ["validation errors", helpers.isArrayWithData(data.validationErrors) ? "yes" : "no"],
+                    ["hostname warnings", helpers.isArrayWithData(data.hostnameWarnings) ? "yes" : "no"],
+                    ["hostname errors", helpers.isArrayWithData(data.hostnameErrors) ? "yes" : "no"]
                 ];
                 consoleLogger.info(AsciiTable.table(saveData));
                 reportActionErrors(data);
@@ -345,7 +351,9 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
                     edgeHostnamesCreated: helpers.isArrayWithData(data.edgeHostnames.hostnamesCreated) ? "yes" : "no",
                     storedHostnames: data.storedHostnames ? "yes" : "no",
                     validationWarnings: data.validationWarnings,
-                    validationErrors: data.validationErrors
+                    validationErrors: data.validationErrors,
+                    hostnameWarnings: data.hostnameWarnings,
+                    hostnameErrors: data.hostnameErrors
                 };
                 consoleLogger.info(helpers.jsonStringify(saveData));
             }
@@ -622,7 +630,7 @@ Are you sure you want to Deactivate the property '${propertyName}' on network '$
         });
 
     commander
-        .command("show-ruletree", "Fetch latest version of property rule tree")
+        .command("show-ruletree", "Shows the rule tree of a local property")
         .option('-p, --property [propertyName]', 'property name')
         .alias("sr")
         .action(function(...args) {
