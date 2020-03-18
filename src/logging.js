@@ -95,9 +95,9 @@ const log4jsLogging = function(verbose, type) {
     if (loggingConfigured) {
         return module.exports;
     }
-    let filename = "devops.log";
+    let filename = "devops-logs.log";
     if (type === "snippets") {
-        filename = "snippets.log";
+        filename = "snippets-logs.log";
     }
     const log4js = require('log4js');
     let appenders = {

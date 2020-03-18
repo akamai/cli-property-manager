@@ -5,7 +5,6 @@
   "propertyId": "411091",
   "propertyName": "prod.jmdevopstests2.com",
   "propertyVersion": 1,
-  "etag": "9fdf49fecd0ed31b57eb13a6326f5190b9a14cc2",
   "rules": {
     "name": "default",
     "children": [

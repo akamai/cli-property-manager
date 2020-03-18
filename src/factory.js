@@ -210,6 +210,10 @@ const createDevOps = function(dependencies = {}) {
         return new EdgeGrid(config);
     }
 
+    function getAccountSwitchKey() {
+        return devopsSettings.accountSwitchKey;
+    }
+
     function getOpenClient() {
 
         const defaultHeaders = (devOpsClass === DevOpsSnippets) ? {
@@ -220,7 +224,8 @@ const createDevOps = function(dependencies = {}) {
         if (clientType === "regular") {
             return new openClientClass({
                 getEdgeGrid,
-                defaultHeaders
+                defaultHeaders,
+                getAccountSwitchKey
             });
         } else {
             throw new errors.ArgumentError(`unknown clientType: ${clientType}`, "unknown_client_type", clientType);

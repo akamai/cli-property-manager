@@ -5,7 +5,6 @@
   "propertyId" : "430962",
   "propertyName" : "qa.downloadsexample.com",
   "propertyVersion" : 1,
-  "etag" : "4aae78064312976b05c7237f6180a2a6882898af",
   "rules" : {
     "name" : "default",
     "children" : [ {

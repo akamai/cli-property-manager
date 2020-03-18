@@ -7,13 +7,13 @@
 
     -V, --version                                      output the version number
     -v, --verbose                                      Verbose output, show logging on stdout
-    -s, --section [section]                            Section name representing Client ID in .edgerc file, defaults to "credentials"
-    -f, --format [format]                              Select output format, allowed values are 'json' or 'table'
+    -s, --section <section>                            Section name representing Client ID in .edgerc file, defaults to "credentials"
+    -f, --format <format>                              Select output format, allowed values are 'json' or 'table'
     -h, --help                                         output usage information
 
   Commands:
 
-    new-pipeline|np [options] [environments...]        Create a new pipeline with provided attributes. This will also create one property for each environment.
+    new-pipeline|np [options] <environments...>        Create a new pipeline with provided attributes. This will also create one property for each environment.
     set-default|sd [options]                           Set the default pipeline and or the default section name from .edgerc
     show-defaults|sf                                   Show default settings for this workspace
     merge|m [options] <environment>                    Merge template json and variable values into a PM/PAPI ruletree JSON document, stored in dist folder in the current pipeline folder
@@ -24,10 +24,10 @@
     list-products|lp [options]                         List products available under provided contract ID and client ID available to current user credentials and setup
     list-groups|lg                                     List groups available to current user credentials and setup
     list-cpcodes|lcp [options]                         List cpcodes available to current user credentials and setup.
-    show-ruletree|sr [options] <environment>           Shows the rule tree of a local property for provided environment
+    show-ruletree|sr [options] <environment>           Shows the rule tree of a local property for provided environment. Also, one can use the show-ruletree -p <pipelineName> <environment> >> <filename.json> to store it into a local file.
     save|sv [options] <environment>                    Save rule tree and hostnames for provided environment. Edge hostnames are also created if needed.
     list-edgehostnames|leh [options]                   List edge hostnames available to current user credentials and setup (this could be a long list).
     list-status|lstat [options]                        Show status of pipeline
-    promote|pm [options] [targetEnvironment]           Promote (activate) an environment. This command also executes the merge and save commands mentioned above by default.
+    promote|pm [options] <targetEnvironment>           Promote (activate) an environment. This command also executes the merge and save commands mentioned above by default.
     check-promotion-status|cs [options] <environment>  Check status of promotion (activation) of an environment.
     help [cmd]                                         display help for [cmd]

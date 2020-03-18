@@ -105,6 +105,7 @@ class DevOps {
             logger.info(`Attempting to load rule tree for property id: ${createPipelineInfo.propertyId} and version: ${createPipelineInfo.propertyVersion}`);
             let propertyInfo = await project.getPropertyInfo(createPipelineInfo.propertyId, createPipelineInfo.propertyVersion);
             ruleTree = await project.getPropertyRuleTree(createPipelineInfo.propertyId, propertyInfo.propertyVersion);
+            createPipelineInfo.ruleFormat = ruleTree.ruleFormat;
             if (!_.isArray(createPipelineInfo.groupIds) || createPipelineInfo.groupIds.length === 0) {
                 let defaultGroupId = helpers.parseGroupId(propertyInfo.groupId);
                 createPipelineInfo.groupIds = [defaultGroupId];
@@ -222,6 +223,18 @@ class DevOps {
         this.devopsSettings.emails = emailsArr;
         this.updateDevopsSettings({
             emails: emailsArr
+        });
+    }
+
+    /**
+     * Sets the account switch key value to switch the account context
+     * @param accountSwitchKey
+     */
+    setAccountSwitchKey(accountSwitchKey) {
+        logger.info(`Setting account switch key to '${accountSwitchKey}'`);
+        this.devopsSettings.accountSwitchKey = accountSwitchKey;
+        this.updateDevopsSettings({
+            accountSwitchKey: accountSwitchKey
         });
     }
 

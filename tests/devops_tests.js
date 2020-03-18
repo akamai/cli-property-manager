@@ -52,7 +52,6 @@ describe('getEnvironment tests', function() {
             "updatedDate": "2017-11-13T21:49:31Z",
             "productionStatus": "INACTIVE",
             "stagingStatus": "INACTIVE",
-            "etag": "9fdf49fecd0ed31b57eb13a6326f5190b9a14cc2",
             "productId": "Web_App_Accel",
             "ruleFormat": "latest"
         });
@@ -156,67 +155,67 @@ describe('createPipeline integration tests', function() {
                     });
                 })
             );
-        td.when(papiClass.prototype.createProperty("qa." + projectName, "Web_App_Accel", "1-1TJZH5", 61726,null, undefined, undefined))
+        td.when(papiClass.prototype.createProperty("qa." + projectName, "Web_App_Accel", "1-1TJZH5", 61726,undefined, undefined, undefined))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.qa.create);
                 })
             );
-        td.when(papiClass.prototype.createProperty("staging." + projectName, "Web_App_Accel", "1-1TJZH5", 61726,null, undefined, undefined))
+        td.when(papiClass.prototype.createProperty("staging." + projectName, "Web_App_Accel", "1-1TJZH5", 61726,undefined, undefined, undefined))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.staging.create);
                 })
             );
 
-        td.when(papiClass.prototype.createProperty("prod." + projectName, "Web_App_Accel", "1-1TJZH5", 61726,null, undefined, undefined))
+        td.when(papiClass.prototype.createProperty("prod." + projectName, "Web_App_Accel", "1-1TJZH5", 61726,undefined, undefined, undefined))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.prod.create);
                 })
             );
 
-        td.when(papiClass.prototype.createProperty("qa." + projectName, "Web_App_Accel", "1-1TJZH5", 61726,null, 76543, 75))
+        td.when(papiClass.prototype.createProperty("qa." + projectName, "Web_App_Accel", "1-1TJZH5", 61726,undefined, 76543, 75))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.qa.create);
                 })
             );
-        td.when(papiClass.prototype.createProperty("staging." + projectName, "Web_App_Accel", "1-1TJZH5", 61726,null, 76543, 75))
+        td.when(papiClass.prototype.createProperty("staging." + projectName, "Web_App_Accel", "1-1TJZH5", 61726,undefined, 76543, 75))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.staging.create);
                 })
             );
 
-        td.when(papiClass.prototype.createProperty("prod." + projectName, "Web_App_Accel", "1-1TJZH5", 61726,null, 76543, 75))
+        td.when(papiClass.prototype.createProperty("prod." + projectName, "Web_App_Accel", "1-1TJZH5", 61726,undefined, 76543, 75))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.prod.create);
                 })
             );
 
-        td.when(papiClass.prototype.createProperty("qa." + testProjectNoVarName, "Web_App_Accel", "1-1TJZH5", 61726,null, 76543, 75))
+        td.when(papiClass.prototype.createProperty("qa." + testProjectNoVarName, "Web_App_Accel", "1-1TJZH5", 61726,undefined, 76543, 75))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.qa.create);
                 })
             );
-        td.when(papiClass.prototype.createProperty("staging." + testProjectNoVarName, "Web_App_Accel", "1-1TJZH5", 61726,null, 76543, 75))
+        td.when(papiClass.prototype.createProperty("staging." + testProjectNoVarName, "Web_App_Accel", "1-1TJZH5", 61726,undefined, 76543, 75))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.staging.create);
                 })
             );
-        td.when(papiClass.prototype.createProperty("prod." + testProjectNoVarName, "Web_App_Accel", "1-1TJZH5", 61726,null, 76543, 75))
+        td.when(papiClass.prototype.createProperty("prod." + testProjectNoVarName, "Web_App_Accel", "1-1TJZH5", 61726,undefined, 76543, 75))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.prod.create);
                 })
             );
 
-        td.when(papiClass.prototype.createProperty("qa." + testProjectUserVar, "Web_App_Accel", "1-1TJZH5", 61726,null, 98789, 75))
+        td.when(papiClass.prototype.createProperty("qa." + testProjectUserVar, "Web_App_Accel", "1-1TJZH5", 61726,"latest", 98789, 75))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.qa.create);
                 })
             );
-        td.when(papiClass.prototype.createProperty("staging." + testProjectUserVar, "Web_App_Accel", "1-1TJZH5", 61726,null, 98789, 75))
+        td.when(papiClass.prototype.createProperty("staging." + testProjectUserVar, "Web_App_Accel", "1-1TJZH5", 61726,"latest", 98789, 75))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.staging.create);
                 })
             );
-        td.when(papiClass.prototype.createProperty("prod." + testProjectUserVar, "Web_App_Accel", "1-1TJZH5", 61726,null, 98789, 75))
+        td.when(papiClass.prototype.createProperty("prod." + testProjectUserVar, "Web_App_Accel", "1-1TJZH5", 61726,"latest", 98789, 75))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.prod.create);
                 })
@@ -338,7 +337,8 @@ describe('createPipeline integration tests', function() {
                 qa: 61726,
                 staging: 61726,
                 prod: 61726
-            }
+            },
+            ruleFormat:undefined
         });
     });
 
@@ -387,7 +387,8 @@ describe('createPipeline integration tests', function() {
             environmentGroupIds: {
             },
             propertyId: 98789,
-            variableMode: "user-var-value"
+            variableMode: "user-var-value",
+            ruleFormat:"latest"
         });
     });
 
@@ -435,17 +436,18 @@ describe('createPipeline integration tests', function() {
 
     it('project too many environments', async function () {
         return throwsAsync(function() {
+            var env =[];
+            for (var i = 1; i <=32; i++) {
+                env.push("dev"+i);
+            }
             return devops.createPipeline({
                 projectName: projectName,
                 productId: "Web_App_Accel",
                 contractId: "1-1TJZH5",
                 groupIds: [61726],
-                environments: [
-                    "dev1", "dev2", "dev3", "qa1", "qa2", "qa3", "staging1", "stating2",
-                    "staging3", "staging4", "uat1", "uat2", "prod"
-                ]
+                environments: env
             });
-        }, "Error: Number of environments should not exceed 10");
+        }, "Error: Number of environments should not exceed 30");
     });
 });
 
@@ -489,53 +491,53 @@ describe('createPipeline custom property name integration tests', function() {
                     });
                 })
             );
-        td.when(papiClass.prototype.createProperty("foo", "Web_App_Accel", "1-1TJZH5", 61726, null, undefined, undefined))
+        td.when(papiClass.prototype.createProperty("foo", "Web_App_Accel", "1-1TJZH5", 61726, undefined, undefined, undefined))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.foo.create);
                 })
             );
-        td.when(papiClass.prototype.createProperty("bar", "Web_App_Accel", "1-1TJZH5", 61726, null, undefined, undefined))
+        td.when(papiClass.prototype.createProperty("bar", "Web_App_Accel", "1-1TJZH5", 61726, undefined, undefined, undefined))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.bar.create);
                 })
             );
 
-        td.when(papiClass.prototype.createProperty("prod", "Web_App_Accel", "1-1TJZH5", 61726, null, undefined, undefined))
+        td.when(papiClass.prototype.createProperty("prod", "Web_App_Accel", "1-1TJZH5", 61726, undefined, undefined, undefined))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.prod.create);
                 })
             );
 
-        td.when(papiClass.prototype.createProperty("foo", "Web_App_Accel", "1-1TJZH5", 61726, null, 76543, 75))
+        td.when(papiClass.prototype.createProperty("foo", "Web_App_Accel", "1-1TJZH5", 61726, undefined, 76543, 75))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.foo.create);
                 })
             );
-        td.when(papiClass.prototype.createProperty("bar", "Web_App_Accel", "1-1TJZH5", 61726, null, 76543, 75))
+        td.when(papiClass.prototype.createProperty("bar", "Web_App_Accel", "1-1TJZH5", 61726, undefined, 76543, 75))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.bar.create);
                 })
             );
 
-        td.when(papiClass.prototype.createProperty("prod", "Web_App_Accel", "1-1TJZH5", 61726, null, 76543, 75))
+        td.when(papiClass.prototype.createProperty("prod", "Web_App_Accel", "1-1TJZH5", 61726, undefined, 76543, 75))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.prod.create);
                 })
             );
 
 
-        td.when(papiClass.prototype.createProperty("foo", "Web_App_Accel", "1-1TJZH5", 61726, null, 98789, 75))
+        td.when(papiClass.prototype.createProperty("foo", "Web_App_Accel", "1-1TJZH5", 61726, "latest", 98789, 75))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.foo.create);
                 })
             );
-        td.when(papiClass.prototype.createProperty("bar", "Web_App_Accel", "1-1TJZH5", 61726, null, 98789, 75))
+        td.when(papiClass.prototype.createProperty("bar", "Web_App_Accel", "1-1TJZH5", 61726, "latest", 98789, 75))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.bar.create);
                 })
             );
 
-        td.when(papiClass.prototype.createProperty("prod", "Web_App_Accel", "1-1TJZH5", 61726, null, 98789, 75))
+        td.when(papiClass.prototype.createProperty("prod", "Web_App_Accel", "1-1TJZH5", 61726, "latest", 98789, 75))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(testData.prod.create);
                 })
@@ -658,7 +660,8 @@ describe('createPipeline custom property name integration tests', function() {
                 foo: 61726,
                 bar: 61726,
                 prod: 61726
-            }
+            },
+            ruleFormat:undefined
         });
     });
 

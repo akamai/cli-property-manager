@@ -67,7 +67,6 @@ describe('Snippets getEnvironment tests', function() {
             "updatedDate": "2017-11-13T21:49:05Z",
             "productionStatus": "INACTIVE",
             "stagingStatus": "INACTIVE",
-            "etag": "7cf327786d5a73aa6340452a064fb77589f750b0",
             "productId": "Web_App_Accel",
             "ruleFormat": "latest"
         });
@@ -99,7 +98,6 @@ describe('Snippets getEnvironment tests', function() {
             "updatedDate": "2017-11-13T21:49:05Z",
             "productionStatus": "INACTIVE",
             "stagingStatus": "INACTIVE",
-            "etag": "7cf327786d5a73aa6340452a064fb77589f750b0",
             "productId": "Web_App_Accel",
             "ruleFormat": "latest"
         });
@@ -434,7 +432,6 @@ describe('Snippets Import property Tests', function () {
                                 updatedDate: '2018-11-06T15:39:49Z',
                                 productionStatus: 'INACTIVE',
                                 stagingStatus: 'INACTIVE',
-                                etag: '578b53bfa4ca393dff26581c89774358fdd2a219',
                                 productId: 'Web_App_Accel',
                                 ruleFormat: 'v2018-09-12'
                             }
@@ -474,7 +471,6 @@ describe('Snippets Import property Tests', function () {
                     updatedDate: '2018-11-06T15:39:49Z',
                     productionStatus: 'INACTIVE',
                     stagingStatus: 'INACTIVE',
-                    etag: '578b53bfa4ca393dff26581c89774358fdd2a219',
                     ruleFormat: 'v2018-09-12',
                     versions: {
                         items: [
@@ -484,7 +480,6 @@ describe('Snippets Import property Tests', function () {
                                 updatedDate: '2018-11-06T15:39:49Z',
                                 productionStatus: 'INACTIVE',
                                 stagingStatus: 'INACTIVE',
-                                etag: '578b53bfa4ca393dff26581c89774358fdd2a219',
                                 productId: 'Web_App_Accel',
                                 ruleFormat: 'v2018-09-12'
                             }
@@ -661,7 +656,6 @@ describe('Snippets Import property Tests', function () {
                                     updatedDate: '2018-11-06T15:39:49Z',
                                     productionStatus: 'INACTIVE',
                                     stagingStatus: 'INACTIVE',
-                                    etag: '578b53bfa4ca393dff26581c89774358fdd2a219',
                                     productId: 'Web_App_Accel',
                                     ruleFormat: 'v2018-09-12'
                                 }
@@ -701,7 +695,6 @@ describe('Snippets Import property Tests', function () {
                         updatedDate: '2018-11-06T15:39:49Z',
                         productionStatus: 'INACTIVE',
                         stagingStatus: 'INACTIVE',
-                        etag: '578b53bfa4ca393dff26581c89774358fdd2a219',
                         ruleFormat: 'v2018-09-12',
                         versions: {
                             items: [
@@ -711,7 +704,6 @@ describe('Snippets Import property Tests', function () {
                                     updatedDate: '2018-11-06T15:39:49Z',
                                     productionStatus: 'INACTIVE',
                                     stagingStatus: 'INACTIVE',
-                                    etag: '578b53bfa4ca393dff26581c89774358fdd2a219',
                                     productId: 'Web_App_Accel',
                                     ruleFormat: 'v2018-09-12'
                                 }
@@ -870,7 +862,6 @@ describe('Snippets Import property test without EdgeHostnameID', function () {
                                     updatedDate: '2018-11-06T15:39:49Z',
                                     productionStatus: 'INACTIVE',
                                     stagingStatus: 'INACTIVE',
-                                    etag: '578b53bfa4ca393dff26581c89774358fdd2a219',
                                     productId: 'Web_App_Accel',
                                     ruleFormat: 'v2018-09-12'
                                 }
@@ -910,7 +901,6 @@ describe('Snippets Import property test without EdgeHostnameID', function () {
                         updatedDate: '2018-11-06T15:39:49Z',
                         productionStatus: 'INACTIVE',
                         stagingStatus: 'INACTIVE',
-                        etag: '578b53bfa4ca393dff26581c89774358fdd2a219',
                         ruleFormat: 'v2018-09-12',
                         versions: {
                             items: [
@@ -920,7 +910,6 @@ describe('Snippets Import property test without EdgeHostnameID', function () {
                                     updatedDate: '2018-11-06T15:39:49Z',
                                     productionStatus: 'INACTIVE',
                                     stagingStatus: 'INACTIVE',
-                                    etag: '578b53bfa4ca393dff26581c89774358fdd2a219',
                                     productId: 'Web_App_Accel',
                                     ruleFormat: 'v2018-09-12'
                                 }
@@ -1064,7 +1053,6 @@ describe('Snippets Import property test without EdgeHostnames', function () {
                                     updatedDate: '2018-11-06T15:39:49Z',
                                     productionStatus: 'INACTIVE',
                                     stagingStatus: 'INACTIVE',
-                                    etag: '578b53bfa4ca393dff26581c89774358fdd2a219',
                                     productId: 'Web_App_Accel',
                                     ruleFormat: 'v2018-09-12'
                                 }
@@ -1100,7 +1088,6 @@ describe('Snippets Import property test without EdgeHostnames', function () {
                         updatedDate: '2018-11-06T15:39:49Z',
                         productionStatus: 'INACTIVE',
                         stagingStatus: 'INACTIVE',
-                        etag: '578b53bfa4ca393dff26581c89774358fdd2a219',
                         ruleFormat: 'v2018-09-12',
                         versions: {
                             items: [
@@ -1110,7 +1097,6 @@ describe('Snippets Import property test without EdgeHostnames', function () {
                                     updatedDate: '2018-11-06T15:39:49Z',
                                     productionStatus: 'INACTIVE',
                                     stagingStatus: 'INACTIVE',
-                                    etag: '578b53bfa4ca393dff26581c89774358fdd2a219',
                                     productId: 'Web_App_Accel',
                                     ruleFormat: 'v2018-09-12'
                                 }
@@ -1330,7 +1316,6 @@ describe('Snippets update property integration tests', function() {
                                 "updatedDate" : "2018-09-27T18:30:45Z",
                                 "productionStatus" : "INACTIVE",
                                 "stagingStatus" : "INACTIVE",
-                                "etag" : "mcvzcvxc",
                                 "productId" : "Web_App_Accel",
                                 "ruleFormat" : "v2018-02-27"
                             } ]
@@ -1356,7 +1341,6 @@ describe('Snippets update property integration tests', function() {
                                 "updatedDate" : "2018-09-27T18:30:45Z",
                                 "productionStatus" : "ACTIVE",
                                 "stagingStatus" : "INACTIVE",
-                                "etag" : "aababbdbbfbdfbadsf",
                                 "productId" : "Web_App_Accel",
                                 "ruleFormat" : "v2018-02-27"
                             } ]
@@ -1382,7 +1366,6 @@ describe('Snippets update property integration tests', function() {
                                 "updatedDate" : "2018-09-27T18:30:45Z",
                                 "productionStatus" : "INACTIVE",
                                 "stagingStatus" : "ACTIVE",
-                                "etag" : "ea7b3c8240863a7fcd14069228b770194bc8de1b",
                                 "productId" : "Web_App_Accel",
                                 "ruleFormat" : "v2018-02-27"
                             } ]
@@ -1402,7 +1385,6 @@ describe('Snippets update property integration tests', function() {
                         "propertyId": "488349",
                         "propertyName": "testing-snippets",
                         "propertyVersion": 9,
-                        "etag": "e2800061ab5e59f7dac292e10ee6e9f3a66eff40",
                         "hostnames": {
                             "items": [{
                                 "cnameType": "EDGE_HOSTNAME",
@@ -1605,7 +1587,6 @@ describe('Snippets update uservar property integration tests', function() {
                                 "updatedDate" : "2018-09-27T18:30:45Z",
                                 "productionStatus" : "INACTIVE",
                                 "stagingStatus" : "INACTIVE",
-                                "etag" : "mcvzcvxc",
                                 "productId" : "Web_App_Accel",
                                 "ruleFormat" : "v2018-02-27"
                             } ]
@@ -1631,7 +1612,6 @@ describe('Snippets update uservar property integration tests', function() {
                                 "updatedDate" : "2018-09-27T18:30:45Z",
                                 "productionStatus" : "ACTIVE",
                                 "stagingStatus" : "INACTIVE",
-                                "etag" : "aababbdbbfbdfbadsf",
                                 "productId" : "Web_App_Accel",
                                 "ruleFormat" : "v2018-02-27"
                             } ]
@@ -1657,7 +1637,6 @@ describe('Snippets update uservar property integration tests', function() {
                                 "updatedDate" : "2018-09-27T18:30:45Z",
                                 "productionStatus" : "INACTIVE",
                                 "stagingStatus" : "ACTIVE",
-                                "etag" : "ea7b3c8240863a7fcd14069228b770194bc8de1b",
                                 "productId" : "Web_App_Accel",
                                 "ruleFormat" : "v2018-02-27"
                             } ]
@@ -1677,7 +1656,6 @@ describe('Snippets update uservar property integration tests', function() {
                         "propertyId": "488349",
                         "propertyName": "testing-snippets",
                         "propertyVersion": 9,
-                        "etag": "e2800061ab5e59f7dac292e10ee6e9f3a66eff40",
                         "hostnames": {
                             "items": [{
                                 "cnameType": "EDGE_HOSTNAME",
@@ -1930,7 +1908,6 @@ describe('Snippets update property integration tests - with pending activations'
                                 "updatedDate" : "2018-09-27T18:30:45Z",
                                 "productionStatus" : "PENDING",
                                 "stagingStatus" : "PENDING",
-                                "etag" : "mcvzcvxc",
                                 "productId" : "Web_App_Accel",
                                 "ruleFormat" : "v2018-02-27"
                             } ]
@@ -1956,7 +1933,6 @@ describe('Snippets update property integration tests - with pending activations'
                                 "updatedDate" : "2018-09-27T18:30:45Z",
                                 "productionStatus" : "ACTIVE",
                                 "stagingStatus" : "INACTIVE",
-                                "etag" : "aababbdbbfbdfbadsf",
                                 "productId" : "Web_App_Accel",
                                 "ruleFormat" : "v2018-02-27"
                             } ]
@@ -1982,7 +1958,6 @@ describe('Snippets update property integration tests - with pending activations'
                                 "updatedDate" : "2018-09-27T18:30:45Z",
                                 "productionStatus" : "INACTIVE",
                                 "stagingStatus" : "ACTIVE",
-                                "etag" : "ea7b3c8240863a7fcd14069228b770194bc8de1b",
                                 "productId" : "Web_App_Accel",
                                 "ruleFormat" : "v2018-02-27"
                             } ]
@@ -2002,7 +1977,6 @@ describe('Snippets update property integration tests - with pending activations'
                         "propertyId": "488349",
                         "propertyName": "testing-snippets",
                         "propertyVersion": 9,
-                        "etag": "e2800061ab5e59f7dac292e10ee6e9f3a66eff40",
                         "hostnames": {
                             "items": [{
                                 "cnameType": "EDGE_HOSTNAME",

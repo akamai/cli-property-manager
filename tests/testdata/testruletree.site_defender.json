@@ -5,7 +5,6 @@
   "propertyId": "prp_453162",
   "propertyName": "qa.test_site_defender.com",
   "propertyVersion": 1,
-  "etag": "ed47ab05c3485be4bc8c7879e00c3f1c287b2177",
   "rules": {
     "name": "default",
     "children": [

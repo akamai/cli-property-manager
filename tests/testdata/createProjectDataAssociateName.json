@@ -32,7 +32,6 @@
               "updatedDate": "2019-03-18T17:25:23Z",
               "productionStatus": "INACTIVE",
               "stagingStatus": "INACTIVE",
-              "etag": "352d5a5257affecf49472f92de17fb90ae4f0903",
               "productId": "Web_App_Accel",
               "ruleFormat": "v2018-02-27"
             }
@@ -73,7 +72,6 @@
             "updatedDate": "2019-03-18T17:25:23Z",
             "productionStatus": "INACTIVE",
             "stagingStatus": "INACTIVE",
-            "etag": "352d5a5257affecf49472f92de17fb90ae4f0903",
             "productId": "Web_App_Accel",
             "ruleFormat": "v2018-02-27"
           }
@@ -114,7 +112,6 @@
             "updatedDate": "2019-03-18T17:25:23Z",
             "productionStatus": "INACTIVE",
             "stagingStatus": "INACTIVE",
-            "etag": "352d5a5257affecf49472f92de17fb90ae4f0903",
             "productId": "Web_App_Accel",
             "ruleFormat": "v2018-02-27"
           }
@@ -138,7 +135,6 @@
             "updatedDate": "2017-11-13T21:49:31Z",
             "productionStatus": "INACTIVE",
             "stagingStatus": "INACTIVE",
-            "etag": "9fdf49fecd0ed31b57eb13a6326f5190b9a14cc2",
             "productId": "Web_App_Accel",
             "ruleFormat": "latest"
           }
@@ -162,7 +158,6 @@
             "updatedDate": "2017-11-13T21:49:31Z",
             "productionStatus": "INACTIVE",
             "stagingStatus": "INACTIVE",
-            "etag": "9fdf49fecd0ed31b57eb13a6326f5190b9a14cc2",
             "productId": "Web_App_Accel",
             "ruleFormat": "latest"
           }

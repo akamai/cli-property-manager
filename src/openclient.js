@@ -30,6 +30,13 @@ class OpenClient {
         if (_.isFunction(dependencies.getEdgeGrid)) {
             this.__edgeGrid = dependencies.getEdgeGrid();
         }
+        if (_.isFunction(dependencies.getAccountSwitchKey) && dependencies.getAccountSwitchKey()) {
+            this.accountSwitchKey = dependencies.getAccountSwitchKey();
+            if (this.accountSwitchKey.includes("?") || this.accountSwitchKey.includes("&") || this.accountSwitchKey.includes("=")) {
+                //Try and prevent them from adding some random query parameter through the switch key
+                throw new errors.AkamaiPDError("switchKey is malformed", "malformed switchKey");
+            }
+        }
     }
 
     /**
@@ -43,8 +50,9 @@ class OpenClient {
     prepare(method, path, body, headers) {
         let myHeaders = {};
         Object.assign(myHeaders, this.defaultHeaders, headers);
+        let preparedPath = this.preparePath(path);
         let request = {
-            path: path,
+            path: preparedPath,
             method: method,
             headers: myHeaders
         };
@@ -52,6 +60,37 @@ class OpenClient {
             request.body = body;
         }
         return request;
+    }
+
+    preparePath(path) {
+        if (_.isString(this.accountSwitchKey) && this.accountSwitchKey) {
+            let splitPath = path.split("?");
+
+            if (splitPath.length === 1) {
+                //No query parameters
+                return path + "?accountSwitchKey=" + this.accountSwitchKey;
+            }
+
+            if (splitPath.length === 2) {
+                //split the key value pairs
+                if (splitPath[1] === "") {
+                    //if it splits because there is a ? with nothing behind it, lets account for that
+                    return path + "accountSwitchKey=" + this.accountSwitchKey;
+                }
+                let qkv = splitPath[1].split("&");
+                qkv.push("accountSwitchKey=" + this.accountSwitchKey);
+                let joinedqkv = qkv.join("&");
+
+                return splitPath[0] + "?" + joinedqkv;
+
+            }
+            if (splitPath.length > 2) {
+                //somethings wrong with the url
+                throw new errors.AkamaiPDError("Requested path is malformed", "malformed path");
+            }
+        } else {
+            return path;
+        }
     }
 
     /**

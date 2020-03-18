@@ -5,7 +5,6 @@
   "propertyId" : "prp_453073",
   "propertyName" : "qa.internal_Download_Delivery2.com",
   "propertyVersion" : 1,
-  "etag" : "99ddae9ea6c0022be876e451165b4654ffe9e068",
   "rules" : {
     "name" : "default",
     "children" : [ ],

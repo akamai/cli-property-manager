@@ -267,9 +267,12 @@ describe('Project Promote Test', function () {
             activationId: 12345
         });
 
-        return throwsAsync(function() {
-            return project.promote('prod', 'STAGING', ["joe@foo.com"]);
-        }, "Error: Environment 'staging' needs to be active without any pending changes");
+        let result2 = await project.promote('prod', 'STAGING', ["joe@foo.com"], "Akamai PD Activation");
+        assert.deepEqual(result2.pending, {
+            network: "STAGING",
+            activationId: 12345
+        });
+
     });
 
     describe('Project Promote dirty or not activated Test', function () {
@@ -362,9 +365,8 @@ describe('Project Promote Test', function () {
             td.when(tdProdEnv.isActive("STAGING")).thenReturn(false);
             td.when(tdProdEnv.isDirty()).thenReturn(true);
 
-            return throwsAsync(function() {
-                return project.promote('prod', 'STAGING', ["joe@foo.com"]);
-            }, "Error: Environment 'qa' needs to be active without any pending changes");
+            await  project.promote('staging', 'STAGING', ["joe@foo.com"],"Akamai PD Activation");
+            td.verify(project.getEnvironment("staging").promote("STAGING", ["joe@foo.com"], "Akamai PD Activation"));
         });
 
         it('promote staging test qa is dirty', async function () {
@@ -373,19 +375,16 @@ describe('Project Promote Test', function () {
 
             td.when(tdProdEnv.isActive("STAGING")).thenReturn(false);
             td.when(tdProdEnv.isDirty()).thenReturn(true);
-
-            return throwsAsync(function() {
-                return project.promote('staging', 'STAGING', ["joe@foo.com"]);
-            }, "Error: Environment 'qa' needs to be active without any pending changes");
+            await  project.promote('staging', 'STAGING', ["joe@foo.com"],"Akamai PD Activation");
+            td.verify(project.getEnvironment("staging").promote("STAGING", ["joe@foo.com"], "Akamai PD Activation"));
         });
 
         it('promote test qa is pending', async function () {
             td.when(tdQaEnv.isActive("STAGING")).thenReturn(false);
             td.when(tdQaEnv.isDirty()).thenReturn(false);
 
-            return throwsAsync(function() {
-                return project.promote('prod', 'STAGING', ["joe@foo.com"]);
-            }, "Error: Environment 'qa' needs to be active without any pending changes");
+            await  project.promote('prod', 'STAGING', ["joe@foo.com"],"Akamai PD Activation");
+            td.verify(project.getEnvironment("prod").promote("STAGING", ["joe@foo.com"], "Akamai PD Activation"));
         });
 
         it('promote test staging is dirty', async function () {
@@ -395,9 +394,8 @@ describe('Project Promote Test', function () {
             td.when(tdStagEnv.isActive("STAGING")).thenReturn(true);
             td.when(tdStagEnv.isDirty()).thenReturn(true);
 
-            return throwsAsync(function() {
-                return project.promote('prod', 'STAGING', ["joe@foo.com"]);
-            }, "Error: Environment 'staging' needs to be active without any pending changes");
+            await  project.promote('prod', 'STAGING', ["joe@foo.com"],"Akamai PD Activation");
+            td.verify(project.getEnvironment("prod").promote("STAGING", ["joe@foo.com"], "Akamai PD Activation"));
         });
 
         it('promote test staging is pending', async function () {
@@ -407,9 +405,8 @@ describe('Project Promote Test', function () {
             td.when(tdStagEnv.isActive("STAGING")).thenReturn(false);
             td.when(tdStagEnv.isDirty()).thenReturn(false);
 
-            return throwsAsync(function() {
-                 return project.promote('prod', 'STAGING', ["joe@foo.com"]);
-            }, "Error: Environment 'staging' needs to be active without any pending changes")
+            await  project.promote('prod', 'STAGING', ["joe@foo.com"],"Akamai PD Activation");
+            td.verify(project.getEnvironment("prod").promote("STAGING", ["joe@foo.com"], "Akamai PD Activation"));
         });
     });
 });

@@ -5,7 +5,6 @@
   "propertyId" : "430950",
   "propertyName" : "dev.rmaexample2.com",
   "propertyVersion" : 1,
-  "etag" : "175c0e05edafc3d88e6a70446ddf883ca6006ea1",
   "rules" : {
     "name" : "default",
     "children" : [ {

@@ -58,6 +58,7 @@ class EdgeHostnameManager {
             this.environment.storeHostnames(hostnames);
         }
         envInfo.lastSaveHostnameErrors = this.errors;
+        delete envInfo['latestVersionInfo']['etag'];
         this.environment.storeEnvironmentInfo(envInfo);
         return {
             hostnamesCreated: this.hostnamesCreated,
