@@ -5,7 +5,6 @@
   "propertyId" : "prp_467602",
   "propertyName" : "qa.dev-qa-test-623",
   "propertyVersion" : 1,
-  "etag" : "abc64b1cf28d0c3c9117e7461237829f8b6f448a",
   "rules" : {
     "name" : "default",
     "children" : [ {

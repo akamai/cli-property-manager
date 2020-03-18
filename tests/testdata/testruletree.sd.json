@@ -5,7 +5,6 @@
   "propertyId" : "430954",
   "propertyName" : "qa.sitedelexample.com",
   "propertyVersion" : 1,
-  "etag" : "dce483bf5e59483c5a18ccdc8a3b9af789f07dc1",
   "rules" : {
     "name" : "default",
     "children" : [ {

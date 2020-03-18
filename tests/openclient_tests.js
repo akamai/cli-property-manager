@@ -80,9 +80,7 @@ const mainTester = function (mainCaller, verifyCallback) {
 describe('Eat white spaces test', function () {
 
     it("eat them white spaces, yum yum", function() {
-        const textWithManySpaces = `Lala la       text with
-            multiple     white space     es 
-                                            let's see where they go!`;
+        const textWithManySpaces = `Lala la text with   multiple     white space     es let's see where they go!`;
         const textWithSingleSpaces = `Lala la text with multiple white space es let's see where they go!`;
 
         equalIgnoreWhiteSpaces(textWithManySpaces, textWithSingleSpaces);
@@ -334,67 +332,6 @@ describe('Devops-prov CLI set default tests', function () {
                     errorCatcher.error.stack)
         });
     });
-
-    it('set Default invalid property values', function () {
-        let cliArgs = createCommand("sd", "-p", "-test");
-        let testConsole = new TestConsole();
-
-        return mainTester(errorReporter => {
-            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
-    }, errorCatcher => {
-            assert.equal(errorCatcher.error, "Error: Option '-e, --emails <emails>' argument missing'",
-                    errorCatcher.error.stack)
-        });
-    });
-
-    it('set Default missing account values', function () {
-        let cliArgs = createCommand("sd", "-p", "-s", "-f", "-e", "-a");
-        let testConsole = new TestConsole();
-
-        return mainTester(errorReporter => {
-            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
-    }, errorCatcher => {
-            assert.equal(errorCatcher.error, "Error: Option '-a, --accountSwitchKey <accountSwitchKey>' argument missing'",
-                    errorCatcher.error.stack)
-        });
-    });
-
-    it('set Default missing section values', function () {
-        let cliArgs = createCommand("sd", "-s");
-        let testConsole = new TestConsole();
-
-        return mainTester(errorReporter => {
-            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
-    }, errorCatcher => {
-            assert.equal(errorCatcher.error, "Error: Option '-s, --section <section>' argument missing'",
-                    errorCatcher.error.stack)
-        });
-    });
-
-    it('set Default missing format values', function () {
-        let cliArgs = createCommand("sd", "-p", "test", "-f");
-        let testConsole = new TestConsole();
-
-        return mainTester(errorReporter => {
-            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
-    }, errorCatcher => {
-            assert.equal(errorCatcher.error, "Error: Option '-f, --format <format>' argument missing'",
-                    errorCatcher.error.stack)
-        });
-    });
-
-    it('set Default missing email values', function () {
-        let cliArgs = createCommand("sd", "-e");
-        let testConsole = new TestConsole();
-
-        return mainTester(errorReporter => {
-            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
-    }, errorCatcher => {
-            assert.equal(errorCatcher.error, "Error: Option '-e, --emails <emails>' argument missing'",
-                    errorCatcher.error.stack)
-        });
-    });
-
 });
 
 describe('Devops-prov CLI show rule tree', function () {
@@ -619,7 +556,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: undefined,
                 propertyVersion: undefined,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -648,7 +585,7 @@ describe('Devops-prov CLI create new project', function () {
                propertyName: undefined,
                propertyVersion: undefined,
                variableMode: "default",
-               ruleFormat:undefined
+               ruleFormat: undefined
            }));
        });
     });
@@ -678,7 +615,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: "seed-template.com",
                 propertyVersion: undefined,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -723,7 +660,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: "someProp",
                 propertyVersion: undefined,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -752,7 +689,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: undefined,
                 propertyVersion: undefined,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -797,7 +734,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: undefined,
                 propertyVersion: undefined,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -827,7 +764,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: undefined,
                 propertyVersion: undefined,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -857,7 +794,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: undefined,
                 propertyVersion: undefined,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -886,7 +823,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: undefined,
                 propertyVersion: undefined,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -916,7 +853,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: undefined,
                 propertyVersion: undefined,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -945,7 +882,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: undefined,
                 propertyVersion: undefined,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -974,7 +911,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: undefined,
                 propertyVersion: undefined,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -1003,7 +940,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: undefined,
                 propertyVersion: undefined,
                 variableMode: "no-var",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -1032,7 +969,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: undefined,
                 propertyVersion: undefined,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -1061,7 +998,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: undefined,
                 propertyVersion: 4,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -1089,7 +1026,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: undefined,
                 propertyVersion: undefined,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -1117,7 +1054,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: "www.foobar.com",
                 propertyVersion: undefined,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -1145,7 +1082,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: undefined,
                 propertyVersion: 4,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -1163,22 +1100,6 @@ describe('Devops-prov CLI create new project', function () {
             assert.exists(errorCatcher);
             assert.equal(errorCatcher.error,
                 "Error: 't43trb+' does not look like a valid property version.", errorCatcher.error.stack);
-        });
-    });
-
-    it('create new project with bad product', function () {
-        let testConsole = new TestConsole();
-        let cliArgs = createCommand("np", "-e", "3456", "-n", "12", "-p", "testproject2.com",
-                "-g", "grp_62234", "-d", "-c", "XYZ123", "foo", "bar");
-
-        return mainTester(errorCatcher => {
-            main(cliArgs, {
-                "AKAMAI_PROJECT_HOME": __dirname
-            }, createDevOpsFun, errorCatcher, testConsole);
-    }, errorCatcher => {
-            assert.exists(errorCatcher);
-            assert.equal(errorCatcher.error,
-                    "Error: Unexpected/Missing product id", errorCatcher.error.stack);
         });
     });
 
@@ -1203,14 +1124,13 @@ describe('Devops-prov CLI create new project', function () {
         let testConsole = new TestConsole();
 
         let cliArgs = createCommand("np", "-p", "testproject2.com", "-e");
-        let expectedError = 'Error: Option \'-e, --propertyId <propertyId/propertyName>\' argument missing\''
+        let expectedError = 'Error: Option \'-e, --propertyId <propertyId/propertyName>\' argument missing\'';
         return mainTester(errorCatcher => {
             main(cliArgs, {
                 "AKAMAI_PROJECT_HOME": __dirname
             }, createDevOpsFun, errorCatcher, testConsole);
         }, errorCatcher => {
             assert.exists(errorCatcher);
-            console.info(errorCatcher.error);
             assert.equal(errorCatcher.error,
                 expectedError, errorCatcher.error.stack);
         });
@@ -1221,7 +1141,7 @@ describe('Devops-prov CLI create new project', function () {
         let testConsole = new TestConsole();
 
         let cliArgs = createCommand("np", "-p", "-s", "-e", "-c");
-        let expectedError = 'Error: Missing required argument \'environments\''
+        let expectedError = 'Error: Missing required argument \'environments\'';
         return mainTester(errorCatcher => {
             main(cliArgs, {
                 "AKAMAI_PROJECT_HOME": __dirname
@@ -1230,70 +1150,6 @@ describe('Devops-prov CLI create new project', function () {
             assert.exists(errorCatcher);
             assert.equal(errorCatcher.error,
                 expectedError, errorCatcher.error.stack);
-        });
-    });
-
-    it('create new project with missing pipeline arg', function () {
-        let testConsole = new TestConsole();
-        let cliArgs = createCommand("np", "-e", "3456", "-n", "12", "-p",
-                "-g", "grp_62234", "-c", "XYZ123", "-d", "NiceProduct", "foo", "bar");
-
-        return mainTester(errorCatcher => {
-            main(cliArgs, {
-                "AKAMAI_PROJECT_HOME": __dirname
-            }, createDevOpsFun, errorCatcher, testConsole);
-    }, errorCatcher => {
-            assert.exists(errorCatcher);
-            assert.equal(errorCatcher.error,
-                    "Error: Unexpected/Missing pipeline name", errorCatcher.error.stack);
-        });
-    });
-
-    it('create new project with missing contract arg', function () {
-        let testConsole = new TestConsole();
-        let cliArgs = createCommand("np", "-e", "3456", "-n", "12", "-p", "testproject2.com",
-                "-g", "grp_62234", "-c", "-d", "NiceProduct", "foo", "bar");
-
-        return mainTester(errorCatcher => {
-            main(cliArgs, {
-                "AKAMAI_PROJECT_HOME": __dirname
-            }, createDevOpsFun, errorCatcher, testConsole);
-    }, errorCatcher => {
-            assert.exists(errorCatcher);
-            assert.equal(errorCatcher.error,
-                    "Error: Unexpected/Missing contract id", errorCatcher.error.stack);
-        });
-    });
-
-    it('create new project with missing group arg', function () {
-        let testConsole = new TestConsole();
-        let cliArgs = createCommand("np", "-e", "3456", "-n", "12", "-p", "testproject2.com",
-                "-g", "-c", "1-AB123", "-d", "NiceProduct", "foo", "bar");
-
-        return mainTester(errorCatcher => {
-            main(cliArgs, {
-                "AKAMAI_PROJECT_HOME": __dirname
-            }, createDevOpsFun, errorCatcher, testConsole);
-    }, errorCatcher => {
-            assert.exists(errorCatcher);
-            assert.equal(errorCatcher.error,
-                    "Error: '-c' does not look like a valid groupId.", errorCatcher.error.stack);
-        });
-    });
-
-    it('create new project with missing version arg', function () {
-        let testConsole = new TestConsole();
-        let cliArgs = createCommand("np", "-e", "3456", "-n", "-p", "testproject2.com",
-                "-g", "grp_62234", "-c", "1-AB123", "-d", "NiceProduct", "foo", "bar");
-
-        return mainTester(errorCatcher => {
-            main(cliArgs, {
-                "AKAMAI_PROJECT_HOME": __dirname
-            }, createDevOpsFun, errorCatcher, testConsole);
-    }, errorCatcher => {
-            assert.exists(errorCatcher);
-            assert.equal(errorCatcher.error,
-                    "Error: '-p' does not look like a valid property version.", errorCatcher.error.stack);
         });
     });
 });
@@ -1692,6 +1548,7 @@ describe('promotion tests', function () {
             main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
         }, errorCatcher => {
             let output = testConsole.logs[1][0];
+            console.log(output)
             assert.equal(output, utils.readFile(path.join(__dirname, "testdata", "promote.output.txt")))
         }, createDevOpsFun);
     });

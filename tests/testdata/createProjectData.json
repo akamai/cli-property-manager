@@ -18,7 +18,6 @@
             "updatedDate": "2017-11-13T21:49:05Z",
             "productionStatus": "INACTIVE",
             "stagingStatus": "INACTIVE",
-            "etag": "7cf327786d5a73aa6340452a064fb77589f750b0",
             "productId": "Web_App_Accel",
             "ruleFormat": "latest"
           }
@@ -45,7 +44,6 @@
             "updatedDate": "2017-11-13T21:49:19Z",
             "productionStatus": "INACTIVE",
             "stagingStatus": "INACTIVE",
-            "etag": "7791f7985b1a08f74b57bb5e35e57c75d00324ce",
             "productId": "Web_App_Accel",
             "ruleFormat": "latest"
           }
@@ -72,7 +70,6 @@
             "updatedDate": "2017-11-13T21:49:31Z",
             "productionStatus": "INACTIVE",
             "stagingStatus": "INACTIVE",
-            "etag": "9fdf49fecd0ed31b57eb13a6326f5190b9a14cc2",
             "productId": "Web_App_Accel",
             "ruleFormat": "latest"
           }
@@ -96,7 +93,6 @@
             "updatedDate": "2017-11-13T21:49:31Z",
             "productionStatus": "INACTIVE",
             "stagingStatus": "INACTIVE",
-            "etag": "9fdf49fecd0ed31b57eb13a6326f5190b9a14cc2",
             "productId": "Web_App_Accel",
             "ruleFormat": "latest"
           }
@@ -120,7 +116,6 @@
             "updatedDate": "2017-11-13T21:49:31Z",
             "productionStatus": "INACTIVE",
             "stagingStatus": "INACTIVE",
-            "etag": "9fdf49fecd0ed31b57eb13a6326f5190b9a14cc2",
             "productId": "Web_App_Accel",
             "ruleFormat": "latest"
           }

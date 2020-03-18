@@ -5,7 +5,6 @@
   "propertyId" : "430967",
   "propertyName" : "qa.mobileaccelexample.com",
   "propertyVersion" : 1,
-  "etag" : "80596a62764c740a351466b69993b6bf1c7ffd83",
   "rules" : {
     "name" : "default",
     "children" : [ {

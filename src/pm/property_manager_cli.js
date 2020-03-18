@@ -107,6 +107,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
      */
     const createDevops = function(options) {
         const logging = require("../logging");
+        validateOptions(options);
         let clientType = "regular";
         let outputFormat;
         let section;
@@ -174,9 +175,10 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         let section = options.section || options.parent.section;
         let emails = options.emails;
         let format = options.format || options.parent.format;
-        if (!snippetName && !section && !emails && !format) {
+        let accountSwitchKey = options.accountSwitchKey;
+        if (!snippetName && !section && !emails && !format && !accountSwitchKey) {
             throw new errors.DependencyError("Need at least one option! Use akamai pm -p <property name>" +
-                ", akamai pm -e <emails>, akamai pm -s <section> or akamai pm -f <format>.",
+                ", akamai pm -e <emails>, akamai pm -s <section>, akamai pm -a <accountSwitchKey> or akamai pm -f <format>.",
                 "missing_option");
         }
         if (section) {
@@ -188,6 +190,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         if (emails) {
             devops.setDefaultEmails(emails);
         }
+        devops.setAccountSwitchKey(accountSwitchKey);
         if (format) {
             const formatRe = /^(json|table)$/i;
             if (!_.isString(format)) {
@@ -230,11 +233,13 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         propertyName = checkedPropertyInfo.propertyName;
         propertyVersion = checkedPropertyInfo.propertyVersion;
 
+
         let groupId = options.groupId;
 
         if (!(propertyId || propertyName || groupId)) {
-            throw new errors.DependencyError("groupId needs to be provided as a number", "missing_group_id");
+            throw new errors.DependencyError("At least propertyId/propertyName or groupId needs to be provided", "missing_id");
         }
+
         let contractId = options.contractId;
         if (!(propertyId || propertyName || contractId)) {
             throw new errors.DependencyError("contractId needs to be provided", "missing_contract_id");
@@ -243,6 +248,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         if (!(propertyId || propertyName || productId)) {
             throw new errors.DependencyError("productId needs to be provided", "missing_product_id");
         }
+
         let isInRetryMode = options.retry || false;
         let dryRun = options.dryRun || false;
         let variableMode;
@@ -277,6 +283,28 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
             consoleLogger.info("create property info: ", helpers.jsonStringify(createPropertyInfo));
         } else {
             return devops.createProperty(createPropertyInfo);
+        }
+    };
+
+    const validateOptions = function(options) {
+        if (options.property && (typeof options.property === 'string' || options.property instanceof String) && options.property.startsWith('-')) {
+            throw new errors.DependencyError("Unexpected/Missing property name", "cli_unexpected_value");
+        }
+
+        if (options.groupId && (typeof options.groupId === 'string' || options.groupId instanceof String) && options.groupId.startsWith('-')) {
+            throw new errors.DependencyError("Unexpected/Missing group id", "cli_unexpected_value");
+        }
+
+        if (options.contractId && options.contractId.startsWith('-')) {
+            throw new errors.DependencyError("Unexpected/Missing contract id", "cli_unexpected_value");
+        }
+
+        if (options.productId && options.productId.startsWith('-')) {
+            throw new errors.DependencyError("Unexpected/Missing product id", "cli_unexpected_value");
+        }
+
+        if (options.propertyId && (typeof options.propertyId === 'string' || options.propertyId instanceof String) && options.propertyId.startsWith('-')) {
+            throw new errors.DependencyError("Unexpected/Missing property id", "cli_unexpected_value");
         }
     };
 
@@ -515,22 +543,22 @@ Are you sure you want to Deactivate the property '${propertyName}' on network '$
         .version(version)
         .description("PM CLI. The command assumes that your current working directory is the project space under which all properties reside")
         .option('-v, --verbose', 'Verbose output, show logging on stdout')
-        .option('-s, --section [section]', 'Section name representing Client ID in .edgerc file, defaults to "credentials"')
-        .option('-f, --format [format]', "Select output format, allowed values are 'json' or 'table'")
+        .option('-s, --section <section>', 'Section name representing Client ID in .edgerc file, defaults to "credentials"')
+        .option('-f, --format <format>', "Select output format, allowed values are 'json' or 'table'")
 
     commander
         .command("new-property", "Create a new PM CLI property with provided attributes.")
         .option('--retry', 'Assuming command failed last time during execution. Try to continue where it left off.')
-        .option('--dry-run', 'Just parse the parameters and print out the json generated that would normally call the create property funtion.')
+        .option('--dry-run', 'Just parse the parameters and print out the json generated that would normally call the create property function.')
         .option('-p, --property <propertyName>', 'PM CLI property name')
-        .option('-g, --groupId [groupId]', "Group ID, optional if -e propertyId/Name is used", helpers.parseGroupId)
-        .option('-c, --contractId [contractId]', "Contract ID, optional if -e propertyId/Name is used", helpers.prefixeableString('ctr_'))
-        .option('-d, --productId [productId]', "Product ID, optional if -e propertyId/Name is used", helpers.prefixeableString('prd_'))
-        .option('-e, --propertyId [propertyId/propertyName]', "Use existing property as blue print for PM CLI property. " +
+        .option('-g, --groupId <groupId>', "Group ID, optional if -e propertyId/Name is used", helpers.prefixeableString('grp_'))
+        .option('-c, --contractId <contractId>', "Contract ID, optional if -e propertyId/Name is used", helpers.prefixeableString('ctr_'))
+        .option('-d, --productId <productId>', "Product ID, optional if -e propertyId/Name is used", helpers.prefixeableString('prd_'))
+        .option('-e, --propertyId <propertyId/propertyName>', "Use existing property as blue print for PM CLI property. " +
             "Either pass property ID or exact property name. PM CLI will lookup account information like group id, " +
             "contract id and product id of the existing property and use the information for creating PM CLI properties")
-        .option('-n, --version [version]', "Can be used only if option '-e' is being used. Specify version of existing property being used as blue print, if omitted, use latest", helpers.parsePropertyVersion)
-        .option('--variable-mode [variableMode]', `Choose how your new property will pull in variable.  Allowed values are ${printAllowedModes()}.  Only works when creating a property from an existing property`)
+        .option('-n, --version <version>', "Can be used only if option '-e' is being used. Specify version of existing property being used as blue print, if omitted, use latest", helpers.parsePropertyVersion)
+        .option('--variable-mode <variableMode>', `Choose how your new property will pull in variable.  Allowed values are ${printAllowedModes()}.  Only works when creating a property from an existing property`)
         .option('--secure', "Make new property secure")
         .option('--insecure', "Make new property not secure")
         .alias("np")
@@ -545,6 +573,7 @@ Are you sure you want to Deactivate the property '${propertyName}' on network '$
         .option('-s, --section <section>', 'Set default section name from edgerc file')
         .option('-f, --format <format>', "Select output format, allowed values are 'json' or 'table'")
         .option('-e, --emails <emails>', 'Set default notification emails as comma separated list')
+        .option('-a, --accountSwitchKey <accountSwitchKey>', 'Set deafult account switch key value')
         .alias("sd")
         .action(function(...args) {
             argumentsUsed = args;
@@ -562,7 +591,7 @@ Are you sure you want to Deactivate the property '${propertyName}' on network '$
     commander
         .command("merge", "Merge config snippets into a PM/PAPI ruletree JSON document, " +
             "stored in dist folder in the current property folder")
-        .option('-p, --property [propertyName]', 'PM CLI property name')
+        .option('-p, --property <propertyName>', 'PM CLI property name')
         .option('-n, --no-validate', "Don't call validation end point. Just run merge.")
         .alias("m")
         .action(function(...args) {
@@ -630,8 +659,8 @@ Are you sure you want to Deactivate the property '${propertyName}' on network '$
         });
 
     commander
-        .command("show-ruletree", "Shows the rule tree of a local property")
-        .option('-p, --property [propertyName]', 'property name')
+        .command("show-ruletree", "Shows the rule tree of a local property. Also, one can use the show-ruletree -p <propertyName>  >>  <filename.json> to store it into a local file.")
+        .option('-p, --property <propertyName>', 'property name')
         .alias("sr")
         .action(function(...args) {
             argumentsUsed = args;
@@ -641,7 +670,7 @@ Are you sure you want to Deactivate the property '${propertyName}' on network '$
     commander
         .command("save", "Save rule tree and hostnames for provided PM CLI property. " +
             "Edge hostnames are also created if needed.")
-        .option('-p, --property [propertyName]', 'PM CLI property name')
+        .option('-p, --property <propertyName>', 'PM CLI property name')
         .alias("sv")
         .action(function(...args) {
             argumentsUsed = args;
@@ -661,10 +690,10 @@ Are you sure you want to Deactivate the property '${propertyName}' on network '$
     commander
         .command("activate",
             "Activate a PM CLI property. This command also executes the merge and save commands mentioned above by default.")
-        .option('-p, --property [propertyName]', 'PM CLI property name')
+        .option('-p, --property <propertyName>', 'PM CLI property name')
         .option('-n, --network <network>', "Network, either 'production' or 'staging', can be abbreviated to 'p' or 's'")
-        .option('-e, --emails [emails]', "Comma separated list of email addresses. Optional if default emails were previously set with set-default")
-        .option('-m, --message [message]', "Activation message passed to activation backend")
+        .option('-e, --emails <emails>', "Comma separated list of email addresses. Optional if default emails were previously set with set-default")
+        .option('-m, --message <message>', "Activation message passed to activation backend")
         .option('-w, --wait-for-activate', "Return after activation of a property is active.")
         .alias("atv")
         .action(function(...args) {
@@ -675,10 +704,10 @@ Are you sure you want to Deactivate the property '${propertyName}' on network '$
     commander
         .command("deactivate",
             "Deactivate a PM CLI property. This command will check if the property is active and then deactivate it")
-        .option('-p, --property [propertyName]', 'PM CLI property name')
+        .option('-p, --property <propertyName>', 'PM CLI property name')
         .option('-n, --network <network>', "Network, either 'production' or 'staging', can be abbreviated to 'p' or 's'")
-        .option('-e, --emails [emails]', "Comma separated list of email addresses. Optional if default emails were previously set with set-default")
-        .option('-m, --message [message]', "deactivation message passed to backend")
+        .option('-e, --emails <emails>', "Comma separated list of email addresses. Optional if default emails were previously set with set-default")
+        .option('-m, --message <message>', "deactivation message passed to backend")
         .option('-w, --wait-for-activate', "Return after the property is deactivated.")
         .option('--force-deactivate', 'WARNING:  This option will bypass the confirmation prompt and will Deactivate your property on the network')
         .alias("datv")
@@ -689,7 +718,7 @@ Are you sure you want to Deactivate the property '${propertyName}' on network '$
 
     commander
         .command("check-activation-status", "Check status of activation of a PM CLI property.")
-        .option('-p, --property [propertyName]', 'PM CLI property name')
+        .option('-p, --property <propertyName>', 'PM CLI property name')
         .option('-w, --wait-for-activate', "Return after activation of a PM CLI property is active.")
         .alias("cs")
         .action(function(...args) {
@@ -699,9 +728,9 @@ Are you sure you want to Deactivate the property '${propertyName}' on network '$
 
     commander
         .command("update-local", "Update local property with the latest from Property Manager.")
-        .option('-p, --property [propertyName]', 'PM CLI property name')
-        .option('--dry-run', 'Just parse the parameters and print out the json generated that would normally call the create property funtion.')
-        .option('--variable-mode [variableMode]', `Choose how your update-local will pull in variables.  Allowed values are ${printAllowedModesUpdateOrImport()}.  Default functionality is no-var`)
+        .option('-p, --property <propertyName>', 'PM CLI property name')
+        .option('--dry-run', 'Just parse the parameters and print out the json generated that would normally call the create property function.')
+        .option('--variable-mode <variableMode>', `Choose how your update-local will pull in variables.  Allowed values are ${printAllowedModesUpdateOrImport()}.  Default functionality is no-var`)
         .option('--force-update', 'WARNING:  This option will bypass the confirmation prompt and will overwrite your local files')
         .alias("ul")
         .action(function(...args) {
@@ -711,9 +740,9 @@ Are you sure you want to Deactivate the property '${propertyName}' on network '$
 
     commander
         .command("import", "Import a property from Property Manager.")
-        .option('-p, --property [propertyName]', 'PM CLI property name')
-        .option('--dry-run', 'Just parse the parameters and print out the json generated that would normally call the create property funtion.')
-        .option('--variable-mode [variableMode]', `Choose how your import will pull in variables.  Allowed values are ${printAllowedModesUpdateOrImport()}.  Default functionality is no-var`)
+        .option('-p, --property <propertyName>', 'PM CLI property name')
+        .option('--dry-run', 'Just parse the parameters and print out the json generated that would normally call the create property function.')
+        .option('--variable-mode <variableMode>', `Choose how your import will pull in variables.  Allowed values are ${printAllowedModesUpdateOrImport()}.  Default functionality is no-var`)
         .alias("i")
         .action(function(...args) {
             argumentsUsed = args;
@@ -752,16 +781,19 @@ Are you sure you want to Deactivate the property '${propertyName}' on network '$
     try {
         commander.parse(cmdArgs);
         if (argumentsUsed !== undefined) {
-            if (_.isArray(argumentsUsed[argumentsUsed.length - 1])) {
-                let extraoptions = argumentsUsed[argumentsUsed.length - 1];
-                throw new errors.ArgumentError(`Didn't expect these parameters: '${extraoptions.join(', ')}'`,
-                    "cli_unexpected_parameters", extraoptions);
-            }
             //options is the last parameter in the action handler param list
             let options = argumentsUsed[argumentsUsed.length - 1];
             verbose = useVerboseLogging(options);
             if (_.isFunction(actionCalled)) {
+                // this validates unparsed arguments
                 let devops = createDevops(options);
+                // validate successfully parsed arguements
+                validateOptions(argumentsUsed[0]);
+                if (_.isArray(argumentsUsed[argumentsUsed.length - 1])) {
+                    let extraoptions = argumentsUsed[argumentsUsed.length - 1];
+                    throw new errors.ArgumentError(`Didn't expect these parameters: '${extraoptions.join(', ')}'`,
+                        "cli_unexpected_parameters", extraoptions);
+                }
                 let response = actionCalled(devops, ...argumentsUsed);
                 //assuming this is returning a promise. TODO: is there a better test?
                 if (response) {

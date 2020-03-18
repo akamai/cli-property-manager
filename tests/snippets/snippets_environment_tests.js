@@ -232,7 +232,6 @@ describe('snippets Environment save with hostnames - associating hostname with p
                 "propertyId" : "prp_525933",
                 "propertyName" : "james-sqa2-snippets-hostname-bug1",
                 "propertyVersion" : 1,
-                "etag" : "f16cb5339b68af378d30fa56aced3a1f62c6c56e",
                 "hostnames" : {
                     "items" : [ {
                         "cnameType" : "EDGE_HOSTNAME",
@@ -358,7 +357,6 @@ describe('snippets Environment save with hostnames - clear warnings and errors',
                 "propertyId" : "prp_525933",
                 "propertyName" : "james-sqa2-snippets-hostname-bug1",
                 "propertyVersion" : 1,
-                "etag" : "f16cb5339b68af378d30fa56aced3a1f62c6c56e",
                 "hostnames" : {
                     "items" : [ {
                         "cnameType" : "EDGE_HOSTNAME",
@@ -532,7 +530,6 @@ describe('Snippets Environment method unit tests', function() {
                         "updatedDate": "2017-11-07T19:45:55Z",
                         "productionStatus": "INACTIVE",
                         "stagingStatus": "INACTIVE",
-                        "etag": "42f95e8b3cd22579a09cd68f27a477f53cfd2f5e",
                         "productId": "Web_App_Accel",
                         "ruleFormat": "latest"
                     }
@@ -635,7 +632,6 @@ describe('Snippets Environment method unit tests', function() {
                 "updatedDate": "2018-06-19T16:58:50Z",
                 "productionStatus": "INACTIVE",
                 "stagingStatus": "ACTIVE",
-                "etag": "381adc2d64d98ff5a05f76812c849e75cb15a2a2",
                 "productId": "prd_Web_App_Accel",
                 "ruleFormat": "v2018-02-27"
             },
@@ -645,7 +641,6 @@ describe('Snippets Environment method unit tests', function() {
                 "updatedDate": "2018-06-19T16:58:50Z",
                 "productionStatus": "INACTIVE",
                 "stagingStatus": "ACTIVE",
-                "etag": "381adc2d64d98ff5a05f76812c849e75cb15a2a2",
                 "productId": "prd_Web_App_Accel",
                 "ruleFormat": "v2018-02-27"
             },
@@ -655,7 +650,6 @@ describe('Snippets Environment method unit tests', function() {
                 "updatedDate": "2018-06-19T16:58:50Z",
                 "productionStatus": "INACTIVE",
                 "stagingStatus": "ACTIVE",
-                "etag": "381adc2d64d98ff5a05f76812c849e75cb15a2a2",
                 "productId": "prd_Web_App_Accel",
                 "ruleFormat": "v2018-02-27"
             }
@@ -707,7 +701,6 @@ describe('Snippets Environment method unit tests', function() {
                 "updatedDate": "2018-06-19T16:58:50Z",
                 "productionStatus": "INACTIVE",
                 "stagingStatus": "ACTIVE",
-                "etag": "381adc2d64d98ff5a05f76812c849e75cb15a2a2",
                 "productId": "prd_Web_App_Accel",
                 "ruleFormat": "v2018-02-27"
             },
@@ -717,7 +710,6 @@ describe('Snippets Environment method unit tests', function() {
                 "updatedDate": "2018-06-19T16:58:50Z",
                 "productionStatus": "INACTIVE",
                 "stagingStatus": "ACTIVE",
-                "etag": "381adc2d64d98ff5a05f76812c849e75cb15a2a2",
                 "productId": "prd_Web_App_Accel",
                 "ruleFormat": "v2018-02-27"
             },
@@ -727,7 +719,6 @@ describe('Snippets Environment method unit tests', function() {
                 "updatedDate": "2018-06-12T15:43:35Z",
                 "productionStatus": "ACTIVE",
                 "stagingStatus": "DEACTIVATED",
-                "etag": "677646b7fa5aefe24dcf9ee54b21f79cdc46aac2",
                 "productId": "prd_Web_App_Accel",
                 "ruleFormat": "v2018-02-27"
             },"pendingActivations": {
@@ -758,7 +749,6 @@ describe('Snippets Environment method unit tests', function() {
                 "updatedDate": "2018-06-12T15:43:35Z",
                 "productionStatus": "ACTIVE",
                 "stagingStatus": "DEACTIVATED",
-                "etag": "677646b7fa5aefe24dcf9ee54b21f79cdc46aac2",
                 "productId": "prd_Web_App_Accel",
                 "ruleFormat": "v2018-02-27"
             },
@@ -768,7 +758,6 @@ describe('Snippets Environment method unit tests', function() {
                 "updatedDate": "2018-06-19T16:58:50Z",
                 "productionStatus": "INACTIVE",
                 "stagingStatus": "ACTIVE",
-                "etag": "381adc2d64d98ff5a05f76812c849e75cb15a2a2",
                 "productId": "prd_Web_App_Accel",
                 "ruleFormat": "v2018-02-27"
             },
@@ -778,7 +767,6 @@ describe('Snippets Environment method unit tests', function() {
                 "updatedDate": "2018-06-12T15:43:35Z",
                 "productionStatus": "ACTIVE",
                 "stagingStatus": "DEACTIVATED",
-                "etag": "677646b7fa5aefe24dcf9ee54b21f79cdc46aac2",
                 "productId": "prd_Web_App_Accel",
                 "ruleFormat": "v2018-02-27"
             },
@@ -813,7 +801,6 @@ describe('Snippets Environment method unit tests', function() {
                 "updatedDate": "2018-06-19T16:58:50Z",
                 "productionStatus": "INACTIVE",
                 "stagingStatus": "INACTIVE",
-                "etag": "abcbababababab",
                 "productId": "prd_Web_App_Accel",
                 "ruleFormat": "v2018-02-27"
             },
@@ -823,7 +810,6 @@ describe('Snippets Environment method unit tests', function() {
                 "updatedDate": "2018-06-19T16:58:50Z",
                 "productionStatus": "INACTIVE",
                 "stagingStatus": "ACTIVE",
-                "etag": "381adc2d64d98ff5a05f76812c849e75cb15a2a2",
                 "productId": "prd_Web_App_Accel",
                 "ruleFormat": "v2018-02-27"
             },
@@ -833,7 +819,6 @@ describe('Snippets Environment method unit tests', function() {
                 "updatedDate": "2018-06-12T15:43:35Z",
                 "productionStatus": "ACTIVE",
                 "stagingStatus": "DEACTIVATED",
-                "etag": "677646b7fa5aefe24dcf9ee54b21f79cdc46aac2",
                 "productId": "prd_Web_App_Accel",
                 "ruleFormat": "v2018-02-27"
             }
@@ -862,7 +847,6 @@ describe('Snippets Environment method unit tests', function() {
                 "updatedDate": "2018-06-12T15:43:35Z",
                 "productionStatus": "INACTIVE",
                 "stagingStatus": "INACTIVE",
-                "etag": "ababcbba",
                 "productId": "prd_Web_App_Accel",
                 "ruleFormat": "v2018-02-27"
             },
@@ -872,7 +856,6 @@ describe('Snippets Environment method unit tests', function() {
                 "updatedDate": "2018-06-19T16:58:50Z",
                 "productionStatus": "INACTIVE",
                 "stagingStatus": "ACTIVE",
-                "etag": "381adc2d64d98ff5a05f76812c849e75cb15a2a2",
                 "productId": "prd_Web_App_Accel",
                 "ruleFormat": "v2018-02-27"
             },
@@ -882,7 +865,6 @@ describe('Snippets Environment method unit tests', function() {
                 "updatedDate": "2018-06-12T15:43:35Z",
                 "productionStatus": "ACTIVE",
                 "stagingStatus": "DEACTIVATED",
-                "etag": "677646b7fa5aefe24dcf9ee54b21f79cdc46aac2",
                 "productId": "prd_Web_App_Accel",
                 "ruleFormat": "v2018-02-27"
             }
@@ -961,7 +943,6 @@ describe('Snippets Create environment tests', function () {
                         "updatedDate": "2017-11-07T19:45:55Z",
                         "productionStatus": "INACTIVE",
                         "stagingStatus": "INACTIVE",
-                        "etag": "42f95e8b3cd22579a09cd68f27a477f53cfd2f5e",
                         "productId": "Web_App_Accel",
                         "ruleFormat": "latest"
                     }
@@ -995,7 +976,6 @@ describe('Snippets Create environment tests', function () {
                 updatedDate: "2017-11-07T19:45:55Z",
                 productionStatus: "INACTIVE",
                 stagingStatus: "INACTIVE",
-                etag: "42f95e8b3cd22579a09cd68f27a477f53cfd2f5e",
                 productId: "Web_App_Accel",
                 ruleFormat: "latest"
             }
@@ -1354,7 +1334,6 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
             "updatedDate": "2017-11-13T21:49:05Z",
             "productionStatus": "INACTIVE",
             "stagingStatus": "INACTIVE",
-            "etag": "7cf327786d5a73aa6340452a064fb77589f750b0",
             "productId": "Web_App_Accel",
             "ruleFormat": "latest"
         });
@@ -1374,7 +1353,6 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
                         "updatedDate": "2017-11-07T19:45:55Z",
                         "productionStatus": "INACTIVE",
                         "stagingStatus": "ACTIVE",
-                        "etag": "42f95e8b3cd22579a09cd68f27a477f53cfd2f5e",
                         "productId": "Web_App_Accel",
                         "ruleFormat": "latest"
                     }
@@ -1397,15 +1375,12 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
                         "updatedDate": "2017-11-07T19:45:55Z",
                         "productionStatus": "INACTIVE",
                         "stagingStatus": "ACTIVE",
-                        "etag": "42f95e8b3cd22579a09cd68f27a477f53cfd2f5e",
                         "productId": "Web_App_Accel",
                         "ruleFormat": "latest"
                     }
                 ]
             }
         });
-
-        //IMPORTANT This etag is what is used to save when a hostname is present (last to save)
         td.when(papi.storePropertyVersionHostnames(td.matchers.anything(), td.matchers.anything(), td.matchers.anything(), td.matchers.anything(), td.matchers.anything())).thenReturn(
             {
                 "accountId" : "act_1-1TJZFB",
@@ -1414,7 +1389,6 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
                 "propertyId" : "prp_521554",
                 "propertyName" : "james-sqa2-uservar-test6",
                 "propertyVersion" : 1,
-                "etag" : "7cf327786d5a73aa6340452a064fb77589f750b0",
                 "hostnames" : {
                     "items" : [ {
                         "cnameType" : "EDGE_HOSTNAME",
@@ -1441,7 +1415,6 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
                         "updatedDate": "2017-11-07T19:45:55Z",
                         "productionStatus": "ACTIVE",
                         "stagingStatus": "INACTIVE",
-                        "etag": "42f95e8b3cd22579a09cd68f27a477f53cfd2f5e",
                         "productId": "Web_App_Accel",
                         "ruleFormat": "latest"
                     }
@@ -1715,7 +1688,6 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
                 updatedDate: "2017-11-13T21:49:05Z",
                 productionStatus: "INACTIVE",
                 stagingStatus: "PENDING",
-                etag: "7cf327786d5a73aa6340452a064fb77589f750b0",
                 productId: "Web_App_Accel",
                 ruleFormat: "latest"
             },
@@ -1801,7 +1773,6 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
                 updatedDate: '2017-11-07T19:45:55Z',
                 productionStatus: 'INACTIVE',
                 stagingStatus: 'ACTIVE',
-                etag: '42f95e8b3cd22579a09cd68f27a477f53cfd2f5e',
                 productId: 'Web_App_Accel',
                 ruleFormat: 'latest'
             },
@@ -1811,7 +1782,6 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
                 updatedDate: '2017-11-07T19:45:55Z',
                 productionStatus: 'INACTIVE',
                 stagingStatus: 'ACTIVE',
-                etag: '42f95e8b3cd22579a09cd68f27a477f53cfd2f5e',
                 productId: 'Web_App_Accel',
                 ruleFormat: 'latest'
             }
@@ -1880,7 +1850,6 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
                     updatedDate: '2017-11-07T19:45:55Z',
                     productionStatus: 'INACTIVE',
                     stagingStatus: 'ACTIVE',
-                    etag: '42f95e8b3cd22579a09cd68f27a477f53cfd2f5e',
                     productId: 'Web_App_Accel',
                     ruleFormat: 'latest'
                 },
@@ -1890,7 +1859,6 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
                 updatedDate: '2017-11-07T19:45:55Z',
                 productionStatus: 'INACTIVE',
                 stagingStatus: 'ACTIVE',
-                etag: '42f95e8b3cd22579a09cd68f27a477f53cfd2f5e',
                 productId: 'Web_App_Accel',
                 ruleFormat: 'latest'
             }
@@ -1929,7 +1897,6 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
                 updatedDate: "2017-11-07T19:45:55Z",
                 productionStatus: "PENDING",
                 stagingStatus: "INACTIVE",
-                etag: "42f95e8b3cd22579a09cd68f27a477f53cfd2f5e",
                 productId: "Web_App_Accel",
                 ruleFormat: "latest"
             },
@@ -1939,7 +1906,6 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
                 updatedDate: '2017-11-07T19:45:55Z',
                 productionStatus: 'INACTIVE',
                 stagingStatus: 'ACTIVE',
-                etag: '42f95e8b3cd22579a09cd68f27a477f53cfd2f5e',
                 productId: 'Web_App_Accel',
                 ruleFormat: 'latest'
             },
@@ -1990,7 +1956,6 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
                 updatedDate: '2017-11-07T19:45:55Z',
                 productionStatus: 'ACTIVE',
                 stagingStatus: 'INACTIVE',
-                etag: '42f95e8b3cd22579a09cd68f27a477f53cfd2f5e',
                 productId: 'Web_App_Accel',
                 ruleFormat: 'latest'
             },
@@ -2000,7 +1965,6 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
                 updatedDate: '2017-11-07T19:45:55Z',
                 productionStatus: 'INACTIVE',
                 stagingStatus: 'ACTIVE',
-                etag: '42f95e8b3cd22579a09cd68f27a477f53cfd2f5e',
                 productId: 'Web_App_Accel',
                 ruleFormat: 'latest'
             },
@@ -2010,7 +1974,6 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
                 updatedDate: '2017-11-07T19:45:55Z',
                 productionStatus: 'ACTIVE',
                 stagingStatus: 'INACTIVE',
-                etag: '42f95e8b3cd22579a09cd68f27a477f53cfd2f5e',
                 productId: 'Web_App_Accel',
                 ruleFormat: 'latest'
             }
@@ -2125,8 +2088,6 @@ describe('Snippets Environment merge and save new version after activation', fun
 
         papi = td.object(['validatePropertyVersionRules', 'setRuleFormat', 'storePropertyVersionHostnames',
             'getPropertyVersion', 'listEdgeHostnames', 'storePropertyVersionRules', 'createNewPropertyVersion']);
-
-        //IMPORTANT This etag is what is used to save when a hostname is present (last to save)
         td.when(papi.storePropertyVersionHostnames(td.matchers.anything(), td.matchers.anything(), td.matchers.anything(), td.matchers.anything(), td.matchers.anything())).thenReturn(
             {
                 "accountId" : "act_1-1TJZFB",
@@ -2135,7 +2096,6 @@ describe('Snippets Environment merge and save new version after activation', fun
                 "propertyId" : "prp_521554",
                 "propertyName" : "james-sqa2-uservar-test6",
                 "propertyVersion" : 1,
-                "etag" : "7cf327786d5a73aa6340452a064fb77589f750b0",
                 "hostnames" : {
                     "items" : [ {
                         "cnameType" : "EDGE_HOSTNAME",
@@ -2151,7 +2111,7 @@ describe('Snippets Environment merge and save new version after activation', fun
 
         td.when(papi.listEdgeHostnames("1-1TJZH5", 61726)).thenReturn(edgeHostnames);
 
-        td.when(papi.createNewPropertyVersion(411089, 1, "7cf327786d5a73aa6340452a064fb77589f750b0")).thenReturn(
+        td.when(papi.createNewPropertyVersion(411089, 1)).thenReturn(
             {"versionLink" : "/papi/v0/properties/429569/versions/2"}
         );
 
@@ -2170,7 +2130,6 @@ describe('Snippets Environment merge and save new version after activation', fun
                         "updatedDate": "2017-11-07T19:45:55Z",
                         "productionStatus": "INACTIVE",
                         "stagingStatus": "INACTIVE",
-                        "etag": "7cf327786d5a73aa6340452a064fb77589f750b0",
                         "productId": "Web_App_Accel",
                         "ruleFormat": "latest"
                     }
@@ -2184,7 +2143,6 @@ describe('Snippets Environment merge and save new version after activation', fun
             "updatedDate": "2017-11-13T21:49:05Z",
             "productionStatus": "INACTIVE",
             "stagingStatus": "INACTIVE",
-            "etag": "7cf327786d5a73aa6340452a064fb77589f750b0",
             "productId": "Web_App_Accel",
             "ruleFormat": "latest"
         });
@@ -2257,7 +2215,7 @@ describe('Snippets Environment merge and save new version after abort', function
 
         td.when(papi.listEdgeHostnames("1-1TJZH5", 61726)).thenReturn(edgeHostnames);
 
-        td.when(papi.createNewPropertyVersion(411089, 1, "7cf327786d5a73aa6340452a064fb77589f750b0")).thenReturn(
+        td.when(papi.createNewPropertyVersion(411089, 1)).thenReturn(
             {"versionLink" : "/papi/v0/properties/429569/versions/2"}
         );
 
@@ -2276,15 +2234,12 @@ describe('Snippets Environment merge and save new version after abort', function
                         "updatedDate": "2017-11-07T19:45:55Z",
                         "productionStatus": "INACTIVE",
                         "stagingStatus": "INACTIVE",
-                        "etag": "7cf327786d5a73aa6340452a064fb77589f750b0",
                         "productId": "Web_App_Accel",
                         "ruleFormat": "latest"
                     }
                 ]
             }
         });
-
-        //IMPORTANT This etag is what is used to save when a hostname is present (last to save)
         td.when(papi.storePropertyVersionHostnames(td.matchers.anything(), td.matchers.anything(), td.matchers.anything(), td.matchers.anything(), td.matchers.anything())).thenReturn(
             {
                 "accountId" : "act_1-1TJZFB",
@@ -2293,7 +2248,6 @@ describe('Snippets Environment merge and save new version after abort', function
                 "propertyId" : "prp_521554",
                 "propertyName" : "james-sqa2-uservar-test6",
                 "propertyVersion" : 1,
-                "etag" : "7cf327786d5a73aa6340452a064fb77589f750b0",
                 "hostnames" : {
                     "items" : [ {
                         "cnameType" : "EDGE_HOSTNAME",
@@ -2311,7 +2265,6 @@ describe('Snippets Environment merge and save new version after abort', function
             "updatedDate": "2017-11-13T21:49:05Z",
             "productionStatus": "INACTIVE",
             "stagingStatus": "INACTIVE",
-            "etag": "7cf327786d5a73aa6340452a064fb77589f750b0",
             "productId": "Web_App_Accel",
             "ruleFormat": "latest"
         });

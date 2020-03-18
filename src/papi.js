@@ -55,10 +55,9 @@ class PAPI {
         return this.openClient.post(url, body);
     }
 
-    createNewPropertyVersion(propertyId, createFromVersion, createFromVersionEtag) {
+    createNewPropertyVersion(propertyId, createFromVersion) {
         let postBody = {
-            createFromVersion,
-            createFromVersionEtag
+            createFromVersion
         };
         let url = `/papi/v0/properties/${propertyId}/versions/`;
         return this.openClient.post(url, postBody);

@@ -419,10 +419,11 @@ class CommonCli {
             _.isObject(savedSettings.edgeGridConfig) ? savedSettings.edgeGridConfig.section : undefined,
             savedSettings.defaultProject,
             _.isArray(savedSettings.emails) ? savedSettings.emails.join(", ") : undefined,
-            savedSettings.outputFormat
+            savedSettings.outputFormat,
+            savedSettings.accountSwitchKey
         ];
         let columnNames = ["Option Name", "Value"];
-        let keys = ["section", "defaultProject", "emails", "format"];
+        let keys = ["section", "defaultProject", "emails", "format", "accountSwitchKey"];
         this.renderOutput(columnNames, keys, values, settings.outputFormat);
     }
 

@@ -77,6 +77,7 @@ class EnvironmentPropertyManager extends Environment {
             logger.info(`Checking latest version of '${this.propertyName}'`);
             let versionInfo = await this.getPAPI().latestPropertyVersion(envInfo.propertyId);
             envInfo.latestVersionInfo = helpers.clone(versionInfo.versions.items[0]);
+            delete envInfo['latestVersionInfo']['etag'];
             logger.info("envInfo: ", envInfo);
             this.storeEnvironmentInfo(envInfo);
         }
@@ -94,8 +95,8 @@ class EnvironmentPropertyManager extends Environment {
         logger.info(`Checking latest version of '${this.propertyName}'`);
         let versionInfo = await this.getPAPI().latestPropertyVersion(envInfo.propertyId);
         envInfo.latestVersionInfo = helpers.clone(versionInfo.versions.items[0]);
+        delete envInfo['latestVersionInfo']['etag'];
         logger.info("envInfo: ", envInfo);
-        //
         this.storeEnvironmentInfo(envInfo);
         this.createHostnamesFile();
         this.update(envInfo.isSecure);
@@ -181,7 +182,7 @@ class EnvironmentPropertyManager extends Environment {
                 envInfo["activeIn_" + otherNetwork + "_Info"].productionStatus = Status.PENDING;
             }
         }
-
+        delete envInfo['latestVersionInfo']['etag'];
         this.storeEnvironmentInfo(envInfo);
         return {
             envInfo: helpers.clone(envInfo),

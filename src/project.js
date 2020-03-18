@@ -83,11 +83,11 @@ class Project {
             throw new errors.ArgumentError(`Expecting array of environment names, but got '${environmentNames}'`,
                 "malformed_environment_data", environmentNames);
         }
-        if (environmentNames.length < 2) {
-            throw new errors.ArgumentError(`Expecting at least 2 environment names`, "need_more_env_names");
+        if (environmentNames.length < 1) {
+            throw new errors.ArgumentError(`Expecting at least 1 environment names`, "need_more_env_names");
         }
-        if (environmentNames.length > 10) {
-            throw new errors.ArgumentError(`Number of environments should not exceed 10`, "too_many_env_names");
+        if (environmentNames.length > 30) {
+            throw new errors.ArgumentError(`Number of environments should not exceed 30`, "too_many_env_names");
         }
         let envNameSet = new Set();
         for (let name of environmentNames) {
@@ -438,7 +438,6 @@ class Project {
      * @param network
      * @param emails
      * @param message
-     * @param force
      * @returns {Promise<Promise<*>|Promise<{envInfo: *, pending: {network: *, activationId: Number}}>|*>}
      */
     async promote(envName, network, emails, message, force) {
@@ -448,26 +447,8 @@ class Project {
         //slicing allows for a copy
         let envNamesCopy = envNamesList.slice(0, envNamesList.indexOf(envName));
         logger.info(`beginning check of each previous environment: ${envNamesCopy}`);
-        for (let envItemName of envNamesCopy) {
-            let prevEnv = this.getEnvironment(envItemName);
-            if (_.isObject(prevEnv)) {
-                logger.info(`checking promotional status of previous environment: '${prevEnv.name}'`);
-                if (prevEnv.isPendingPromotion()) {
-                    logger.info(`promotion pending in at least one network for '${prevEnv.name}'`);
-                    await prevEnv.checkPromotions();
-                }
-                if (!prevEnv.isActive(network) || prevEnv.isDirty()) {
-                    if (_.isBoolean(force) && force) {
-                        logger.warn(`Environment '${prevEnv.name}' needs to be active without any pending changes`);
-                    } else {
-                        throw new errors.ValidationError(
-                            //Should we break this up so that seperate errors are thrown when its not active
-                            //OR when its dirty?
-                            `Environment '${prevEnv.name}' needs to be active without any pending changes`,
-                            "precursor_environment_not_active");
-                    }
-                }
-            }
+        if (_.isBoolean(force) && force) {
+            logger.warn(`Deprecated --force: Previous environment need not be active and can be with any pending changes`);
         }
         return this.getEnvironment(envName).promote(network, emails, message);
     }

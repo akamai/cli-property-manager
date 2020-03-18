@@ -114,6 +114,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
      * @returns {DevOps}
      */
     const createDevops = function(options) {
+        validateOptions(options);
         const logging = require("./logging");
         let clientType = "regular";
         let outputFormat;
@@ -152,9 +153,10 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         let section = options.section || options.parent.section;
         let emails = options.emails;
         let format = options.format || options.parent.format;
-        if (!pipelineName && !section && !emails && !format) {
+        let accountSwitchKey = options.accountSwitchKey;
+        if (!pipelineName && !section && !emails && !format && !accountSwitchKey) {
             throw new errors.DependencyError("Need at least one option! Use akamai pipeline -p <pipeline name>" +
-                ", akamai pipeline -e <emails>, akamai pipeline -s <section> or akamai pipeline -f <format>.",
+                ", akamai pipeline -e <emails>, akamai pipeline -s <section>, -a <accountSwitchKey> or akamai pipeline -f <format>.",
                 "missing_option");
         }
         if (section) {
@@ -166,6 +168,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         if (emails) {
             devops.setDefaultEmails(emails);
         }
+        devops.setAccountSwitchKey(accountSwitchKey);
         if (format) {
             const formatRe = /^(json|table)$/i;
             if (!_.isString(format)) {
@@ -228,6 +231,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
             throw new errors.ArgumentError(`Invalid variable mode option selected.  Valid modes are ${printAllowedModes()}`,
                 "invalid_variable_mode");
         }
+        let ruleFormat;
         let createPipelineInfo = {
             projectName,
             productId,
@@ -239,7 +243,8 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
             environments,
             environmentGroupIds,
             isInRetryMode,
-            variableMode
+            variableMode,
+            ruleFormat
         };
         if (_.isBoolean(options.secure)) {
             createPipelineInfo.secureOption = options.secure;
@@ -444,6 +449,28 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         return commonCli.checkActivations(devops, envName, options);
     };
 
+    const validateOptions = function(options) {
+        if (options.pipeline && (typeof options.pipeline === 'string' || options.pipeline instanceof String) && options.pipeline.startsWith('-')) {
+            throw new errors.DependencyError("Unexpected/Missing pipeline name", "cli_unexpected_value");
+        }
+
+        if (options.groupId && (typeof options.groupId === 'string' || options.groupId instanceof String) && options.groupId.startsWith('-')) {
+            throw new errors.DependencyError("Unexpected/Missing group id", "cli_unexpected_value");
+        }
+
+        if (options.contractId && options.contractId.startsWith('-')) {
+            throw new errors.DependencyError("Unexpected/Missing contract id", "cli_unexpected_value");
+        }
+
+        if (options.productId && options.productId.startsWith('-')) {
+            throw new errors.DependencyError("Unexpected/Missing product id", "cli_unexpected_value");
+        }
+
+        if (options.propertyId && (typeof options.propertyId === 'string' || options.propertyId instanceof String) && options.propertyId.startsWith('-')) {
+            throw new errors.DependencyError("Unexpected/Missing property id", "cli_unexpected_value");
+        }
+    };
+
     let actionCalled;
     let argumentsUsed;
 
@@ -454,29 +481,29 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         .description("Akamai Pipeline. " +
             "The command assumes that your current working directory is the pipeline space under which all pipelines reside")
         .option('-v, --verbose', 'Verbose output, show logging on stdout')
-        .option('-s, --section [section]', 'Section name representing Client ID in .edgerc file, defaults to "credentials"')
-        .option('-f, --format [format]', "Select output format, allowed values are 'json' or 'table'")
+        .option('-s, --section <section>', 'Section name representing Client ID in .edgerc file, defaults to "credentials"')
+        .option('-f, --format <format>', "Select output format, allowed values are 'json' or 'table'")
 
     commander
-        .command("new-pipeline [environments...]", "Create a new pipeline with provided attributes. " +
+        .command("new-pipeline <environments...>", "Create a new pipeline with provided attributes. " +
             "This will also create one property for each environment.")
         .option('--retry', 'Assuming command failed last time during execution. Try to continue where it left off.')
-        .option('--dry-run', 'Just parse the parameters and print out the json generated that would normally call the create pipeline funtion.')
+        .option('--dry-run', 'Just parse the parameters and print out the json generated that would normally call the create pipeline function.')
         .option('-p, --pipeline <pipelineName>', 'Pipeline name')
-        .option('-g, --groupIds [groupIds]', "Group IDs, optional if -e propertyId/Name is used. " +
+        .option('-g, --groupIds <groupIds>', "Group IDs, optional if -e propertyId/Name is used. " +
             "Provide one groupId if all environments are expected in that same group. If each environment needs to be in " +
             "its own group, provide the same number of groupIds as environments by using multiple -g options.", helpers.repeatable(helpers.parseGroupId), [])
-        .option('-c, --contractId [contractId]', "Contract ID, optional if -e propertyId/Name is used", helpers.prefixeableString('ctr_'))
-        .option('-d, --productId [productId]', "Product ID, optional if -e propertyId/Name is used", helpers.prefixeableString('prd_'))
-        .option('-e, --propertyId [propertyId/propertyName]', "Use existing property as blue print for pipeline templates. " +
+        .option('-c, --contractId <contractId>', "Contract ID, optional if -e propertyId/Name is used", helpers.prefixeableString('ctr_'))
+        .option('-d, --productId <productId>', "Product ID, optional if -e propertyId/Name is used", helpers.prefixeableString('prd_'))
+        .option('-e, --propertyId <propertyId/propertyName>', "Use existing property as blue print for pipeline templates. " +
             "Either pass property ID or exact property name. Akamai pipeline will lookup account information like group id, " +
             "contract id and product id of the existing property and use the information for creating pipeline properties")
-        .option('-n, --version [version]', "Can be used only if option '-e' is being used. Specify version of existing property being used as blue print, if omitted, use latest", helpers.parsePropertyVersion)
+        .option('-n, --version <version>', "Can be used only if option '-e' is being used. Specify version of existing property being used as blue print, if omitted, use latest", helpers.parsePropertyVersion)
         .option('--secure', "Make new pipeline secure, all environment properties are going to be secure")
         .option('--insecure', "Make all environment properties not secure")
         .option('--custom-property-name', "To use custom property names")
         .option('--associate-property-name', "To use existing properties in the pipeline")
-        .option('--variable-mode [variableMode]', `Choose how your new pipeline will pull in variable.  Allowed values are ${printAllowedModes()}.  Only works when creating a pipeline from an existing property`)
+        .option('--variable-mode <variableMode>', `Choose how your new pipeline will pull in variable.  Allowed values are ${printAllowedModes()}.  Only works when creating a pipeline from an existing property`)
         .alias("np")
         .action(function(...args) {
             argumentsUsed = args;
@@ -489,6 +516,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         .option('-s, --section <section>', 'Set default section name from edgerc file')
         .option('-f, --format <format>', "Select output format, allowed values are 'json' or 'table'")
         .option('-e, --emails <emails>', 'Set default notification emails as comma separated list')
+        .option('-a, --accountSwitchKey <accountSwitchKey>', 'Set default account switch key value')
         .alias("sd")
         .action(function(...args) {
             argumentsUsed = args;
@@ -506,7 +534,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
     commander
         .command("merge <environment>", "Merge template json and variable values into a PM/PAPI ruletree JSON document, " +
             "stored in dist folder in the current pipeline folder")
-        .option('-p, --pipeline [pipelineName]', 'Pipeline name')
+        .option('-p, --pipeline <pipelineName>', 'Pipeline name')
         .option('-n, --no-validate', "Don't call validation end point. Just run merge.")
         .alias("m")
         .action(function(...args) {
@@ -574,8 +602,8 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         });
 
     commander
-        .command("show-ruletree <environment>", "Shows the rule tree of a local property for provided environment")
-        .option('-p, --pipeline [pipelineName]', 'pipeline name')
+        .command("show-ruletree <environment>", "Shows the rule tree of a local property for provided environment. Also, one can use the show-ruletree -p <pipelineName> <environment> >>  <filename.json> to store it into a local file.")
+        .option('-p, --pipeline <pipelineName>', 'pipeline name')
         .alias("sr")
         .action(function(...args) {
             argumentsUsed = args;
@@ -585,7 +613,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
     commander
         .command("save <environment>", "Save rule tree and hostnames for provided environment. " +
             "Edge hostnames are also created if needed.")
-        .option('-p, --pipeline [pipelineName]', 'pipeline name')
+        .option('-p, --pipeline <pipelineName>', 'pipeline name')
         .alias("sv")
         .action(function(...args) {
             argumentsUsed = args;
@@ -604,7 +632,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
 
     commander
         .command("list-status", "Show status of pipeline")
-        .option('-p, --pipeline [pipelineName]', 'pipeline name')
+        .option('-p, --pipeline <pipelineName>', 'pipeline name')
         .alias("lstat")
         .action(function(...args) {
             argumentsUsed = args;
@@ -612,14 +640,14 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         });
 
     commander
-        .command("promote [targetEnvironment]",
+        .command("promote <targetEnvironment>",
             "Promote (activate) an environment. This command also executes the merge and save commands mentioned above by default.")
-        .option('-p, --pipeline [pipelineName]', 'pipeline name')
+        .option('-p, --pipeline <pipelineName>', 'pipeline name')
         .option('-n, --network <network>', "Network, either 'production' or 'staging', can be abbreviated to 'p' or 's'")
-        .option('-e, --emails [emails]', "Comma separated list of email addresses. Optional if default emails were previously set with set-default")
-        .option('-m, --message [message]', "Promotion message passed to activation backend")
+        .option('-e, --emails <emails>', "Comma separated list of email addresses. Optional if default emails were previously set with set-default")
+        .option('-m, --message <message>', "Promotion message passed to activation backend")
         .option('-w, --wait-for-activate', "Return after promotion of an environment is active.")
-        .option('--force', "Force promotion if previous environment aren't promoted or even saved.")
+        .option('--force', "Force command is deprecated, out of sequence activations are now allowed by default.")
         .alias("pm")
         .action(function(...args) {
             argumentsUsed = args;
@@ -628,7 +656,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
 
     commander
         .command("check-promotion-status <environment>", "Check status of promotion (activation) of an environment.")
-        .option('-p, --pipeline [pipelineName]', 'pipeline name')
+        .option('-p, --pipeline <pipelineName>', 'pipeline name')
         .option('-w, --wait-for-activate', "Return after promotion of an environment is active.")
         .alias("cs")
         .action(function(...args) {
@@ -668,16 +696,19 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
     try {
         commander.parse(cmdArgs);
         if (argumentsUsed !== undefined) {
-            if (_.isArray(argumentsUsed[argumentsUsed.length - 1])) {
-                let extraoptions = argumentsUsed[argumentsUsed.length - 1];
-                throw new errors.ArgumentError(`Didn't expect these parameters: '${extraoptions.join(', ')}'`,
-                    "cli_unexpected_parameters", extraoptions);
-            }
             //options is the last parameter in the action handler param list
             let options = argumentsUsed[argumentsUsed.length - 1];
             verbose = useVerboseLogging(options);
             if (_.isFunction(actionCalled)) {
+                // this validates unparsed arguments
                 let devops = createDevops(options);
+                // validate successfully parsed arguements
+                validateOptions(argumentsUsed[0]);
+                if (_.isArray(argumentsUsed[argumentsUsed.length - 1])) {
+                    let extraoptions = argumentsUsed[argumentsUsed.length - 1];
+                    throw new errors.ArgumentError(`Didn't expect these parameters: '${extraoptions.join(', ')}'`,
+                        "cli_unexpected_parameters", extraoptions);
+                }
                 let response = actionCalled(devops, ...argumentsUsed);
                 //assuming this is returning a promise. TODO: is there a better test?
                 if (response) {

@@ -29,7 +29,8 @@ describe('JSON parser Tests', function () {
         const filePath = path.join(__dirname, "testdata", "json", "unexpectedtoken.json");
 
         try {
-            utils.readJsonFile(filePath)
+            utils.readJsonFile(filePath);
+            assert.fail('File should have thrown error');
         } catch (error) {
             logger.info("Error: ", error);
             assert.isTrue(error.message.startsWith("Unexpected token } in "));
@@ -42,23 +43,12 @@ describe('JSON parser Tests', function () {
         const filePath = path.join(__dirname, "testdata", "json", "truncated.json");
 
         try {
-            utils.readJsonFile(filePath)
+            utils.readJsonFile(filePath);
+            assert.fail('File should have thrown error');
         } catch (error) {
             logger.info("Error: ", error);
             assert.isTrue(error.message.startsWith("Unexpected end of"));
             assert.isTrue(error.message.endsWith(", line: 28, position: 0"));
-        }
-    });
-
-    it('test max recursion', function () {
-        const utils = new Utils();
-        const filePath = path.join(__dirname, "testdata", "json", "deeplynested.json");
-
-        try {
-            utils.readJsonFile(filePath)
-        } catch (error) {
-            logger.info("Error: ", error);
-            assert.equal(error.message, "Maximum call stack size exceeded");
         }
     });
 
@@ -67,7 +57,8 @@ describe('JSON parser Tests', function () {
         const filePath = path.join(__dirname, "testdata", "json", "badlitteral.json");
 
         try {
-            utils.readJsonFile(filePath)
+            utils.readJsonFile(filePath);
+            assert.fail('File should have thrown error');
         } catch (error) {
             logger.info("Error: ", error);
             assert.isTrue(error.message.startsWith("Unexpected token x in"));

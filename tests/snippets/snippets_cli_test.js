@@ -89,10 +89,11 @@ describe('Commands with no action called', function () {
 
     it("just -f statement", function() {
         let cliArgs = createCommand("-f");
+        let expectedError = 'Error: Option \'-f, --format <format>\' argument missing\'';
         return mainTester(errorReporter => {
             main(cliArgs, {}, {}, errorReporter, {});
         }, errorCatcher => {
-            assert.equal(errorCatcher.error, "Error: No command called")
+            assert.equal(errorCatcher.error, expectedError)
         });
     });
 
@@ -107,10 +108,11 @@ describe('Commands with no action called', function () {
 
     it("just -s statement", function() {
         let cliArgs = createCommand("-s");
+        let expectedError = 'Error: Option \'-s, --section <section>\' argument missing\'';
         return mainTester(errorReporter => {
             main(cliArgs, {}, {}, errorReporter, {});
         }, errorCatcher => {
-            assert.equal(errorCatcher.error, "Error: No command called")
+            assert.equal(errorCatcher.error, expectedError)
         });
     });
 
@@ -143,11 +145,11 @@ describe('Snippets CLI create new project', function () {
         }, errorCatcher => {
             td.verify(devOpsClass.prototype.createProperty({
                 projectName: "testproject2.com",
-                groupId: 62234,
                 productId: "NiceProduct",
                 variableMode: "default",
                 contractId: "XYZ123",
                 propertyId: undefined,
+                groupId: "62234",
                 propertyName: undefined,
                 propertyVersion: undefined,
                 isInRetryMode: false
@@ -164,7 +166,8 @@ describe('Snippets CLI create new project', function () {
                 "AKAMAI_PROJECT_HOME": baseDir
             }, createDevOpsFun, errorReporter);
         }, errorCatcher => {
-            td.verify(devOpsClass.prototype.createProperty(td.matchers.anything()), {times:0});
+            assert.equal(errorCatcher.error, "Error: Didn't expect these parameters: 'qa, dev'",
+                    errorCatcher.error.stack)
         });
     });
 
@@ -180,14 +183,14 @@ describe('Snippets CLI create new project', function () {
             td.verify(devOpsClass.prototype.createProperty({
                 projectName: "testproject2.com",
                 productId: "NiceProduct",
+                variableMode: "default",
                 contractId: "XYZ123",
-                groupId: 62234,
-                isInRetryMode: false,
-                secureOption: true,
                 propertyId: undefined,
+                groupId: "62234",
                 propertyName: undefined,
                 propertyVersion: undefined,
-                variableMode: "default"
+                isInRetryMode: false,
+                secureOption: true
             }));
         });
     });
@@ -204,14 +207,14 @@ describe('Snippets CLI create new project', function () {
             td.verify(devOpsClass.prototype.createProperty({
                 projectName: "testproject2.com",
                 productId: "NiceProduct",
+                variableMode: "default",
                 contractId: "XYZ123",
-                groupId: 62234,
-                isInRetryMode: false,
-                secureOption: false,
                 propertyId: undefined,
+                groupId: "62234",
                 propertyName: undefined,
                 propertyVersion: undefined,
-                variableMode: "default"
+                isInRetryMode: false,
+                secureOption: false
             }));
         });
     });
@@ -228,13 +231,13 @@ describe('Snippets CLI create new project', function () {
             td.verify(devOpsClass.prototype.createProperty({
                 projectName: "testproject2.com",
                 productId: "NiceProduct",
+                variableMode: "default",
                 contractId: "XYZ123",
-                groupId: 62234,
-                isInRetryMode: true,
                 propertyId: undefined,
+                groupId: "62234",
                 propertyName: undefined,
                 propertyVersion: undefined,
-                variableMode: "default"
+                isInRetryMode: true
             }));
         });
     });
@@ -251,13 +254,13 @@ describe('Snippets CLI create new project', function () {
             td.verify(devOpsClass.prototype.createProperty({
                 projectName: "testproject2.com",
                 productId: "NiceProduct",
+                variableMode: "no-var",
                 contractId: "XYZ123",
-                groupId: 62234,
-                isInRetryMode: false,
                 propertyId: 3456,
+                groupId: "62234",
                 propertyName: undefined,
                 propertyVersion: undefined,
-                variableMode: "no-var"
+                isInRetryMode: false
             }));
         });
     });
@@ -274,13 +277,13 @@ describe('Snippets CLI create new project', function () {
             td.verify(devOpsClass.prototype.createProperty({
                 projectName: "testproject2.com",
                 productId: "NiceProduct",
+                variableMode: "no-var",
                 contractId: "XYZ123",
-                groupId: 62234,
-                isInRetryMode: false,
                 propertyId: 3456,
+                groupId: "62234",
                 propertyName: undefined,
                 propertyVersion: undefined,
-                variableMode: "no-var"
+                isInRetryMode: false
             }));
         });
     });
@@ -297,13 +300,13 @@ describe('Snippets CLI create new project', function () {
             td.verify(devOpsClass.prototype.createProperty({
                 projectName: "testproject2.com",
                 productId: "NiceProduct",
+                variableMode: "no-var",
                 contractId: "XYZ123",
-                groupId: 62234,
-                isInRetryMode: false,
                 propertyId: 3456,
+                groupId: "62234",
                 propertyName: undefined,
                 propertyVersion: 4,
-                variableMode: "no-var"
+                isInRetryMode: false
             }));
         });
     });
@@ -411,7 +414,7 @@ describe('Snippets CLI create new project', function () {
         let testConsole = new TestConsole();
 
         let cliArgs = createCommand("np", "-p", "testproject2.com", "-e");
-
+        let expectedError = "Error: Option '-e, --propertyId <propertyId/propertyName>' argument missing'";
         return mainTester(errorCatcher => {
             main(cliArgs, {
                 "AKAMAI_PROJECT_HOME": baseDir
@@ -419,7 +422,55 @@ describe('Snippets CLI create new project', function () {
         }, errorCatcher => {
             assert.exists(errorCatcher);
             assert.equal(errorCatcher.error,
-                "Error: No property ID or name provided with -e option.", errorCatcher.error.stack);
+                expectedError, errorCatcher.error.stack);
+        });
+    });
+
+    it('create new project with missing group', function () {
+        let testConsole = new TestConsole();
+
+        let cliArgs = createCommand("np", "-p", "testproject2.com", "-d", "testProduct", "-g");
+        let expectedError = "Error: Option '-g, --groupId <groupId>' argument missing'";
+        return mainTester(errorCatcher => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": baseDir
+            }, createDevOpsFun, errorCatcher, testConsole);
+    }, errorCatcher => {
+            assert.exists(errorCatcher);
+            assert.equal(errorCatcher.error,
+                    expectedError, errorCatcher.error.stack);
+        });
+    });
+
+    it('create new project with missing group due to next flag grabbed as group', function () {
+        let testConsole = new TestConsole();
+
+        let cliArgs = createCommand("np", "-p", "testproject2.com", "-d", "testProduct", "-g", "-c");
+        let expectedError = "Error: Unexpected/Missing group id";
+        return mainTester(errorCatcher => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": baseDir
+            }, createDevOpsFun, errorCatcher, testConsole);
+    }, errorCatcher => {
+            assert.exists(errorCatcher);
+            assert.equal(errorCatcher.error,
+                    expectedError, errorCatcher.error.stack);
+        });
+    });
+
+    it('create new project with missing group due to next flag grabbed as groupId', function () {
+        let testConsole = new TestConsole();
+
+        let cliArgs = createCommand("np", "-p", "testproject2.com", "-d", "testProduct", "-g", "-test", "-c", "1-ABC23");
+        let expectedError = "Error: Unexpected/Missing group id";
+        return mainTester(errorCatcher => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": baseDir
+            }, createDevOpsFun, errorCatcher, testConsole);
+    }, errorCatcher => {
+            assert.exists(errorCatcher);
+            assert.equal(errorCatcher.error,
+                    expectedError, errorCatcher.error.stack);
         });
     });
 
@@ -428,15 +479,16 @@ describe('Snippets CLI create new project', function () {
         let testConsole = new TestConsole();
 
         let cliArgs = createCommand("np", "-p", "-s", "-e", "-c");
-
+        let expectedError = "Error: Unexpected/Missing property name";
         return mainTester(errorCatcher => {
             main(cliArgs, {
                 "AKAMAI_PROJECT_HOME": baseDir
             }, createDevOpsFun, errorCatcher, testConsole);
         }, errorCatcher => {
             assert.exists(errorCatcher);
+            console.info(errorCatcher.error)
             assert.equal(errorCatcher.error,
-                "Error: groupId needs to be provided as a number", errorCatcher.error.stack);
+                expectedError, errorCatcher.error.stack);
         });
     });
 });
@@ -963,6 +1015,45 @@ describe('Snippets list tests', function () {
         }, createDevOpsFun);
     });
 
+    it('listCPCodes test', function () {
+        let cliArgs = createCommand("lcp", "-g", "-c");
+        testConsole = new TestConsole();
+        return mainTester(errorReporter => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": baseDir
+            }, createDevOpsFun, errorReporter, testConsole);
+    }, errorCatcher => {
+            assert.equal(errorCatcher.error, "Error: '-c' does not look like a valid groupId.",
+                    errorCatcher.error.stack)
+        }, createDevOpsFun);
+    });
+
+    it('listCPCodes test, with contract and group', function () {
+        let cliArgs = createCommand("lcp");
+        testConsole = new TestConsole();
+        return mainTester(errorReporter => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": baseDir
+            }, createDevOpsFun, errorReporter, testConsole);
+    }, errorCatcher => {
+            assert.equal(errorCatcher.error, "Error: groupId needs to be provided as a number",
+                    errorCatcher.error.stack)
+        }, createDevOpsFun);
+    });
+
+    it('listEdgeHostNames test, no contract or group', function () {
+        let cliArgs = createCommand("leh");
+        testConsole = new TestConsole();
+        return mainTester(errorReporter => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": baseDir
+            }, createDevOpsFun, errorReporter, testConsole);
+    }, errorCatcher => {
+            assert.equal(errorCatcher.error, "Error: groupId needs to be provided as a number",
+                    errorCatcher.error.stack)
+        }, createDevOpsFun);
+    });
+
     it('listEdgeHostNames test', function () {
         let cliArgs = createCommand("leh", "-c", "1-1TJZH5", "-g", "61726");
         testConsole = new TestConsole();
@@ -978,6 +1069,7 @@ describe('Snippets list tests', function () {
             assert.equal(output, utils.readFile(path.join(baseDir,"testdata", "edgeHostnames.output.txt")))
         }, createDevOpsFun);
     });
+
     describe('merge tests', function () {
         let createDevOpsFun;
         let testConsole;
@@ -1234,7 +1326,6 @@ describe('Snippets activation tests', function () {
                         "updatedDate": "2018-01-19T22:21:15Z",
                         "productionStatus": "PENDING",
                         "stagingStatus": "ACTIVE",
-                        "etag": "ab1d556620690bea03c7a671230589b50808a71c",
                         "productId": "Web_App_Accel",
                         "ruleFormat": "latest"
                     },
@@ -1248,7 +1339,6 @@ describe('Snippets activation tests', function () {
                         "updatedDate": "2018-01-19T22:21:15Z",
                         "productionStatus": "INACTIVE",
                         "stagingStatus": "ACTIVE",
-                        "etag": "ab1d556620690bea03c7a671230589b50808a71c",
                         "productId": "Web_App_Accel",
                         "ruleFormat": "latest"
                     },
@@ -1273,7 +1363,6 @@ describe('Snippets activation tests', function () {
                         "updatedDate": "2018-01-19T22:21:15Z",
                         "productionStatus": "PENDING",
                         "stagingStatus": "ACTIVE",
-                        "etag": "ab1d556620690bea03c7a671230589b50808a71c",
                         "productId": "Web_App_Accel",
                         "ruleFormat": "latest"
                     },
@@ -1287,7 +1376,6 @@ describe('Snippets activation tests', function () {
                         "updatedDate": "2018-01-19T22:21:15Z",
                         "productionStatus": "INACTIVE",
                         "stagingStatus": "ACTIVE",
-                        "etag": "ab1d556620690bea03c7a671230589b50808a71c",
                         "productId": "Web_App_Accel",
                         "ruleFormat": "latest"
                     },
@@ -1804,7 +1892,6 @@ describe('Snippets deactivation tests', function () {
                 "updatedDate": "2018-01-19T22:21:15Z",
                 "productionStatus": "ACTIVE",
                 "stagingStatus": "PENDING",
-                "etag": "ab1d556620690bea03c7a671230589b50808a71c",
                 "productId": "Web_App_Accel",
                 "ruleFormat": "latest"
             },
@@ -1818,7 +1905,6 @@ describe('Snippets deactivation tests', function () {
                 "updatedDate": "2018-01-19T22:21:15Z",
                 "productionStatus": "ACTIVE",
                 "stagingStatus": "ACTIVE",
-                "etag": "ab1d556620690bea03c7a671230589b50808a71c",
                 "productId": "Web_App_Accel",
                 "ruleFormat": "latest"
             },
@@ -1841,7 +1927,6 @@ describe('Snippets deactivation tests', function () {
                     "updatedDate": "2018-01-19T22:21:15Z",
                     "productionStatus": "PENDING",
                     "stagingStatus": "ACTIVE",
-                    "etag": "ab1d556620690bea03c7a671230589b50808a71c",
                     "productId": "Web_App_Accel",
                     "ruleFormat": "latest"
                 },
@@ -1855,7 +1940,6 @@ describe('Snippets deactivation tests', function () {
                     "updatedDate": "2018-01-19T22:21:15Z",
                     "productionStatus": "ACTIVE",
                     "stagingStatus": "ACTIVE",
-                    "etag": "ab1d556620690bea03c7a671230589b50808a71c",
                     "productId": "Web_App_Accel",
                     "ruleFormat": "latest"
                 },

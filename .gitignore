@@ -5,3 +5,5 @@ node_modules
 stuff/
 .nyc_output/
 *.log
+dist/
+.DS_Store

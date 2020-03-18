@@ -5,7 +5,6 @@
     "propertyId": "494064",
     "propertyName": "qa.test-pipeline",
     "propertyVersion": 1,
-    "etag": "6e26d9487e33ecf90351202ba00083ba555da735",
     "rules": {
         "name": "default",
         "children": [

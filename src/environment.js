@@ -116,7 +116,7 @@ class Environment {
             let projectInfo = this.project.getProjectInfo();
             //TODO: handle case where create property worked but we never got the data back.
             let propData = await this.getPAPI().createProperty(this.propertyName,
-                projectInfo.productId, projectInfo.contractId, envInfo.groupId, null, createPipelineInfo.propertyId, createPipelineInfo.propertyVersion);
+                projectInfo.productId, projectInfo.contractId, envInfo.groupId, createPipelineInfo.ruleFormat, createPipelineInfo.propertyId, createPipelineInfo.propertyVersion);
             logger.info("propData: ", propData);
             envInfo.propertyId = Environment._extractPropertyId(propData);
         }
@@ -124,6 +124,7 @@ class Environment {
             logger.info(`Checking latest version of '${this.propertyName}'`);
             let versionInfo = await this.getPAPI().latestPropertyVersion(envInfo.propertyId);
             envInfo.latestVersionInfo = helpers.clone(versionInfo.versions.items[0]);
+            delete envInfo['latestVersionInfo']['etag'];
             logger.info("envInfo: ", envInfo);
             this.storeEnvironmentInfo(envInfo);
         }
@@ -485,13 +486,13 @@ class Environment {
     /**
      * Check if we need to create a new version because the latest version has a pending activation in either networks or is active in either network
      * @param envInfo {object} environment info
-     * @return {Promise.<*|envInfo.latestVersionInfo|{propertyVersion, updatedByUser, updatedDate, productionStatus, stagingStatus, etag, productId, ruleFormat}>}
+     * @return {Promise.<*|envInfo.latestVersionInfo|{propertyVersion, updatedByUser, updatedDate, productionStatus, stagingStatus, productId, ruleFormat}>}
      * @private
      */
     async _checkLatestVersion(envInfo) {
         let latest = envInfo.latestVersionInfo;
         if (this.isLocked()) {
-            let newVersionData = await this.getPAPI().createNewPropertyVersion(envInfo.propertyId, latest.propertyVersion, latest.etag);
+            let newVersionData = await this.getPAPI().createNewPropertyVersion(envInfo.propertyId, latest.propertyVersion);
             let versionId = Environment._extractVersionId(newVersionData);
             let versionInfo = await this.getPAPI().getPropertyVersion(envInfo.propertyId, versionId);
             latest = helpers.clone(versionInfo.versions.items[0]);
@@ -525,7 +526,6 @@ class Environment {
             try {
                 let response = await papi.storePropertyVersionRules(envInfo.propertyId,
                     envInfo.latestVersionInfo.propertyVersion, ruleTree, envInfo.suggestedRuleFormat);
-                envInfo.latestVersionInfo.etag = response.etag;
                 envInfo.lastSavedHash = envInfo.environmentHash;
                 envInfo.lastValidatedHash = envInfo.environmentHash;
                 results.storedRules = true;
@@ -548,7 +548,6 @@ class Environment {
             if (results.edgeHostnames.errors.length === 0) {
                 let versionHostnamesResponse = await papi.storePropertyVersionHostnames(envInfo.propertyId,
                     envInfo.latestVersionInfo.propertyVersion, hostnames, this.project.getProjectInfo().contractId, envInfo.groupId);
-                envInfo.latestVersionInfo.etag = versionHostnamesResponse.etag;
                 //unless a 400 or 500 is thrown, it will always save/store to the version.
                 results.storedHostnames = true;
                 envInfo.lastSaveHostnameErrors = [];
@@ -659,7 +658,7 @@ class Environment {
                 envInfo["activeIn_" + otherNetwork + "_Info"].productionStatus = Status.PENDING;
             }
         }
-
+        delete envInfo['latestVersionInfo']['etag'];
         this.storeEnvironmentInfo(envInfo);
         return {
             envInfo: helpers.clone(envInfo),
@@ -742,6 +741,7 @@ class Environment {
                 dirty = true;
             }
             if (dirty) {
+                delete envInfo['latestVersionInfo']['etag'];
                 logger.info("updated envInfo: ", envInfo);
                 this.project.storeEnvironmentInfo(envInfo);
             }

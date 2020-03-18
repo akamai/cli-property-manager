@@ -5,5 +5,5 @@
 
   Options:
 
-    -p, --pipeline [pipelineName]  pipeline name
+    -p, --pipeline <pipelineName>  pipeline name
     -h, --help                     output usage information
