@@ -1,4 +1,4 @@
-//  Copyright 2018. Akamai Technologies, Inc
+//  Copyright 2020. Akamai Technologies, Inc
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -84,6 +84,9 @@ class DevOpsCommand extends Command {
         return this;
     }
 
+    sortCommands() {
+        this.commands.sort((a, b) => a._name.localeCompare(b._name));
+    }
 
     help(cb) {
         this.outputHelp(cb);

@@ -1,4 +1,4 @@
-//  Copyright 2018. Akamai Technologies, Inc
+//  Copyright 2020. Akamai Technologies, Inc
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -53,6 +53,13 @@ class PAPI {
             };
         }
         return this.openClient.post(url, body);
+    }
+
+    deleteProperty(propertyId, contractId, groupId, message) {
+        let url = `/papi/v0/properties/${propertyId}?contractId=${contractId}&groupId=${groupId}`;
+        return this.openClient.delete(url, {
+            message
+        });
     }
 
     createNewPropertyVersion(propertyId, createFromVersion) {
@@ -160,6 +167,16 @@ class PAPI {
         return this.openClient.get(url);
     }
 
+    listProperties(contractId, groupId) {
+        let url = `/papi/v0/properties/?contractId=${contractId}&groupId=${groupId}`;
+        return this.openClient.get(url);
+    }
+
+    listPropertyHostnames(propertyId, propertyVersion, contractId, groupId, validateHostnames) {
+        let url = `/papi/v0/properties/${propertyId}/versions/${propertyVersion}/hostnames?contractId=${contractId}&groupId=${groupId}&validateHostnames=${validateHostnames}`;
+        return this.openClient.get(url);
+    }
+
     createEdgeHostname(contractId, groupId, createRequestBody) {
         let url = `/papi/v0/edgehostnames/?contractId=${contractId}&groupId=${groupId}`;
         return this.openClient.post(url, createRequestBody);
@@ -202,6 +219,138 @@ class PAPI {
         let url = `/papi/v0/properties/${propertyId}`;
         return this.openClient.get(url);
     }
+
+    createCpcode(contractId, groupId, cpcodeName, productId) {
+        let url = `/papi/v0/cpcodes?contractId=${contractId}&groupId=${groupId}`;
+        return this.openClient.post(url, {
+            cpcodeName,
+            productId
+        });
+    }
+    // Calls to the pipeline backend (pm-pipeline). Calls to papi/cli/* -> pm-pipeline/*
+
+    // POST /papi/cli/v0/legacy-pipelines - initial upload
+    initialPipelineUpload(syntaxVersion, projectInfo, environments) {
+        const url = `/papi/cli/v0/legacy-pipelines`;
+        return this.openClient.post(url, {
+            syntaxVersion,
+            projectInfo,
+            environments
+        });
+    }
+
+    // GET /papi/cli/v1/pipelines - list pipelines
+    listPipelines(syntaxVersion) {
+        let url = `/papi/cli/v1/pipelines?syntaxVersion=${syntaxVersion}`;
+        return this.openClient.get(url);
+    }
+
+    // GET /papi/cli/v1/pipelines/{pipelineId} - list specified pipeline
+    getPipeline(pipelineId, syntaxVersion) {
+        let url = `/papi/cli/v1/pipelines/${pipelineId}?syntaxVersion=${syntaxVersion}`;
+        return this.openClient.get(url);
+    }
+
+    // DELETE /papi/cli/v1/pipelines/{pipelineId} - delete specified pipeline
+    deletePipeline(pipelineId) {
+        let url = `/papi/cli/v1/pipelines/${pipelineId}`;
+        return this.openClient.delete(url);
+    }
+
+    // POST /papi/cli/v1/properties/${propertyId}/activations - promote latest version of property
+    activateLatestVersion(propertyId, syntaxVersion, pipelineId, network, note, notifyEmails, acknowledgeWarnings,
+        acknowledgeAllWarnings, activationType, fastPush, useFastFallback, ignoreHttpErrors, complianceRecord) {
+        const url = `/papi/cli/v1/properties/${propertyId}/activations`;
+        return this.openClient.post(url, {
+            syntaxVersion,
+            pipelineId,
+            network,
+            note,
+            notifyEmails,
+            acknowledgeWarnings,
+            acknowledgeAllWarnings,
+            activationType,
+            fastPush,
+            useFastFallback,
+            ignoreHttpErrors,
+            complianceRecord
+        });
+    }
+
+    // GET /papi/cli/v1/properties/${propertyId}/hostnames - list hostnames for latest version of property
+    getHostnamesOfLatestVersion(propertyId) {
+        let url = `/papi/cli/v1/properties/${propertyId}/hostnames`;
+        return this.openClient.get(url);
+    }
+
+    // PUT /papi/cli/v1/properties/${propertyId}/hostnames?contractId=${contractId}&groupId=${groupId} - associate hostname with the latest version of property.
+    associateHostnameWithLatestVersion(propertyId, contractId, groupId, syntaxVersion, pipelineId, hostnames) {
+        const url = `/papi/cli/v1/properties/${propertyId}/hostnames?contractId=${contractId}&groupId=${groupId}`;
+        return this.openClient.post(url, {
+            syntaxVersion,
+            pipelineId,
+            hostnames
+        });
+    }
+
+    // GET /papi/cli/v1/properties/{propertyId}/pipeline - list specified property pipeline status including current ruletree
+    getPipelineStatus(propertyId) {
+        let url = `/papi/cli/v1/properties/${propertyId}/pipeline`;
+        return this.openClient.get(url);
+    }
+
+    // PUT /papi/cli/v1/properties/{propertyId}/pipeline - acquire property as pipeline managed
+    enablePipelineManaged(propertyId, syntaxVersion, pipelineId, ruletreeEtag, note) {
+        let url = `/papi/cli/v1/properties/${propertyId}/pipeline`;
+        return this.openClient.put(url, {
+            syntaxVersion,
+            pipelineId,
+            ruletreeEtag,
+            note
+        });
+    }
+
+
+    // DELETE /papi/cli/v1/properties/{propertyId}/pipeline - release property from pipeline management
+    disablePipelineManaged(propertyId, syntaxVersion, note) {
+        let url = `/papi/cli/v1/properties/${propertyId}/pipeline`;
+        return this.openClient.delete(url, {
+            syntaxVersion,
+            note
+        });
+    }
+
+    // PUT /papi/cli/v1/properties/{propertyId}/rules - update property latest version rule tree.  Validate only when dryRun=true
+    updateLatestVersionRules(propertyId, dryRun = false, ruleFormat, rules) {
+        let url = `/papi/cli/v1/properties/${propertyId}/rules?dryRun=${dryRun}`;
+        let headers = {
+            'Content-Type': "application/json"
+        };
+        if (_.isString(ruleFormat)) {
+            headers["Content-Type"] = `application/vnd.akamai.papirules.${ruleFormat}+json`;
+            headers.Accept = `application/vnd.akamai.papirules.${ruleFormat}+json`;
+        }
+        return this.openClient.put(url, rules, headers);
+    }
+
+    // GET /papi/cli/v1/properties/{propertyId}/rules - get property latest version rule tree
+    getLatestVersionRules(propertyId, ruleFormat) {
+        let url = `/papi/cli/v1/properties/${propertyId}/rules`;
+        let headers = {};
+        if (_.isString(ruleFormat)) {
+            headers.Accept = `application/vnd.akamai.papirules.${ruleFormat}+json`;
+        }
+        return this.openClient.get(url, headers);
+    }
+
+    // GET /papi/cli/v1/{pipelineId}/environment-status?syntaxVersion={syntaxVersion} - get environment status of a pipeline
+    getEnvironmentStatus(pipelineId, syntaxVersion) {
+        let url = `/papi/cli/v1/${pipelineId}/environment-status?syntaxVersion=${syntaxVersion}`;
+        return this.openClient.get(url);
+    }
+
+
+
 
 }
 

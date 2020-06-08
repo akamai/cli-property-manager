@@ -1,4 +1,4 @@
-//  Copyright 2018. Akamai Technologies, Inc
+//  Copyright 2020. Akamai Technologies, Inc
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -503,7 +503,7 @@ describe('Create environment tests', function () {
             environments: ["blah", "blubb", "zuck"]
         });
         td.when(project.getName()).thenReturn(projectName);
-        td.when(project.loadEnvironmentInfo("testenv")).thenReturn(null);
+        td.when(project.loadEnvironmentInfo("testenv")).thenReturn({name:"testenv", groupId:666});
 
         papi = td.object(['createProperty', 'latestPropertyVersion']);
         td.when(papi.createProperty("testenv." + projectName, "WAA", "BAZ234", 666,undefined, undefined, undefined)).thenReturn({
@@ -551,8 +551,8 @@ describe('Create environment tests', function () {
         });
         td.verify(project.storeEnvironmentInfo(td.matchers.contains({
             name: "testenv",
+            groupId:666,
             propertyId: 410651,
-            propertyName: "testenv.awesomeproject.com",
             latestVersionInfo: {
                 propertyVersion: 1,
                 updatedByUser: "jpws7ubcv5jjsv37",
@@ -621,7 +621,7 @@ describe('Create environment tests (custom property name', function () {
             environments: ["testenv_custom_name", "blubb", "zuck"]
         });
         td.when(project.getName()).thenReturn(projectName);
-        td.when(project.loadEnvironmentInfo("testenv_custom_name")).thenReturn(null);
+        td.when(project.loadEnvironmentInfo("testenv_custom_name")).thenReturn({name:"testenv_custom_name", groupId:666, propertyName: "testenv.awesomeproject.com"});
 
         papi = td.object(['createProperty', 'latestPropertyVersion']);
         td.when(papi.createProperty("testenv_custom_name", "WAA", "BAZ234", 666, undefined, undefined, undefined)).thenReturn({
@@ -629,7 +629,7 @@ describe('Create environment tests (custom property name', function () {
         });
         td.when(papi.latestPropertyVersion(410651)).thenReturn({
             "propertyId": "410651",
-            "propertyName": "testenv_custom_name",
+            "propertyName": "testenv.awesomeproject.com",
             "accountId": "1-1TJZFB",
             "contractId": "1-1TJZH5",
             "groupId": "61726",
@@ -670,8 +670,9 @@ describe('Create environment tests (custom property name', function () {
         });
         td.verify(project.storeEnvironmentInfo(td.matchers.contains({
             name: "testenv_custom_name",
+            groupId: 666,
+            propertyName: "testenv.awesomeproject.com",
             propertyId: 410651,
-            propertyName: "testenv_custom_name",
             latestVersionInfo: {
                 propertyVersion: 1,
                 updatedByUser: "jpws7ubcv5jjsv37",
@@ -2419,5 +2420,78 @@ describe('Environment merge and save new version after abort', function () {
         assert.equal(envInfo.latestVersionInfo.propertyVersion, 2);
         assert.equal(envInfo.lastSavedHash, "33e96e8ff7288ead357e4e866da601cddb3c73e23e9e495665e001b7e1c32d31");
         assert.equal(envInfo.lastSavedHostnamesHash, "687372a29ed8ec68ae9977f6c6386ddbb8b9cb74ddbb76d2c97322d15bc27979");
+    });
+});
+describe('change ruleformat test', function () {
+    let papi, merger, project, devOps, qaEnvironment;
+    let utils = new RoUtils();
+
+    before(function () {
+        devOps = {
+            "devopsHome": __dirname
+        };
+
+        project = new Project("testproject.com", {
+            devops: devOps,
+            getUtils: function () {
+                return utils;
+            }
+        });
+    });
+    it('change ruleformat test',  async function() {
+
+    let createEnvironment = function(envName, project) {
+        let env = {
+            name: envName,
+            project: project,
+            checkEnvironmentName: function () {},
+            getEnvironment: function () {},
+            changeRuleFormat:function () {}
+        };
+    };
+
+    devops = {
+        devopsHome : __dirname
+    };
+        papi = td.object(['storePropertyVersionRules']);
+        qaEnvironment = new Environment('qa', {
+            project: project,
+            getPAPI: function () {
+                return papi;
+            },
+            getMerger: function () {
+                return merger;
+            },
+            changeRuleFormat: function () {
+            }
+        });
+    project = new Project("testproject.com", {
+        devops: devops,
+        getUtils: function () {
+            return utils;
+        },
+        getEnvironment: createEnvironment
+    });
+
+        merger = td.object(['merge']);
+        td.when(merger.merge("main.json")).thenReturn({
+            "hash": "33e96e8ff7288ead357e4e866da601cddb3c73e23e9e495665e001b7e1c32d31",
+            "ruleTreeHash": "6ac5ef477dbdc1abbc1c8957a0b6faef28f9d21b2f92e5771f29391da00a7744",
+            "ruleTree": utils.readJsonFile(path.join(__dirname, "testproject.com", "dist", "qa.testproject.com.papi.json"))
+        });
+
+        td.when(papi.storePropertyVersionRules(411089, 1, td.matchers.isA(Object), td.matchers.anything())).thenReturn({
+            "propertyVersion": 2,
+            "updatedByUser": "jpws7ubcv5jjsv37",
+            "updatedDate": "2017-11-13T21:49:05Z",
+            "productionStatus": "INACTIVE",
+            "stagingStatus": "INACTIVE",
+            "productId": "Web_App_Accel",
+            "ruleFormat": "v2019-07-25"
+        });
+
+    let r1 = await qaEnvironment.changeRuleFormat("qa","v2019-07-25");
+    assert.equal(r1.changesDetected, true);
+
     });
 });

@@ -1,9 +1,9 @@
 
-  Usage: list-status|lstat [options]
+  Usage: akamai pipeline list-status|lstat [options]
 
-  Show status of pipeline
+  Show status of the pipeline.
 
   Options:
 
-    -p, --pipeline <pipelineName>  pipeline name
+    -p, --pipeline <pipelineName>  Pipeline name.
     -h, --help                     output usage information

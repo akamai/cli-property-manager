@@ -1,4 +1,4 @@
-//  Copyright 2018. Akamai Technologies, Inc
+//  Copyright 2020. Akamai Technologies, Inc
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -58,16 +58,15 @@ class Environment {
      * @returns {Promise.<void>}
      */
     async create(createPipelineInfo) {
-        let envInfo = this.getEnvironmentInfo();
         let projectInfo = this.project.getProjectInfo();
         if (projectInfo.customPropertyName !== createPipelineInfo.customPropertyName) {
-            logger.info('mismatch in customPropertyName field');
+            logger.error('mismatch in customPropertyName field');
             throw new errors.ArgumentError(
                 `customPropertyName mismatch`,
                 "check_customPropertyName_field", projectInfo.customPropertyName);
         }
         if (projectInfo.associatePropertyName !== createPipelineInfo.associatePropertyName) {
-            logger.info('mismatch in associatePropertyName field');
+            logger.error('mismatch in associatePropertyName field');
             throw new errors.ArgumentError(
                 `associatePropertyName mismatch`,
                 "check_associatePropertyName_field", projectInfo.associatePropertyName);
@@ -80,7 +79,11 @@ class Environment {
             this.propertyName = this.name;
             logger.info(`custom property name ${this.propertyName} will be used`);
         }
-        if (!envInfo) {
+        let envInfo = null;
+        try {
+            envInfo = this.getEnvironmentInfo();
+        } catch (error) {
+            // does not exist so create default instead
             envInfo = {
                 name: this.name,
                 propertyName: this.propertyName,
@@ -88,8 +91,9 @@ class Environment {
                 isSecure: createPipelineInfo.secureOption || false
             };
         }
+
         if (createPipelineInfo.isInRetryMode && envInfo.propertyId) {
-            logger.info(`property '${this.propertyName}' already exists and is tied to environment '${this.name}'`);
+            logger.warn(`property '${this.propertyName}' already exists and is tied to environment '${this.name}'`);
 
         } else if (_.isBoolean(createPipelineInfo.associatePropertyName) && createPipelineInfo.associatePropertyName) {
             logger.info(`associating property '${this.propertyName}' tied to environment '${this.name}'`);
@@ -571,6 +575,41 @@ class Environment {
         }
         return results;
     }
+
+    /**
+     * Change rule format for a pipeline or an environment.
+     * @returns {Promise.<void>}
+     */
+    async changeRuleFormat(envName, ruleFormat) {
+        let results = await this.merge(false);
+        let envInfo = this.getEnvironmentInfo();
+        let ruleTree = this.loadPropertyData();
+        if (_.isString(ruleFormat)) {
+            try {
+                let response = await this.getPAPI().storePropertyVersionRules(envInfo.propertyId,
+                    envInfo.latestVersionInfo.propertyVersion, ruleTree, ruleFormat);
+                envInfo.lastSavedHash = envInfo.environmentHash;
+                envInfo.lastValidatedHash = envInfo.environmentHash;
+                results.storedRules = true;
+                console.log("Updated rule format for", envName, ":", response.ruleFormat);
+                envInfo.latestVersionInfo.ruleFormat = response.ruleFormat;
+                this.processValidationResults(envInfo, response, results);
+                this.storeEnvironmentInfo(envInfo);
+            } catch (error) {
+                if (error instanceof errors.RestApiError && error.args[1]["type"] !== undefined && error.args[1]["type"].includes("json-schema-invalid")) {
+                    this.processValidationResults(envInfo, error.args[1], results);
+                    this.storeEnvironmentInfo(envInfo);
+                } else if (error instanceof errors.RestApiError && error.args[1]["type"] !== undefined && error.args[1]["type"].includes("unsupported-media-type")) {
+                    throw new errors.RestApiError(error, `invalid_ruleformat`,
+                        "invalid rule format is passed");
+                } else {
+                    throw error;
+                }
+            }
+        }
+        return results;
+    }
+
 
     createEdgeHostnames(hostnames) {
         let mgr = new EdgeHostnameManager(this);

@@ -1,33 +1,47 @@
+Usage: akamai pipeline [options] [command]
 
-  Usage: akamai pl [options] [command]
+Akamai Pipeline. Run these commands from the directory that contains all of your pipelines.
 
-  Akamai Pipeline. The command assumes that your current working directory is the pipeline space under which all pipelines reside
+Options:
+  -V, --version                                      output the version number
+  -f, --format <format>                              Select output format for commands, either 'table', the default, or 'json'.
+  -s, --section <section>                            The section of the .edgerc file that contains the user profile, or client ID, to use for the command. If not set, uses the `default` settings in the
+                                                     .edgerc file.
+  -v, --verbose                                      Show detailed log information for the command.
+  --edgerc <edgerc>                                  Optional. Enter the location of the edgerc.config file used for credentials. If not set, uses the .edgerc file in the project directory if present.
+                                                     Otherwise, uses the .edgerc file in your home directory.
+  --workspace <workspace>                            Optional. Enter the directory containing all property and project files. If not set, uses the value of the AKAMAI_PROJECT_HOME environment variable
+                                                     if present.Otherwise, uses the current working directory as the workspace.
+  -h, --help                                         output usage information
 
-  Options:
-
-    -V, --version                                      output the version number
-    -v, --verbose                                      Verbose output, show logging on stdout
-    -s, --section <section>                            Section name representing Client ID in .edgerc file, defaults to "credentials"
-    -f, --format <format>                              Select output format, allowed values are 'json' or 'table'
-    -h, --help                                         output usage information
-
-  Commands:
-
-    new-pipeline|np [options] <environments...>        Create a new pipeline with provided attributes. This will also create one property for each environment.
-    set-default|sd [options]                           Set the default pipeline and or the default section name from .edgerc
-    show-defaults|sf                                   Show default settings for this workspace
-    merge|m [options] <environment>                    Merge template json and variable values into a PM/PAPI ruletree JSON document, stored in dist folder in the current pipeline folder
-    search|s <name>                                    Search for properties by name
-    set-prefixes|sp <useprefix>                        Set or unset use of prefixes  [true|false] for current user credentials and setup
-    set-ruleformat|srf <ruleformat>                    Set ruleformat for current user credentials and setup
-    list-contracts|lc                                  List contracts available to current user credentials and setup
-    list-products|lp [options]                         List products available under provided contract ID and client ID available to current user credentials and setup
-    list-groups|lg                                     List groups available to current user credentials and setup
-    list-cpcodes|lcp [options]                         List cpcodes available to current user credentials and setup.
-    show-ruletree|sr [options] <environment>           Shows the rule tree of a local property for provided environment. Also, one can use the show-ruletree -p <pipelineName> <environment> >> <filename.json> to store it into a local file.
-    save|sv [options] <environment>                    Save rule tree and hostnames for provided environment. Edge hostnames are also created if needed.
-    list-edgehostnames|leh [options]                   List edge hostnames available to current user credentials and setup (this could be a long list).
-    list-status|lstat [options]                        Show status of pipeline
-    promote|pm [options] <targetEnvironment>           Promote (activate) an environment. This command also executes the merge and save commands mentioned above by default.
-    check-promotion-status|cs [options] <environment>  Check status of promotion (activation) of an environment.
-    help [cmd]                                         display help for [cmd]
+Commands:
+  change-ruleformat|crf [options] [environments...]  Change the property rule format used by a pipeline or an environment. Enter a space-separated list of environments after the pipeline name to
+                                                     update a subset of environments.
+  check-promotion-status|cs [options] <environment>  For the selected environment, check the activation status.
+  help                                               help command
+  list-contracts|lc                                  List contracts available based on current user credentials and setup.
+  list-cpcodes|lcp [options]                         List CP codes available based on the current user credentials and setup.
+  list-edgehostnames|leh [options]                   List edge hostnames available based on current user credentials and setup. May return a long list of hostnames.
+  list-groups|lg                                     List groups available based on the current user credentials and setup.
+  list-products|lp [options]                         List products available based on contract ID, client ID, and the current user credentials and setup.
+  list-properties|lpr [options]                      List properties available based on the current user credentials and setup.
+  list-property-hostnames|lph [options]              List hostnames assigned to this property.
+  list-property-rule-format|lprf [options]           List the current rule format for the property.
+  list-property-variables|lpv [options]              List the property's variables.
+  list-rule-formats|lrf                              Display the list of available rule formats.
+  list-status|lstat [options]                        Show status of the pipeline.
+  merge|m [options] <environment>                    Merge the pipeline property's template JSON and variable values into a rule tree file. The system stores the resulting JSON file in the pipeline's
+                                                     /dist folder.
+  new-pipeline|np [options] <environments...>        Create a new pipeline with provided attributes. Separate each environment name with a space. This command creates one property for each
+                                                     environment.
+  promote|pm [options] <targetEnvironment>           Promote, or activate, an environment. By default, this command also executes the merge and save commands.
+  save|sv [options] <environment>                    Save rule tree and hostnames for the environment you select. Also creates edge hostnames if needed.
+  search|s <name>                                    Search for properties by name.
+  set-default|sd [options]                           Set the default pipeline and the default section of the .edgerc file to use.
+  set-prefixes|sp <useprefix>                        Boolean. Enter `true` to enable prefixes with the current user credentials and setup. Enter `false` to disable them.
+  set-ruleformat|srf <ruleformat>                    Set the rule format to use with the current user credentials and setup. Enter `latest` for the most current rule format. For a list of earlier
+                                                     rule formats, see: https://developer.akamai.com/api/core_features/property_manager/v1.html#versioning
+  show-defaults|sf                                   Displays the current default settings for this workspace.
+  show-ruletree|sr [options] <environment>           For the selected environment, shows local property's rule tree. Run this to store the rule tree in a local file: show-ruletree -p <pipelineName>
+                                                     <environment> >> <filename.json>
+  help [cmd]                                         display help for [cmd]

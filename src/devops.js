@@ -1,4 +1,4 @@
-//  Copyright 2018. Akamai Technologies, Inc
+//  Copyright 2020. Akamai Technologies, Inc
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -16,11 +16,13 @@
 const _ = require('underscore');
 const path = require('path');
 
+const fs = require('fs');
 const edgerc = require('./edgegrid/edgerc');
 const errors = require('./errors');
 const helpers = require('./helpers');
 const logger = require("./logging").createLogger("devops-prov");
 const emailValidator = require("email-validator");
+const Environment = require("./environment");
 
 /**
  * Class representing high-level functionality within the SDK.
@@ -29,6 +31,11 @@ class DevOps {
     constructor(devopsSettings, dependencies) {
         this.devopsSettings = devopsSettings;
         this.devopsHome = devopsSettings.devopsHome;
+        if (!fs.existsSync(devopsSettings.devopsHome)) {
+            //file does not exist
+            throw new errors.ArgumentError(`Could not open working directory at '${devopsSettings.devopsHome}'`,
+                "home_parse_error")
+        }
         this.getProject = dependencies.getProject;
         this.getPAPI = dependencies.getPAPI;
         this.utils = dependencies.getUtils();
@@ -350,6 +357,58 @@ class DevOps {
         return project.promote(environmentName, network, emailSet, message, force);
     }
 
+    async activateVersion(propertyInfo, network, emails, message) {
+        let versionInfo = await this.getVersionInfo(propertyInfo);
+        let result = await this.getPAPI().activateProperty(versionInfo.propertyId,
+            versionInfo.propertyVersion, network, Array.from(emails), message);
+        let activationId = Environment._extractActivationId(result);
+        return {
+            "propertyId": versionInfo.propertyId,
+            "propertyVersion": versionInfo.propertyVersion,
+            "network": network,
+            "activationId": activationId
+        };
+    }
+
+    async deleteProperty(propertyInfo, message) {
+        let versionInfo;
+        if (_.isNumber(propertyInfo.propertyId)) {
+            versionInfo = await this.getPAPI().latestPropertyVersion(propertyInfo.propertyId);
+        } else {
+            versionInfo = await this.getPropertyVersionInfo(propertyInfo.propertyName);
+        }
+        return this.getPAPI().deleteProperty(versionInfo.propertyId, versionInfo.contractId, versionInfo.groupId, message);
+
+    }
+
+    async createCpcode(contractId, groupId, cpcodeName, productId) {
+        return this.getPAPI().createCpcode(contractId, groupId, cpcodeName, productId);
+    }
+
+    /**
+     * change ruleformat for a pipeline or environment of a project
+     * @param projectName {string}
+     * @param environments [List of string]
+     * @param ruleFormat {string}
+     */
+    async changeRuleFormat(projectName, environments, ruleFormat) {
+        const project = this.getProject(projectName);
+        let projectdata = project.getProjectInfo();
+        let results = [];
+        if (Array.isArray(environments) && environments.length) {
+            for (let envName of environments) {
+                logger.info(`Environment: '${envName}'`);
+                results.push(await (project.changeRuleFormat(envName, ruleFormat)));
+            }
+        } else {
+            for (let env of projectdata.environments) {
+                logger.info(`Environment: '${env}'`);
+                results.push(await (project.changeRuleFormat(env, ruleFormat)));
+            }
+        }
+        return results;
+    }
+
     checkEmails(emails) {
         let cleanEmails = [];
 
@@ -438,6 +497,58 @@ class DevOps {
 
     listEdgeHostnames(contractid, groupId) {
         return this.getPAPI().listEdgeHostnames(contractid, groupId);
+    }
+
+    listProperties(contractId, groupId) {
+        return this.getPAPI().listProperties(contractId, groupId);
+    }
+
+    listRuleFormats() {
+        return this.getPAPI().listRuleFormats();
+    }
+
+    async getPropertyRules(propertyInfo) {
+        let versionInfo = await this.getVersionInfo(propertyInfo);
+        return this.getPAPI().getPropertyVersionRules(versionInfo.propertyId, versionInfo.propertyVersion, null);
+    }
+
+    async listPropertyHostnames(propertyInfo, validate) {
+        let versionInfo = await this.getVersionInfo(propertyInfo);
+        return this.getPAPI().listPropertyHostnames(versionInfo.propertyId, versionInfo.propertyVersion, versionInfo.contractId, versionInfo.groupId, validate);
+    }
+
+    async getVersionInfo(propertyInfo) {
+        let versionInfo;
+        if (!_.isNumber(propertyInfo.propertyId) && _.isString(propertyInfo.propertyName)) {
+            let result = await this.getPropertyVersionInfo(propertyInfo.propertyName);
+            propertyInfo.propertyId = helpers.parsePropertyId(result.propertyId);
+        }
+        if (_.isNumber(propertyInfo.propertyId)) {
+            if (propertyInfo.propertyVersion) {
+                versionInfo = await this.getPAPI().getPropertyVersion(propertyInfo.propertyId, propertyInfo.propertyVersion);
+            } else {
+                versionInfo = await this.getPAPI().latestPropertyVersion(propertyInfo.propertyId);
+            }
+            versionInfo.propertyVersion = versionInfo.versions.items[0].propertyVersion;
+        }
+        return versionInfo;
+    }
+
+    async getPropertyVersionInfo(propertyName) {
+        let results = await this.getPAPI().findProperty(propertyName);
+        if (results.versions.items.length === 0) {
+            throw new errors.ArgumentError(`Can't find any version of property '${propertyName}'`,
+                "property_does_not_exist_on_server", propertyName);
+        }
+        let versionInfo;
+        let latestVersion = 0;
+        for (let i = 0; i < results.versions.items.length; i++) {
+            if (latestVersion < results.versions.items[i].propertyVersion) {
+                latestVersion = results.versions.items[i].propertyVersion;
+                versionInfo = results.versions.items[i];
+            }
+        }
+        return versionInfo;
     }
 }
 

@@ -1,0 +1,17 @@
+{
+  "accountId" : "act_1-599K",
+  "contractId" : "ctr_1-3CV382",
+  "groupId" : "grp_18385",
+  "propertyId" : "prp_609774",
+  "propertyName" : "dev.pipeline.com",
+  "propertyVersion" : 1,
+  "etag" : "50d2e771d4cf4c6e5daaf42fc8e665208b66273e",
+  "hostnames" : {
+    "items" : [ {
+      "cnameType" : "EDGE_HOSTNAME",
+      "edgeHostnameId" : "ehn_4363836",
+      "cnameFrom" : "dev.pipeline.com",
+      "cnameTo" : "dev.pipeline.com.edgesuite.net"
+    } ]
+  }
+}
