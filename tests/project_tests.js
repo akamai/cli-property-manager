@@ -1,4 +1,4 @@
-//  Copyright 2018. Akamai Technologies, Inc
+//  Copyright 2020. Akamai Technologies, Inc
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -70,6 +70,38 @@ describe('Project Tests', function () {
         });
         let testDataFile = path.join(__dirname, "project_tests.data.json");
         utils.writeJsonFile(testDataFile, data);
+    });
+
+    it('change ruleformat test',  async function() {
+        let createEnvironment = function(envName, project) {
+            let env = {
+                name: envName,
+                project: project,
+                checkEnvironmentName: function () {},
+                getEnvironment: function () {},
+                changeRuleFormat:function () {}
+            };
+            let result = {
+                ruleFormat: "v2019-07-25"
+            };
+            let tdEnv = td.object(env);
+            td.when(tdEnv.changeRuleFormat("qa","v2019-07-25")).thenReturn(result);
+            return tdEnv;
+        };
+
+        devops = {
+            devopsHome : __dirname
+        };
+        project = new Project("testproject.com", {
+            devops: devops,
+            getUtils: function () {
+                return utils;
+            },
+            getEnvironment: createEnvironment
+        });
+
+        let r1 = await project.changeRuleFormat("qa","v2019-07-25");
+        assert.equal(r1.ruleFormat, "v2019-07-25");
     });
 });
 

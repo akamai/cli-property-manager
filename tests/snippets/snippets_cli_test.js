@@ -1,4 +1,4 @@
-//  Copyright 2018. Akamai Technologies, Inc
+//  Copyright 2020. Akamai Technologies, Inc
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -44,7 +44,15 @@ class TestConsole {
         this.errors = [];
     }
 
+    debug(...args) {
+        this.logs.push(args);
+    }
+
     info(...args) {
+        this.logs.push(args);
+    }
+
+    warn(...args) {
         this.logs.push(args);
     }
 
@@ -121,12 +129,13 @@ describe('Commands with no action called', function () {
 describe('Snippets CLI create new project', function () {
     let createDevOpsFun;
     let devOpsClass;
+    const devopsHome = baseDir;
 
     beforeEach(function () {
         devOpsClass = td.constructor(DevOps);
         createDevOpsFun = function (deps) {
             let newDeps = {
-                devOpsClass
+                devOpsClass, devopsHome
             };
             Object.assign(deps, newDeps);
 
@@ -555,18 +564,12 @@ describe('Snippets CLI show rule tree', function () {
     let getProject;
 
     before(function () {
-        getProject = td.func();
-        extractProjectName = td.func();
 
-        let project = td.object(["getRuleTree"]);
-
-        td.when(extractProjectName(td.matchers.anything())).thenReturn("testproject.com");
-        td.when(getProject(td.matchers.anything())).thenReturn(project);
-        td.when(project.getRuleTree(td.matchers.anything())).thenReturn(
-            new Promise((resolve, reject) => {
+        getPropertyRules = td.func();
+        td.when(getPropertyRules(td.matchers.anything()))
+            .thenReturn(new Promise((resolve, reject) => {
                 resolve('{some rule tree stuff}');
-            })
-        );
+            }));
 
         createDevOpsFun = function (deps) {
             let newDeps = {
@@ -575,14 +578,13 @@ describe('Snippets CLI show rule tree', function () {
             Object.assign(deps, newDeps);
 
             let devOps = createDevOps(deps);
-            devOps.getProject = getProject;
-            devOps.extractProjectName = extractProjectName;
+            devOps.getPropertyRules = getPropertyRules;
             return devOps;
         };
     });
 
     it('show rule tree test', function () {
-        let cliArgs = createCommand("sr");
+        let cliArgs = createCommand("sr", "-p", "example.com");
         let testConsole = new TestConsole();
         return mainTester(errorReporter => {
             main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
@@ -670,7 +672,6 @@ describe('Snippets CLI PULL command', function () {
 });
 
 describe('Snippets CLI search tests', function () {
-    const snippetsHome = baseDir;
     let createDevOpsFun;
     let devOps;
     let roUtils = new RoUtils();
@@ -683,7 +684,7 @@ describe('Snippets CLI search tests', function () {
 
         let papi = td.object(["findProperty"]);
 
-        let searchResultPath = path.join(snippetsHome, "testdata/search.json");
+        let searchResultPath = path.join(baseDir, "testdata/search.json");
         let result = roUtils.readJsonFile(searchResultPath);
 
         td.when(getPAPI()).thenReturn(papi);
@@ -696,7 +697,7 @@ describe('Snippets CLI search tests', function () {
         createDevOpsFun = function(deps) {
             let newDeps = {
                 utilsClass,
-                devopsHome: snippetsHome
+                devopsHome: baseDir
             };
             Object.assign(deps, newDeps);
             devOps = createDevOps(deps);
@@ -722,7 +723,6 @@ describe('Snippets CLI search tests', function () {
 });
 
 describe('Snippets CLI set default tests', function () {
-    const snippetsHome = baseDir;
     let createDevOpsFun;
     let devOps;
     let utils = new RoUtils();
@@ -732,7 +732,7 @@ describe('Snippets CLI set default tests', function () {
         createDevOpsFun = function (deps) {
             let newDeps = {
                 utilsClass,
-                devopsHome: snippetsHome
+                devopsHome: baseDir
             };
             Object.assign(deps, newDeps);
 
@@ -863,7 +863,6 @@ describe('Snippets CLI set default tests', function () {
 });
 
 describe('Devops-prov CLI show defaults tests', function () {
-    const snippetsHome = baseDir;
     let createDevOpsFun;
     let devOps;
     let utils = new RoUtils();
@@ -873,7 +872,7 @@ describe('Devops-prov CLI show defaults tests', function () {
         createDevOpsFun = function (deps) {
             let newDeps = {
                 utilsClass,
-                devopsHome: snippetsHome
+                devopsHome: baseDir
             };
             Object.assign(deps, newDeps);
 
@@ -923,18 +922,39 @@ describe('Snippets list tests', function () {
                 })
             );
 
+        td.when(devOpsClass.prototype.listRuleFormats())
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(utils.readJsonFile(path.join(baseDir, "testdata", "ruleFormatsList.json")));
+                })
+            );
+
         td.when(devOpsClass.prototype.listCpcodes("1-1TJZH5", 15231))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(utils.readJsonFile(path.join(baseDir, "testdata", "CPCodeList.json")));
                 })
             );
 
+        td.when(devOpsClass.prototype.listProperties("1-3CV382", 18385))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(utils.readJsonFile(path.join(baseDir, "testdata", "propertiesList.json")));
+                })
+            );
+
+        td.when(devOpsClass.prototype.listPropertyHostnames(td.matchers.anything(), true))
+            .thenReturn(new Promise((resolve, reject) => {
+                resolve(utils.readJsonFile(path.join(baseDir, "testdata", "propertyHostnamesList.json")));
+            }));
 
         td.when(devOpsClass.prototype.listEdgeHostnames("1-1TJZH5", 61726))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(utils.readJsonFile(path.join(baseDir, "testdata", "edgeHostnames.json")));
                 })
             );
+
+        td.when(devOpsClass.prototype.getPropertyRules(td.matchers.anything()))
+            .thenReturn(new Promise((resolve, reject) => {
+                resolve(utils.readJsonFile(path.join(baseDir, "testdata", "propertyVariablesList.json")));
+            }));
 
         createDevOpsFun = function (deps) {
             let newDeps = {
@@ -999,6 +1019,22 @@ describe('Snippets list tests', function () {
         }, createDevOpsFun);
     });
 
+    it('listRuleFormats test', function () {
+        let cliArgs = createCommand("lrf");
+        testConsole = new TestConsole();
+        return mainTester(errorReporter => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": baseDir
+            }, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            assert.equal(null,errorCatcher);
+            assert.equal(testConsole.logs.length, 1);
+            assert.equal(testConsole.logs[0].length, 1);
+            let output = testConsole.logs[0][0];
+            assert.equal(output, utils.readFile(path.join(baseDir,"testdata", "ruleFormatsList.output.txt")))
+        }, createDevOpsFun);
+    });
+
     it('listCPCodes test', function () {
         let cliArgs = createCommand("lcp", "-c", "1-1TJZH5", "-g", "15231");
         testConsole = new TestConsole();
@@ -1012,6 +1048,22 @@ describe('Snippets list tests', function () {
             assert.equal(testConsole.logs[0].length, 1);
             let output = testConsole.logs[0][0];
             assert.equal(output, utils.readFile(path.join(baseDir,"testdata", "CPCodeList.output.txt")))
+        }, createDevOpsFun);
+    });
+
+    it('listProperties test', function () {
+        let cliArgs = createCommand("lpr", "-c", "1-3CV382", "-g", "18385");
+        testConsole = new TestConsole();
+        return mainTester(errorReporter => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": baseDir
+            }, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            assert.equal(null,errorCatcher);
+            assert.equal(testConsole.logs.length, 1);
+            assert.equal(testConsole.logs[0].length, 1);
+            let output = testConsole.logs[0][0];
+            assert.equal(output, utils.readFile(path.join(baseDir,"testdata", "properties.output.txt")))
         }, createDevOpsFun);
     });
 
@@ -1067,6 +1119,54 @@ describe('Snippets list tests', function () {
             assert.equal(testConsole.logs[0].length, 1);
             let output = testConsole.logs[0][0];
             assert.equal(output, utils.readFile(path.join(baseDir,"testdata", "edgeHostnames.output.txt")))
+        }, createDevOpsFun);
+    });
+
+    it('listPropertyVariables test', function () {
+        let cliArgs = createCommand("lpv", "-p","dev.pipeline.com", "--propver", 1);
+        testConsole = new TestConsole();
+        return mainTester(errorReporter => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": baseDir
+            }, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            assert.equal(null,errorCatcher);
+            assert.equal(testConsole.logs.length, 1);
+            assert.equal(testConsole.logs[0].length, 1);
+            let output = testConsole.logs[0][0];
+            assert.equal(output, utils.readFile(path.join(baseDir,"testdata", "propertyVariables.output.txt")))
+        }, createDevOpsFun);
+    });
+
+    it('listPropertyRuleformat test', function () {
+        let cliArgs = createCommand("lprf", "-p","dev.pipeline.com", "--propver", 1);
+        testConsole = new TestConsole();
+        return mainTester(errorReporter => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": baseDir
+            }, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            assert.equal(null,errorCatcher);
+            assert.equal(testConsole.logs.length, 1);
+            assert.equal(testConsole.logs[0].length, 1);
+            let output = testConsole.logs[0][0];
+            assert.equal(output, utils.readFile(path.join(baseDir,"testdata", "propertyRuleformat.output.txt")))
+        }, createDevOpsFun);
+    });
+
+    it('listPropertyHostnames test', function () {
+        let cliArgs = createCommand("lph", "-p","dev.pipeline.com", "--propver", 1);
+        testConsole = new TestConsole();
+        return mainTester(errorReporter => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": baseDir
+            }, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            assert.equal(null,errorCatcher);
+            assert.equal(testConsole.logs.length, 1);
+            assert.equal(testConsole.logs[0].length, 1);
+            let output = testConsole.logs[0][0];
+            assert.equal(output, utils.readFile(path.join(baseDir,"testdata", "propertyHostnames.output.txt")))
         }, createDevOpsFun);
     });
 
@@ -1251,6 +1351,52 @@ describe('Snippets list tests', function () {
     });
 
 
+});
+
+describe('activate version tests', function () {
+    const devopsHome = baseDir;
+    let createDevOpsFun;
+    let getProject;
+    let utils = new Utils();
+
+    before(function () {
+        activateVersion = td.func();
+        td.when(activateVersion(td.matchers.anything(), "STAGING", "one@email.com, two@email.com", "activate version"))
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(utils.readJsonFile(path.join(baseDir, "testdata", "activateVersion.json")));
+                })
+            );
+
+        createDevOpsFun = function (deps) {
+            let newDeps = {
+                devopsHome
+            };
+            Object.assign(deps, newDeps);
+
+            let devOps = createDevOps(deps);
+            devOps.activateVersion = activateVersion;
+            return devOps;
+        };
+
+    });
+
+
+    it('activate version test success', function () {
+        let cliArgs = createCommand("activate-version", "-p", "example.com", "--propver", "2", "-n", "stag", "-e", "one@email.com, two@email.com", "--message", "activate version");
+       let testConsole = new TestConsole();
+        return mainTester(errorReporter => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": baseDir
+            }, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            assert.equal(null,errorCatcher);
+            assert.equal(testConsole.logs.length, 2);
+            assert.equal(testConsole.logs[0].length, 1);
+            assert.equal(testConsole.logs[1].length, 1);
+            let output = testConsole.logs[1][0];
+            assert.equal(output, utils.readFile(path.join(baseDir,"testdata", "activateVersion.output.txt")))
+        }, createDevOpsFun);
+    });
 });
 
 describe('Snippets activation tests', function () {

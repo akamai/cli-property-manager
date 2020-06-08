@@ -1,4 +1,4 @@
-//  Copyright 2018. Akamai Technologies, Inc
+//  Copyright 2020. Akamai Technologies, Inc
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ describe('Edgerc tests', function () {
     it('Parse test non existent file', function () {
         assert.throws(() => {
             edgerc.getSection(path.join(__dirname, "edgercblah.config"), "nonexistent");
-        }, `ENOENT: no such file or directory, open '${__dirname}/edgercblah.config'`);
+        }, `Could not load .edgerc file from '${__dirname}/edgercblah.config'`);
     });
 
     it('Parse test wrong file format', function () {

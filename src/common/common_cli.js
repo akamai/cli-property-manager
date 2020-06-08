@@ -1,13 +1,27 @@
+//  Copyright 2020. Akamai Technologies, Inc
+//  
+//  Licensed under the Apache License, Version 2.0 (the "License");
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
+//  
+//      http://www.apache.org/licenses/LICENSE-2.0
+//  
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an "AS IS" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
+
+
 //used for table formatted output
 const AsciiTable = require('ascii-data-table').default;
 const _ = require('underscore');
 
 const errors = require('../errors');
 const helpers = require('../helpers');
-
+const Utils = require('../utils');
 const STAGING = new Set(['S', 'ST', 'STAG', 'STAGING']);
 const PROD = new Set(['P', 'PR', 'PROD', 'PRODUCTION']);
-
 
 
 class CommonCli {
@@ -181,6 +195,80 @@ class CommonCli {
         });
     }
 
+    listProperties(devops, options) {
+        let groupId = options.groupId;
+        if (!(groupId && _.isNumber(groupId))) {
+            throw new errors.DependencyError("groupId needs to be provided as a number", "missing_group_id");
+        }
+
+        let contractId = options.contractId;
+        if (!contractId) {
+            throw new errors.DependencyError("contractId needs to be provided", "missing_contract_id");
+        }
+
+        return devops.listProperties(contractId, groupId).then(data => {
+            let properties = data["properties"]["items"];
+            if (!properties) {
+                properties = [];
+            }
+            if (devops.devopsSettings.outputFormat === 'table') {
+                properties = _.map(properties, function(property) {
+                    return [
+                        property["accountId"],
+                        property["contractId"],
+                        property["groupId"],
+                        property["propertyName"],
+                        property["propertyId"],
+                        property["assetId"],
+                        property["productionVersion"],
+                        property["latestVersion"],
+                        property["stagingVersion"],
+                    ];
+                });
+                properties.unshift(["Account Id", "Contract Id", "Group Id", "Property Name", "Property Id", "Asset Id", "Production Version", "Latest Version", "Staging Version"]);
+                this.consoleLogger.info(AsciiTable.table(properties, 30));
+            } else {
+                this.consoleLogger.info(helpers.jsonStringify(properties));
+            }
+        });
+    }
+
+    async listPropertyHostnames(devops, options) {
+        let propertyInfo = this.checkPropertyIdAndPropertyVersion(options.property, parseInt(options.propver, 10));
+        let validate = true;
+        if (_.isBoolean(options.validate)) {
+            validate = options.validate;
+        }
+        return devops.listPropertyHostnames(propertyInfo, validate).then(data => {
+            let hostnames = data["hostnames"]["items"];
+            if (!hostnames) {
+                hostnames = [];
+            }
+            if (devops.devopsSettings.outputFormat === 'table') {
+                if (options.file) {
+                    let utils = new Utils();
+                    utils.writeJsonFile(options.file, helpers.jsonStringify(hostnames));
+                    this.consoleLogger.info("output saved to file: " + options.file);
+                }
+                hostnames = _.map(hostnames, function(hostname) {
+                    if (!hostname["edgeHostnameId"]) {
+                        hostname["edgeHostnameId"] = null;
+                    }
+                    return [
+                        hostname["cnameTo"],
+                        hostname["cnameFrom"],
+                        hostname["edgeHostnameId"],
+                        hostname["cnameType"]
+                    ];
+                });
+                hostnames.unshift(["Cname To", "Cname From", "Edge hostname ID", "Cname Type"]);
+                this.consoleLogger.info(AsciiTable.table(hostnames, 30));
+            } else {
+                this.consoleLogger.info(helpers.jsonStringify(hostnames));
+            }
+        });
+    }
+
     listEdgeHostnames(devops, options) {
         let groupId = options.groupId;
         if (!(groupId && _.isNumber(groupId))) {
@@ -208,6 +296,72 @@ class CommonCli {
                 this.consoleLogger.info(res);
             } else {
                 this.consoleLogger.info(helpers.jsonStringify(items));
+            }
+        });
+    }
+
+    async listPropertyVariables(devops, options) {
+        let propertyInfo = this.checkPropertyIdAndPropertyVersion(options.property, parseInt(options.propver, 10));
+
+        return devops.getPropertyRules(propertyInfo).then(data => {
+            let variables = data["rules"]["variables"];
+            if (!variables) {
+                variables = [];
+            }
+            if (options.file) {
+                let utils = new Utils();
+                utils.writeJsonFile(options.file, helpers.jsonStringify(variables));
+                this.consoleLogger.info("output saved to file: " + options.file);
+            }
+            if (devops.devopsSettings.outputFormat === 'table') {
+                variables = _.map(variables, function(variable) {
+                    return [
+                        variable["name"],
+                        variable["value"],
+                        variable["description"],
+                        variable["hidden"],
+                        variable["sensitive"]
+                    ];
+                });
+                variables.unshift(["Name", "Value", "Description", "Hidden", "Sensitive"]);
+                this.consoleLogger.info(AsciiTable.table(variables, 30));
+            } else {
+                this.consoleLogger.info(helpers.jsonStringify(variables));
+            }
+        });
+    }
+
+    async listPropertyRuleformat(devops, options) {
+        let propertyInfo = this.checkPropertyIdAndPropertyVersion(options.property, parseInt(options.propver, 10));
+
+        return devops.getPropertyRules(propertyInfo).then(data => {
+            let ruleFormat = data["ruleFormat"];
+            if (!ruleFormat) {
+                ruleFormat = [];
+            }
+            if (options.file) {
+                let utils = new Utils();
+                utils.writeJsonFile(options.file, ruleFormat);
+                this.consoleLogger.info("output saved to file: " + options.file);
+            }
+            this.consoleLogger.info(helpers.jsonStringify(ruleFormat));
+        });
+    }
+
+    listRuleFormats(devops) {
+        return devops.listRuleFormats().then(data => {
+            let ruleFormats = data["ruleFormats"]["items"];
+            if (!ruleFormats) {
+                ruleFormats = [];
+            }
+            if (devops.devopsSettings.outputFormat === 'table') {
+                ruleFormats = _.map(ruleFormats, function(ruleFormat) {
+                    return [ruleFormat];
+                });
+                ruleFormats.unshift(["Rule Formats"]);
+                this.consoleLogger.info(AsciiTable.table(ruleFormats, 30));
+            } else {
+                this.consoleLogger.info(helpers.jsonStringify(ruleFormats));
             }
         });
     }

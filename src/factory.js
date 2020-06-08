@@ -1,4 +1,4 @@
-//  Copyright 2018. Akamai Technologies, Inc
+//  Copyright 2020. Akamai Technologies, Inc
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -30,9 +30,11 @@ const EL = require('./el');
 const Template = require('./template');
 const errors = require('./errors');
 const helpers = require('./helpers');
-const logger = require("./logging")
-    .createLogger("devops-prov.factory");
+const logging = require("./logging");
+const logger = logging.createLogger("devops-prov.factory");
 const SnippetsProject = require('./pm/project_property_manager');
+const consoleLogger = new logging.ConsoleLogger();
+
 /**
  *
  * @param devopsSettings
@@ -50,10 +52,15 @@ const prepareEdgeGridConfig = function(utils, devopsSettings, dependencies) {
                 "missing_edgegrid_credentials");
         }
         edgegridRc = edgeGridConfig.path;
+    } else if (dependencies.edgerc) {
+        edgegridRc = dependencies.edgerc;
     } else if (utils.fileExists(devopsHomeEdgerc)) {
         edgegridRc = devopsHomeEdgerc;
     } else if (utils.fileExists(userHomeEdgerc)) {
         edgegridRc = userHomeEdgerc;
+    } else {
+        throw new errors.DependencyError(`Can't find edgerc config. Either '${userHomeEdgerc}' or '${devopsHomeEdgerc}' must exist`,
+            "missing_edgegrid_credentials");
     }
     let sectionName = dependencies.section || edgeGridConfig.section || "papi";
 
@@ -73,9 +80,11 @@ const prepareSettings = function(dependencies, procEnv, utils) {
     //by default devopsHome is the current working directory.
     //This can be overridden by setting the AKAMAI_PROJECT_HOME env variable or
     // passing devopsHome with the dependencies object.
+
     const devopsHome = dependencies.devopsHome || procEnv["AKAMAI_PROJECT_HOME"] || process.cwd();
     let devopsSettings = {};
 
+    // I dont think this is used.  Adding a warning and can delete sometime next year (EOL - 2021)
     if (procEnv["HOME"]) {
         let devopsConfig;
         if (dependencies.devOpsClass === DevOpsSnippets) {
@@ -84,6 +93,7 @@ const prepareSettings = function(dependencies, procEnv, utils) {
             devopsConfig = path.resolve(procEnv["HOME"], ".devopsSettings.json");
         }
         if (utils.fileExists(devopsConfig)) {
+            consoleLogger.warn(`Usage of ~/.snippetsSettings and ~/.devopsSettings is deprecated and will be removed in 2021.`);
             devopsSettings = utils.readJsonFile(devopsConfig);
         }
     }
@@ -118,12 +128,12 @@ const prepareSettings = function(dependencies, procEnv, utils) {
 /**
  * Somewhat unsatisfying "do your own dependency injection scheme"
  *
- * EXTREMELY unsatisfying.  The logger breaks because of when depencies are "injected"
- * @param devopsHome
+ * EXTREMELY unsatisfying.  The logger breaks because of when dependencies are "injected"
  * @param dependencies
  * @returns factory object
  */
 const createDevOps = function(dependencies = {}) {
+
     const devOpsClass = dependencies.devOpsClass || DevOps;
     const projectClass = dependencies.projectClass || Project;
     const procEnv = dependencies.procEnv || {};

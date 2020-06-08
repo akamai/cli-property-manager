@@ -1,4 +1,4 @@
-//  Copyright 2018. Akamai Technologies, Inc
+//  Copyright 2020. Akamai Technologies, Inc
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ const path = require('path');
 const _ = require('underscore');
 
 const errors = require('./errors');
+const fs = require('fs');
 const helpers = require('./helpers');
 const logger = require("./logging")
     .createLogger("devops-prov.project");
@@ -135,6 +136,7 @@ class Project {
             version: this.version,
             isSecure: createProjectInfo.secureOption || false
         };
+        // this looks like this improperly overrides --section argument
         if (_.isObject(this.devopsSettings) &&
             _.isObject(this.devopsSettings.edgeGridConfig) &&
             _.isString(this.devopsSettings.edgeGridConfig.section)) {
@@ -220,8 +222,18 @@ class Project {
         let infoPath = path.join(this.projectFolder, "environments", envName, "envInfo.json");
         if (this.utils.fileExists(infoPath)) {
             return this.utils.readJsonFile(infoPath);
+        } else {
+            // check env dir exists
+            let envPath = path.join(this.projectFolder, "environments", envName);
+            if (!fs.existsSync(envPath)) {
+                throw new errors.ArgumentError(`Could not open environments directory at '${envPath}'`,
+                    "env_parse_error")
+            } else {
+                throw new errors.ArgumentError(`Could not open envInfo.json at '${infoPath}'`,
+                    "env_parse_error")
+
+            }
         }
-        return null;
     }
 
     storeTemplate(name, template) {
@@ -451,6 +463,17 @@ class Project {
             logger.warn(`Deprecated --force: Previous environment need not be active and can be with any pending changes`);
         }
         return this.getEnvironment(envName).promote(network, emails, message);
+    }
+
+    /**
+     * change ruleformat for a pipeline or environment of a project
+     * @param envName {string}
+     * @param ruleFormat {string}
+     */
+    async changeRuleFormat(envName, ruleFormat) {
+        this.checkEnvironmentName(envName);
+        return this.getEnvironment(envName).changeRuleFormat(envName, ruleFormat);
+
     }
 }
 

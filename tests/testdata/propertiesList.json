@@ -1,0 +1,27 @@
+{
+  "properties" : {
+    "items": [
+      {
+        "accountId": "act_1-599K",
+        "contractId": "ctr_1-3CV382",
+        "groupId" : "grp_18385",
+        "propertyId": "prp_556622",
+        "propertyName": "AMDTest",
+        "latestVersion": 1,
+        "stagingVersion": null,
+        "productionVersion" : null,
+        "assetId": "aid_10698919"
+      }, {
+        "accountId" : "act_1-599K",
+        "contractId": "ctr_1-3CV382",
+        "groupId": "grp_18385",
+        "propertyId": "prp_483090",
+        "propertyName": "mmc-amd-ns",
+        "latestVersion" : 1,
+        "stagingVersion": null,
+        "productionVersion": null,
+        "assetId": "aid_10590392"
+      }
+    ]
+  }
+}

@@ -1,4 +1,4 @@
-//  Copyright 2018. Akamai Technologies, Inc
+//  Copyright 2020. Akamai Technologies, Inc
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -44,6 +44,6 @@ describe('Factory tests', function () {
         let qaEnv = devops.getDefaultProject().getEnvironment("qa");
         let papi = qaEnv.getPAPI();
         papi = qaEnv.getPAPI();
-        assert.equal(papiCount, 1, "we sould create PAPI only once!");
+        assert.equal(papiCount, 1, "we should create PAPI only once!");
     });
 });

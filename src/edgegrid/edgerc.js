@@ -21,6 +21,11 @@ const sectionRegex = /^\s*\[(.*)]\s*$/;
 class EdgeRC {
     constructor(path) {
         this.path = path;
+        if (!fs.existsSync(path)) {
+            //file does not exist
+            throw new errors.ArgumentError(`Could not load .edgerc file from '${path}'`,
+                "edgerc_parse_error")
+        }
         this.sections = {};
         this.__parse();
     }
@@ -51,7 +56,7 @@ class EdgeRC {
                     let index = line.indexOf('=');
                     if (index < 0) {
                         throw new errors.ArgumentError(`Error parsing key-value pair '${line}' in line ${lineNumber}`,
-                            "edgerd_parse_error", line)
+                            "edgerc_parse_error", line)
                     }
                     let key = line.slice(0, index).trim();
                     let val = line.slice(index + 1).trim();
@@ -64,7 +69,7 @@ class EdgeRC {
                     section[key] = val;
                 } else {
                     throw new errors.ArgumentError(`Unexpected data '${line}' outside of section in line ${lineNumber}!`,
-                        "edgerd_parse_error", line)
+                        "edgerc_parse_error", line)
                 }
             }
         }, this);

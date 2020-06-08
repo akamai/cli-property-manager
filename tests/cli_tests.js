@@ -1,4 +1,4 @@
-//  Copyright 2018. Akamai Technologies, Inc
+//  Copyright 2020. Akamai Technologies, Inc
 //  
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ const DevOps = require("../src/devops");
 const Utils = require('../src/utils');
 const RoUtils = require('./ro-utils');
 const logger = require("../src/logging")
-//    .consoleLogging()
     .createLogger("devops-prov.project_tests");
 
 const equalIgnoreWhiteSpaces = require('./testutils').equalIgnoreWhiteSpaces;
@@ -45,7 +44,15 @@ class TestConsole {
         this.errors = [];
     }
 
+    debug(...args) {
+        this.logs.push(args);
+    }
+
     info(...args) {
+        this.logs.push(args);
+    }
+
+    warn(...args) {
         this.logs.push(args);
     }
 
@@ -140,9 +147,8 @@ describe('Devops-prov CLI provide help test', function () {
             let newDeps = {
                 utilsClass
             };
-            Object.assign(newDeps, deps);
-
-            return createDevOps(newDeps);
+            Object.assign(deps, newDeps);
+            return createDevOps(deps);
         };
     });
 
@@ -156,9 +162,11 @@ describe('Devops-prov CLI provide help test', function () {
             }, createDevOps, errorReporter, testConsole);
         }, errorCatcher => {
             assert.equal(errorCatcher, null);
-            assert.equal(testConsole.logs.length, 1);
+            assert.equal(testConsole.logs.length, 2);
             let output = testConsole.logs[0][0];
             equalIgnoreWhiteSpaces(output, utils.readFile(path.join(__dirname, "testdata", "help.output.txt")))
+            let footer = testConsole.logs[1][0];
+            equalIgnoreWhiteSpaces(footer, utils.readFile(path.join(__dirname, "testdata", "help.footer.txt")))
         });
     });
 
@@ -172,9 +180,11 @@ describe('Devops-prov CLI provide help test', function () {
             }, createDevOpsFun, errorReporter, testConsole);
         }, errorCatcher => {
             assert.equal(errorCatcher, null);
-            assert.equal(testConsole.logs.length, 1);
+            assert.equal(testConsole.logs.length, 2);
             let output = testConsole.logs[0][0];
             equalIgnoreWhiteSpaces(output, utils.readFile(path.join(__dirname, "testdata", "help.output.txt")))
+            let footer = testConsole.logs[1][0];
+            equalIgnoreWhiteSpaces(footer, utils.readFile(path.join(__dirname, "testdata", "help.footer.txt")))
         });
     });
 
@@ -188,9 +198,11 @@ describe('Devops-prov CLI provide help test', function () {
             }, createDevOpsFun, errorReporter, testConsole);
         }, errorCatcher => {
             assert.equal(errorCatcher, null);
-            assert.equal(testConsole.logs.length, 1);
+            assert.equal(testConsole.logs.length, 2);
             let output = testConsole.logs[0][0];
             equalIgnoreWhiteSpaces(output, utils.readFile(path.join(__dirname, "testdata", "lstat.output.txt")))
+            let footer = testConsole.logs[1][0];
+            equalIgnoreWhiteSpaces(footer, utils.readFile(path.join(__dirname, "testdata", "help.footer.txt")))
         });
     });
 });
@@ -208,9 +220,8 @@ describe('Devops-prov CLI set default tests', function () {
             let newDeps = {
                 utilsClass, devopsHome
             };
-            Object.assign(newDeps, deps);
-
-            devOps = createDevOps(newDeps);
+            Object.assign(deps, newDeps);
+            devOps = createDevOps(deps);
             return devOps;
         };
     });
@@ -229,9 +240,8 @@ describe('Devops-prov CLI set default tests', function () {
         }, errorCatcher => {
             assert.equal(errorCatcher, null);
             assert.equal(testConsole.logs.length, 1);
-            let roUtils = devOps.utils;
             let devopsSettingsPath = path.join(__dirname, "devopsSettings.json");
-            let devopsSettings = roUtils.readJsonFile(devopsSettingsPath);
+            let devopsSettings = utils.readJsonFile(devopsSettingsPath);
             assert.deepEqual(devopsSettings, {
                 "defaultProject": "testproject.com",
                 "edgeGridConfig": {
@@ -415,10 +425,19 @@ describe('Devops-prov CLI show rule tree', function () {
                 resolve('{some rule tree stuff}');
             })
         );
+        let getProjectInfo = td.function();
+        let changeRuleFormat = td.function();
+        td.when(getProjectInfo()).thenReturn({});
 
+        project.getProjectInfo = getProjectInfo;
+        project.changeRuleFormat = changeRuleFormat;
+        td.when(project.getProjectInfo()).thenReturn();
+        td.when(project.changeRuleFormat("qa", "v2019-07-25")).thenReturn({});
+
+        devOpsClass = td.constructor(DevOps);
         createDevOpsFun = function (deps) {
             let newDeps = {
-                devopsHome
+                devopsHome, devOpsClass
             };
             Object.assign(deps, newDeps);
 
@@ -439,6 +458,19 @@ describe('Devops-prov CLI show rule tree', function () {
             assert.equal(testConsole.logs.length, 1);
             let output = testConsole.logs[0][0];
             assert.equal(output, '"{some rule tree stuff}"');
+        });
+    });
+
+    it('change ruleformat test', function () {
+        let cliArgs = createCommand("crf", "-p", "testproject.com", "qa", "-r", "v2019-07-25");
+        return mainTester(errorReporter => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": __dirname
+            }, createDevOpsFun, errorReporter);
+        }, errorCatcher =>  {
+            td.verify(devOpsClass.prototype.changeRuleFormat("testproject.com", ["qa"],"v2019-07-25"
+            ));
+
         });
     });
 });
@@ -498,7 +530,6 @@ describe('Devops-prov CLI search tests', function () {
 describe('Devops-prov CLI show defaults tests', function () {
     const devopsHome = __dirname;
     let createDevOpsFun;
-    let devOps;
     let utils = new RoUtils();
 
     before(function () {
@@ -507,10 +538,8 @@ describe('Devops-prov CLI show defaults tests', function () {
             let newDeps = {
                 utilsClass, devopsHome
             };
-            Object.assign(newDeps, deps);
-
-            devOps = createDevOps(newDeps);
-            return devOps;
+            Object.assign(deps, newDeps);
+            return createDevOps(deps);
         };
     });
     it('show default test', function () {
@@ -589,9 +618,8 @@ describe('Devops-prov CLI create new project', function () {
             let newDeps = {
                 devOpsClass
             };
-            Object.assign(newDeps, deps);
-
-            return createDevOps(newDeps);
+            Object.assign(deps, newDeps);
+            return createDevOps(deps);
         };
     });
 
@@ -619,7 +647,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: undefined,
                 propertyVersion: undefined,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -648,7 +676,7 @@ describe('Devops-prov CLI create new project', function () {
                propertyName: undefined,
                propertyVersion: undefined,
                variableMode: "default",
-               ruleFormat:undefined
+               ruleFormat: undefined
            }));
        });
     });
@@ -678,7 +706,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: "seed-template.com",
                 propertyVersion: undefined,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -694,7 +722,7 @@ describe('Devops-prov CLI create new project', function () {
         }, errorCatcher => {
             assert.exists(errorCatcher);
             assert.equal(errorCatcher.error,
-                "Error: Variable Mode usable only with an existing property.", errorCatcher.error.stack);
+                "Error: The variable mode option is only available with existing properties.", errorCatcher.error.stack);
         });
     });
 
@@ -723,7 +751,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: "someProp",
                 propertyVersion: undefined,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -752,7 +780,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: undefined,
                 propertyVersion: undefined,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -766,7 +794,7 @@ describe('Devops-prov CLI create new project', function () {
                 "AKAMAI_PROJECT_HOME": __dirname
             }, createDevOpsFun, errorReporter);
         }, errorCatcher => {
-            let expectedError = "Error: Variable Mode usable only with an existing property.";
+            let expectedError = "Error: The variable mode option is only available with existing properties.";
             assert.exists(errorCatcher);
             assert.equal(errorCatcher.error, expectedError, errorCatcher.error.stack);
         });
@@ -797,7 +825,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: undefined,
                 propertyVersion: undefined,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -827,7 +855,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: undefined,
                 propertyVersion: undefined,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -857,7 +885,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: undefined,
                 propertyVersion: undefined,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -886,7 +914,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: undefined,
                 propertyVersion: undefined,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -916,7 +944,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: undefined,
                 propertyVersion: undefined,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -945,7 +973,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: undefined,
                 propertyVersion: undefined,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -974,7 +1002,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: undefined,
                 propertyVersion: undefined,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -1003,7 +1031,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: undefined,
                 propertyVersion: undefined,
                 variableMode: "no-var",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -1032,7 +1060,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: undefined,
                 propertyVersion: undefined,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -1061,7 +1089,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: undefined,
                 propertyVersion: 4,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -1089,7 +1117,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: undefined,
                 propertyVersion: undefined,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -1117,7 +1145,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: "www.foobar.com",
                 propertyVersion: undefined,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -1145,7 +1173,7 @@ describe('Devops-prov CLI create new project', function () {
                 propertyName: undefined,
                 propertyVersion: 4,
                 variableMode: "default",
-                ruleFormat:undefined
+                ruleFormat: undefined
             }));
         });
     });
@@ -1203,7 +1231,7 @@ describe('Devops-prov CLI create new project', function () {
         let testConsole = new TestConsole();
 
         let cliArgs = createCommand("np", "-p", "testproject2.com", "-e");
-        let expectedError = 'Error: Option \'-e, --propertyId <propertyId/propertyName>\' argument missing\''
+        let expectedError = 'Error: Option \'-e, --propertyId <propertyId/propertyName>\' argument missing\'';
         return mainTester(errorCatcher => {
             main(cliArgs, {
                 "AKAMAI_PROJECT_HOME": __dirname
@@ -1221,7 +1249,7 @@ describe('Devops-prov CLI create new project', function () {
         let testConsole = new TestConsole();
 
         let cliArgs = createCommand("np", "-p", "-s", "-e", "-c");
-        let expectedError = 'Error: Missing required argument \'environments\''
+        let expectedError = 'Error: Missing required argument \'environments\'';
         return mainTester(errorCatcher => {
             main(cliArgs, {
                 "AKAMAI_PROJECT_HOME": __dirname
@@ -1318,13 +1346,18 @@ describe('list tests', function () {
                 })
             );
 
+        td.when(devOpsClass.prototype.listRuleFormats())
+            .thenReturn(new Promise((resolve, reject) => {
+                    resolve(utils.readJsonFile(path.join(__dirname, "testdata", "ruleFormatsList.json")));
+                })
+            );
+
         createDevOpsFun = function (deps) {
             let newDeps = {
                 devOpsClass
             };
-            Object.assign(newDeps, deps);
-
-            let devOps = createDevOps(newDeps);
+            Object.assign(deps, newDeps);
+            let devOps = createDevOps(deps);
             devOps.devopsSettings = {
                 outputFormat: "table"
             };
@@ -1360,6 +1393,22 @@ describe('list tests', function () {
             assert.equal(testConsole.logs[0].length, 1);
             let output = testConsole.logs[0][0];
             assert.equal(output, utils.readFile(path.join(__dirname, "testdata", "groupList.output.txt")))
+        }, createDevOpsFun);
+    });
+
+    it('listRuleFormats test', function () {
+        let cliArgs = createCommand("lrf");
+        testConsole = new TestConsole();
+        return mainTester(errorReporter => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": __dirname
+            }, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            assert.equal(null, errorCatcher);
+            assert.equal(testConsole.logs.length, 1);
+            assert.equal(testConsole.logs[0].length, 1);
+            let output = testConsole.logs[0][0];
+            assert.equal(output, utils.readFile(path.join(__dirname, "testdata", "ruleFormatsList.output.txt")))
         }, createDevOpsFun);
     });
 
@@ -1403,7 +1452,6 @@ describe('merge tests', function () {
                 devopsHome
             };
             Object.assign(deps, newDeps);
-
             let devOps = createDevOps(deps);
             devOps.devopsSettings = {
                 outputFormat: "table"
@@ -1674,9 +1722,8 @@ describe('promotion tests', function () {
                 devOpsClass,
                 devopsHome
             };
-            Object.assign(newDeps, deps);
-
-            let devOps = createDevOps(newDeps);
+            Object.assign(deps, newDeps);
+            let devOps = createDevOps(deps);
             devOps.devopsSettings = {
                 outputFormat: "table"
             };
@@ -2202,9 +2249,8 @@ describe('promotion tests with exceptions', function () {
                 devOpsClass,
                 devopsHome
             };
-            Object.assign(newDeps, deps);
-
-            let devOps = createDevOps(newDeps);
+            Object.assign(deps, newDeps);
+            let devOps = createDevOps(deps);
             devOps.devopsSettings = {
                 outputFormat: "table"
             };

@@ -1,0 +1,22 @@
+{
+  "rules": {
+    "name": "default",
+    "options": {
+      "is_secure": false
+    },
+    "variables": [
+      {
+        "name": "VAR_NAME",
+        "value": "default value",
+        "description": "This is a sample Property Manager variable.",
+        "hidden": false,
+        "sensitive": false
+      }
+    ],
+    "criteriaMustSatisfy": "all",
+    "criteria": [],
+    "behaviors": [],
+    "children": []
+  },
+  "ruleFormat": "v2020-03-04"
+}

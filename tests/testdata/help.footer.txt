@@ -1,0 +1,3 @@
+
+  © 2017-2020 Akamai Technologies, Inc. All rights reserved
+  Visit http://github.com/akamai/cli-property-manager for documentation
