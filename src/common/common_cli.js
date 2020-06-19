@@ -635,5 +635,13 @@ class CommonCli {
         return allowedVarModes.has(mode);
     }
 
+    handleNotes(options) {
+        if (options.message && options.note) {
+            throw new errors.ArgumentError("Cannot use both --message/-m and --note together. --note is an alias of --message", "redundant_options");
+        } else if (!options.message && options.note) {
+            options.message = options.note;
+        }
+    }
+
 }
 module.exports = CommonCli;

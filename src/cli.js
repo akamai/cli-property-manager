@@ -442,6 +442,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
     const promote = async function(devops, envName, options) {
         let network = commonCli.checkNetworkName(options);
         let projectName = devops.extractProjectName(options);
+        commonCli.handleNotes(options);
         let data = await devops.promote(projectName, envName, network, options.emails, options.message, options.force);
         let pending = data.pending;
         if (devops.devopsSettings.outputFormat === 'table') {
@@ -808,6 +809,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         .option('-e, --emails <emails>', "Comma-separated list of email addresses. Optional if default emails were set using the set-default command.")
         .option('-p, --pipeline <pipelineName>', 'Pipeline name. Optional if default pipeline was set using the set-default command.')
         .option('-m, --message <message>', "Enter a  message describing changes made to the environment.")
+        .option('--note <message>', "(Alias of --message) Enter a  message describing changes made to the environment.")
         .requiredOption('-n, --network <network>', "Network, either 'production' or 'staging'. You can shorten 'production' to " + "'prod' or 'p' and 'staging' to 'stage' or 's'.")
         .option('-w, --wait-for-activate', "Prevents you from entering more commands until promotion is complete. May take several minutes.")
         .option('--force', "Deprecated. Out-of-sequence activations are now allowed by default.")

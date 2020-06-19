@@ -419,6 +419,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
     const activate = async function(devops, options) {
         let network = commonCli.checkNetworkName(options);
         let propertyName = devops.extractProjectName(options);
+        commonCli.handleNotes(options);
         let data = await devops.promote(propertyName, propertyName, network, options.emails, options.message, options.force);
         let pending = data.pending;
         if (devops.devopsSettings.outputFormat === 'table') {
@@ -443,6 +444,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
 
     const activateVersion = async function(devops, options) {
         let property = devops.extractProjectName(options);
+        commonCli.handleNotes(options);
         let propertyInfo = commonCli.checkPropertyIdAndPropertyVersion(property, parseInt(options.propver, 10));
         let network = commonCli.checkNetworkName(options);
         return devops.activateVersion(propertyInfo, network, options.emails, options.message).then(data => {
@@ -470,6 +472,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
      */
     const deactivate = async function(devops, options) {
         let runDatv = options.forceDeactivate;
+        commonCli.handleNotes(options);
         let propertyName = devops.extractProjectName(options);
         let network = commonCli.checkNetworkName(options);
         if (!runDatv) {
@@ -542,6 +545,7 @@ Are you sure you want to deactivate the property '${propertyName}' on network '$
 
     const deleteProperty = async function(devops, options) {
         let runDel = options.forceDelete;
+        commonCli.handleNotes(options);
         if (!runDel) {
             var questions = [{
                 type: 'confirm',
@@ -869,6 +873,7 @@ Are you sure you want to DELETE the property '${options.property}'?`,
             "Activate the latest version of a property. By default, this command also executes the merge and save commands.")
         .option('-e, --emails <emails>', "Comma-separated list of email addresses. Optional if default emails were set using the set-default command.")
         .option('-m, --message <message>', "Enter a message describing changes made to the property.")
+        .option('--note <message>', "(Alias of --message) Enter a message describing changes made to the property.")
         .requiredOption('-n, --network <network>', "Network, either 'production' or 'staging'. You can shorten 'production' to " + "'prod' or 'p' and 'staging' to 'stage' or 's'.")
         .option('-p, --property <propertyName>', 'Property name. Optional if default property was set using the set-default command.')
         .option('-w, --wait-for-activate', "Prevents you from entering more commands until activation is complete. May take several minutes.")
@@ -886,6 +891,7 @@ Are you sure you want to DELETE the property '${options.property}'?`,
             "Deactivates a property. Checks if the property is active and then deactivates it.")
         .option('-e, --emails <emails>', "Comma-separated list of email addresses. Optional if default emails were set using the set-default command.")
         .option('-m, --message <message>', "Enter a message describing the reason for deactivating.")
+        .option('--note <message>', "(Alias of --message) Enter a message describing the reason for deactivating.")
         .requiredOption('-n, --network <network>', "Network, either 'production' or 'staging'. You can shorten 'production' to " + "'prod' or 'p' and 'staging' to 'stage' or 's'.")
         .option('-p, --property <propertyName>', 'Property name. Optional if default property was set using the set-default command.')
         .option('-w, --wait-for-activate', "Prevents you from entering more commands until deactivation is complete. May take several minutes.")
@@ -904,6 +910,7 @@ Are you sure you want to DELETE the property '${options.property}'?`,
             "Activate a specific version of a property. Activates latest if no version specified.")
         .option('-e, --emails <emails>', "Comma-separated list of email addresses. Optional if default emails were previously set with set-default")
         .option('-m, --message <message>', "Activation message passed to activation backend")
+        .option('--note <message>', "(Alias of --message) Activation message passed to activation backend")
         .requiredOption('-n, --network <network>', "Network, either 'production' or 'staging'. You can shorten 'production' to " + "'prod' or 'p' and 'staging' to 'stage' or 's'.")
         .option('-p, --property <property>', 'Property name or ID, Optional if default property was previously set using set-default.')
         .option(' --propver <propver>', "Optional. The property version to activate. Uses latest version if not specified.")
@@ -961,6 +968,7 @@ Are you sure you want to DELETE the property '${options.property}'?`,
         .command("delete", "Permanently deletes a property. You have to deactivate the property on both networks first.")
         .requiredOption('-p, --property <property>', 'Property name or ID.')
         .requiredOption('-m, --message <message>', "Enter a message describing the reason for the deletion.")
+        .requiredOption('--note <message>', "(Alias of --message) Enter a message describing the reason for the deletion.")
         .option('--force-delete', 'WARNING: This option bypasses the confirmation prompt and automatically deletes your property.')
         .on('--help', () => {
             consoleLogger.debug(footer);

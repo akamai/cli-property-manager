@@ -358,9 +358,10 @@ class DevOps {
     }
 
     async activateVersion(propertyInfo, network, emails, message) {
+        let emailSet = this.createEmailSet(emails);
         let versionInfo = await this.getVersionInfo(propertyInfo);
         let result = await this.getPAPI().activateProperty(versionInfo.propertyId,
-            versionInfo.propertyVersion, network, Array.from(emails), message);
+            versionInfo.propertyVersion, network, Array.from(emailSet), message);
         let activationId = Environment._extractActivationId(result);
         return {
             "propertyId": versionInfo.propertyId,
