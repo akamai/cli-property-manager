@@ -214,6 +214,7 @@ class DevopsPropertyManager extends Devops {
         return projectName;
     }
 
+
     /**
      * Merge config snippets into a merged rule tree for passed project name
      * @param projectName {string}

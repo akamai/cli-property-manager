@@ -247,7 +247,7 @@ class CommonCli {
             if (devops.devopsSettings.outputFormat === 'table') {
                 if (options.file) {
                     let utils = new Utils();
-                    utils.writeJsonFile(options.file, helpers.jsonStringify(hostnames));
+                    utils.writeJsonFile(options.file, hostnames);
                     this.consoleLogger.info("output saved to file: " + options.file);
                 }
                 hostnames = _.map(hostnames, function(hostname) {
@@ -310,7 +310,7 @@ class CommonCli {
             }
             if (options.file) {
                 let utils = new Utils();
-                utils.writeJsonFile(options.file, helpers.jsonStringify(variables));
+                utils.writeJsonFile(options.file, variables);
                 this.consoleLogger.info("output saved to file: " + options.file);
             }
             if (devops.devopsSettings.outputFormat === 'table') {

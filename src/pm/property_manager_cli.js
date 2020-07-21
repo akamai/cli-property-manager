@@ -174,7 +174,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         return devops.getPropertyRules(propertyInfo).then(data => {
             if (options.file) {
                 let utils = new Utils();
-                utils.writeJsonFile(options.file, helpers.jsonStringify(data));
+                utils.writeJsonFile(options.file, data);
                 consoleLogger.info("output saved to file: " + options.file);
             }
             consoleLogger.info(helpers.jsonStringify(data));
@@ -440,6 +440,43 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         if (options.waitForActivate) {
             return checkActivations(devops, options);
         }
+    };
+
+    /**
+     * create new version of the property with a given json file or given property
+     * @type {Function}
+     */
+    const propertyUpdate = async function(devops, options) {
+        let property = devops.extractProjectName(options);
+        commonCli.handleNotes(options);
+        let propertyInfo = commonCli.checkPropertyIdAndPropertyVersion(property, null);
+
+        let rules;
+        if (options.file && options.srcprop) {
+            throw new errors.ArgumentError(`Cannot pass in both the file and property source`,
+                "multiple_sources_for_rules");
+        }
+        let utils = new Utils();
+        if (options.file) {
+            if (utils.fileExists(options.file)) {
+                rules = utils.readJsonFile(options.file);
+            } else {
+                throw new errors.ArgumentError(`File '${options.file}' does not exist`,
+                    "file_does_not_exist");
+
+            }
+        } else {
+            let srcPropertyInfo = commonCli.checkPropertyIdAndPropertyVersion(options.srcprop, parseInt(options.srcver, 10));
+            rules = await devops.getPropertyRules(srcPropertyInfo);
+        }
+
+        if (options.message) {
+            rules.comments = options.message;
+        }
+
+        return devops.propertyUpdate(propertyInfo, rules, options.dryRun).then(data => {
+            consoleLogger.info(helpers.jsonStringify(data));
+        });
     };
 
     const activateVersion = async function(devops, options) {
@@ -903,6 +940,25 @@ Are you sure you want to DELETE the property '${options.property}'?`,
         .action(function(...args) {
             argumentsUsed = args;
             actionCalled = deactivate
+        });
+
+    commander
+        .command("property-update",
+            "Create a new version of a property. Copy the rules from a file stream, using –-file, or from a different property, using --srcprop.")
+        .option('--dry-run', "Run validations without saving rule tree")
+        .option('--file <file>', "Specify the JSON file containing the rules")
+        .option('--message <message>', "Add comments for the property version.")
+        .option('--note <message>', "(Alias of --message) Add comments for the property version.")
+        .option('-p, --property <property>', 'The property name or ID of the property you are updating. Optional if the default property was previously set using set-default.')
+        .option('--srcprop <srcprop>', "The name or ID of the source property containing the rules you want to copy")
+        .option('--srcver <srcver>', "Optional. The version of the property containing the rules you want to copy. " +
+            "To use this option, you must specify the source property using --srcprop. The rules from the latest version of the property will be used if you do not specify –-srcver.")
+        .on('--help', () => {
+            consoleLogger.debug('Copyright (C) Akamai Technologies, Inc\nVisit http://github.com/akamai/cli-property-manager for detailed documentation');
+        })
+        .action(function(...args) {
+            argumentsUsed = args;
+            actionCalled = propertyUpdate
         });
 
     commander

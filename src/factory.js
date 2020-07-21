@@ -227,9 +227,11 @@ const createDevOps = function(dependencies = {}) {
     function getOpenClient() {
 
         const defaultHeaders = (devOpsClass === DevOpsSnippets) ? {
-            "X-User-Agent": `Akamai-PD; Version=${version};pm-cli;`
+            "X-User-Agent": `Akamai-PD; Version=${version};pm-cli;`,
+            "User-Agent": `Akamai-PD; Version=${version};pm-cli;`
         } : {
-            "X-User-Agent": `Akamai-PD; Version=${version}`
+            "X-User-Agent": `Akamai-PD; Version=${version}`,
+            "User-Agent": `Akamai-PD; Version=${version}`
         };
         if (clientType === "regular") {
             return new openClientClass({
