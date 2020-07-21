@@ -37,7 +37,7 @@ class PAPI {
     }
 
     createProperty(name, productId, contractId, groupId, ruleFormat, propertyId, propertyVersion, copyHostnames = false) {
-        let url = `/papi/v0/properties?groupId=${groupId}&contractId=${contractId}`;
+        let url = `/papi/v1/properties?groupId=${groupId}&contractId=${contractId}`;
         let body = {
             "productId": productId,
             "propertyName": name,
@@ -56,7 +56,7 @@ class PAPI {
     }
 
     deleteProperty(propertyId, contractId, groupId, message) {
-        let url = `/papi/v0/properties/${propertyId}?contractId=${contractId}&groupId=${groupId}`;
+        let url = `/papi/v1/properties/${propertyId}?contractId=${contractId}&groupId=${groupId}`;
         return this.openClient.delete(url, {
             message
         });
@@ -66,17 +66,17 @@ class PAPI {
         let postBody = {
             createFromVersion
         };
-        let url = `/papi/v0/properties/${propertyId}/versions/`;
+        let url = `/papi/v1/properties/${propertyId}/versions/`;
         return this.openClient.post(url, postBody);
     }
 
     latestPropertyVersion(propertyId) {
-        let url = `/papi/v0/properties/${propertyId}/versions/latest`;
+        let url = `/papi/v1/properties/${propertyId}/versions/latest`;
         return this.openClient.get(url);
     }
 
     getPropertyVersion(propertyId, versionId) {
-        let url = `/papi/v0/properties/${propertyId}/versions/${versionId}`;
+        let url = `/papi/v1/properties/${propertyId}/versions/${versionId}`;
         return this.openClient.get(url);
     }
 
@@ -92,29 +92,29 @@ class PAPI {
      * @param usePrefixes
      */
     setClientSettings(clientSettings) {
-        let url = '/papi/v0/client-settings';
+        let url = '/papi/v1/client-settings';
         return this.openClient.put(url, clientSettings);
     }
 
     getClientSettings() {
-        let url = '/papi/v0/client-settings';
+        let url = '/papi/v1/client-settings';
         return this.openClient.get(url);
     }
 
     listProducts(contractId) {
-        return this.openClient.get(`/papi/v0/products?contractId=${contractId}`);
+        return this.openClient.get(`/papi/v1/products?contractId=${contractId}`);
     }
 
     listContracts() {
-        return this.openClient.get('/papi/v0/contracts');
+        return this.openClient.get('/papi/v1/contracts');
     }
 
     listGroups() {
-        return this.openClient.get('/papi/v0/groups');
+        return this.openClient.get('/papi/v1/groups');
     }
 
     getPropertyVersionRules(propertyId, propertyVersion, ruleFormat) {
-        let url = `/papi/v0/properties/${propertyId}/versions/${propertyVersion}/rules`;
+        let url = `/papi/v1/properties/${propertyId}/versions/${propertyVersion}/rules`;
         let headers = {};
         if (_.isString(ruleFormat)) {
             headers.Accept = `application/vnd.akamai.papirules.${ruleFormat}+json`;
@@ -123,7 +123,7 @@ class PAPI {
     }
 
     storePropertyVersionRules(propertyId, propertyVersion, rules, ruleFormat) {
-        let url = `/papi/v0/properties/${propertyId}/versions/${propertyVersion}/rules`;
+        let url = `/papi/v1/properties/${propertyId}/versions/${propertyVersion}/rules`;
         let headers = {
             'Content-Type': "application/json"
         };
@@ -135,7 +135,7 @@ class PAPI {
     }
 
     validatePropertyVersionRules(propertyId, propertyVersion, rules, ruleFormat) {
-        let url = `/papi/v0/properties/${propertyId}/versions/${propertyVersion}/rules?dryRun=true`;
+        let url = `/papi/v1/properties/${propertyId}/versions/${propertyVersion}/rules?dryRun=true`;
         let headers = {
             'Content-Type': "application/json"
         };
@@ -148,42 +148,42 @@ class PAPI {
     }
 
     getPropertyVersionHostnames(propertyId, propertyVersion) {
-        let url = `/papi/v0/properties/${propertyId}/versions/${propertyVersion}/hostnames`;
+        let url = `/papi/v1/properties/${propertyId}/versions/${propertyVersion}/hostnames`;
         return this.openClient.get(url);
     }
 
     storePropertyVersionHostnames(propertyId, propertyVersion, hostnames, contractId, groupId) {
-        let url = `/papi/v0/properties/${propertyId}/versions/${propertyVersion}/hostnames?contractId=${contractId}&groupId=${groupId}`;
+        let url = `/papi/v1/properties/${propertyId}/versions/${propertyVersion}/hostnames?contractId=${contractId}&groupId=${groupId}`;
         return this.openClient.put(url, hostnames);
     }
 
     listCpcodes(contractId, groupId) {
-        let url = `/papi/v0/cpcodes?contractId=${contractId}&groupId=${groupId}`;
+        let url = `/papi/v1/cpcodes?contractId=${contractId}&groupId=${groupId}`;
         return this.openClient.get(url);
     }
 
     listEdgeHostnames(contractId, groupId) {
-        let url = `/papi/v0/edgehostnames/?contractId=${contractId}&groupId=${groupId}`;
+        let url = `/papi/v1/edgehostnames/?contractId=${contractId}&groupId=${groupId}`;
         return this.openClient.get(url);
     }
 
     listProperties(contractId, groupId) {
-        let url = `/papi/v0/properties/?contractId=${contractId}&groupId=${groupId}`;
+        let url = `/papi/v1/properties/?contractId=${contractId}&groupId=${groupId}`;
         return this.openClient.get(url);
     }
 
     listPropertyHostnames(propertyId, propertyVersion, contractId, groupId, validateHostnames) {
-        let url = `/papi/v0/properties/${propertyId}/versions/${propertyVersion}/hostnames?contractId=${contractId}&groupId=${groupId}&validateHostnames=${validateHostnames}`;
+        let url = `/papi/v1/properties/${propertyId}/versions/${propertyVersion}/hostnames?contractId=${contractId}&groupId=${groupId}&validateHostnames=${validateHostnames}`;
         return this.openClient.get(url);
     }
 
     createEdgeHostname(contractId, groupId, createRequestBody) {
-        let url = `/papi/v0/edgehostnames/?contractId=${contractId}&groupId=${groupId}`;
+        let url = `/papi/v1/edgehostnames/?contractId=${contractId}&groupId=${groupId}`;
         return this.openClient.post(url, createRequestBody);
     }
 
     activateProperty(propertyId, propertyVersion, network, notifyEmails, message, activationType = ActivationType.ACTIVATE) {
-        const url = `/papi/v0/properties/${propertyId}/activations`;
+        const url = `/papi/v1/properties/${propertyId}/activations`;
         const acknowledgeAllWarnings = true;
         const complianceRecord = {
             noncomplianceReason: "NO_PRODUCTION_TRAFFIC"
@@ -201,27 +201,27 @@ class PAPI {
     }
 
     propertyActivateStatus(propertyId) {
-        const url = `/papi/v0/properties/${propertyId}/activations`;
+        const url = `/papi/v1/properties/${propertyId}/activations`;
         return this.openClient.get(url);
     }
 
     activationStatus(propertyId, activationId) {
-        let url = `/papi/v0/properties/${propertyId}/activations/${activationId}`;
+        let url = `/papi/v1/properties/${propertyId}/activations/${activationId}`;
         return this.openClient.get(url);
     }
 
     listRuleFormats() {
-        let url = `/papi/v0/rule-formats`;
+        let url = `/papi/v1/rule-formats`;
         return this.openClient.get(url);
     }
 
     getPropertyInfo(propertyId) {
-        let url = `/papi/v0/properties/${propertyId}`;
+        let url = `/papi/v1/properties/${propertyId}`;
         return this.openClient.get(url);
     }
 
     createCpcode(contractId, groupId, cpcodeName, productId) {
-        let url = `/papi/v0/cpcodes?contractId=${contractId}&groupId=${groupId}`;
+        let url = `/papi/v1/cpcodes?contractId=${contractId}&groupId=${groupId}`;
         return this.openClient.post(url, {
             cpcodeName,
             productId
@@ -229,9 +229,9 @@ class PAPI {
     }
     // Calls to the pipeline backend (pm-pipeline). Calls to papi/cli/* -> pm-pipeline/*
 
-    // POST /papi/cli/v0/legacy-pipelines - initial upload
+    // POST /papi/cli/v1/legacy-pipelines - initial upload
     initialPipelineUpload(syntaxVersion, projectInfo, environments) {
-        const url = `/papi/cli/v0/legacy-pipelines`;
+        const url = `/papi/cli/v1/legacy-pipelines`;
         return this.openClient.post(url, {
             syntaxVersion,
             projectInfo,

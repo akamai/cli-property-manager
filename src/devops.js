@@ -551,6 +551,25 @@ class DevOps {
         }
         return versionInfo;
     }
+
+    async propertyUpdate(propertyInfo, rules, dryRun) {
+        let versionInfo = await this.getVersionInfo(propertyInfo);
+
+        let ruleFormat;
+        if (rules.ruleFormat && rules.ruleFormat !== "latest") {
+            ruleFormat = rules.ruleFormat;
+        }
+
+        if (dryRun) {
+            return await this.getPAPI().validatePropertyVersionRules(versionInfo.propertyId,
+                versionInfo.propertyVersion, rules, ruleFormat);
+        } else {
+            let newVersionData = await this.getPAPI().createNewPropertyVersion(versionInfo.propertyId, versionInfo.propertyVersion);
+            let propertyVersion = Environment._extractVersionId(newVersionData);
+            return await this.getPAPI().storePropertyVersionRules(versionInfo.propertyId,
+                propertyVersion, rules, ruleFormat);
+        }
+    }
 }
 
 module.exports = DevOps;

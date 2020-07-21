@@ -37,6 +37,7 @@ Use akamai pm help to get general help about all property manager commands.
      list-rule-formats|lrf                     Display the list of available rule formats.
      merge|m [options]                         Merge all property configuration files, or snippets, into a property rule tree file in JSON format. You can find the file in the property's dist folder.
      new-property|np [options]                 Create a new property using the attributes provided.
+     property-update [options]                 Create a new version of a property. Copy the rules from a file stream, using –-file, or from a different property, using --srcprop.
      save|sv [options]                         Saves the rule tree and hostnames for the selected property. Creates edge hostnames if needed.
      search|s <name>                           Search for properties by name.
      set-default|sd [options]                  Set the default property and the default section name from the .edgerc file.
