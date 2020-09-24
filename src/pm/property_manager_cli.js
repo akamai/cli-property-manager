@@ -38,7 +38,7 @@ const reportLabel = {
 const cliLogger = new logging.ConsoleLogger();
 
 const footer = "  © 2017-2020 Akamai Technologies, Inc. All rights reserved\n" +
-    "  Visit http://github.com/akamai/cli-property-manager for documentation\n";
+    "  Visit http://github.com/akamai/cli-property-manager for more documentation\n";
 
 /**
  * Main function called by CLI command
@@ -117,6 +117,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         let section;
         let devopsHome;
         let edgerc;
+        let accountSwitchKey;
         if (options.parent) {
             let parentOptions = options.parent;
             if (parentOptions.format) {
@@ -128,6 +129,9 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
             }
             if (parentOptions.edgerc) {
                 edgerc = parentOptions.edgerc;
+            }
+            if (parentOptions.accountSwitchKey) {
+                accountSwitchKey = parentOptions.accountSwitchKey;
             }
         }
         logging.log4jsLogging(useVerboseLogging(options), 'snippets');
@@ -160,7 +164,8 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
             edgerc,
             section,
             version,
-            outputFormat
+            outputFormat,
+            accountSwitchKey
         });
     };
 
@@ -174,7 +179,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         return devops.getPropertyRules(propertyInfo).then(data => {
             if (options.file) {
                 let utils = new Utils();
-                utils.writeJsonFile(options.file, helpers.jsonStringify(data));
+                utils.writeJsonFile(options.file, data);
                 consoleLogger.info("output saved to file: " + options.file);
             }
             consoleLogger.info(helpers.jsonStringify(data));
@@ -442,28 +447,101 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         }
     };
 
+    /**
+     * create new version of the property with a given json file or given property
+     * @type {Function}
+     */
+    const propertyUpdate = async function(devops, options) {
+        let property = devops.extractProjectName(options);
+        commonCli.handleNotes(options);
+        let propertyInfo = commonCli.checkPropertyIdAndPropertyVersion(property, null);
+
+        let rules;
+        if (options.file && options.srcprop) {
+            throw new errors.ArgumentError(`Cannot pass in both the file and property source`,
+                "multiple_sources_for_rules");
+        } else if (!(options.file || options.srcprop)) {
+            throw new errors.ArgumentError(`Must pass in a file or a property source`,
+                "no_source_for_rules");
+        }
+        let utils = new Utils();
+        if (options.file) {
+            if (utils.fileExists(options.file)) {
+                rules = utils.readJsonFile(options.file);
+            } else {
+                throw new errors.ArgumentError(`File '${options.file}' does not exist`,
+                    "file_does_not_exist");
+
+            }
+        } else {
+            let srcPropertyInfo = commonCli.checkPropertyIdAndPropertyVersion(options.srcprop, parseInt(options.srcver, 10));
+            rules = await devops.getPropertyRules(srcPropertyInfo);
+        }
+
+        if (options.message) {
+            rules.comments = options.message;
+        }
+
+        return devops.propertyUpdate(propertyInfo, rules, options.dryRun).then(data => {
+            consoleLogger.info(helpers.jsonStringify(data));
+        });
+    };
+
+    /**
+     * update hostname of the property with a given hostname json file
+     * @type {Function}
+     */
+    const hostnameUpdate = async function(devops, options) {
+        let hostname;
+        if (!options.propver) {
+            throw new errors.DependencyError("Property version needs to be provided", "missing_property_version");
+        }
+        let propertyInfo = commonCli.checkPropertyIdAndPropertyVersion(options.property, parseInt(options.propver, 10));
+        if (!(options.file)) {
+            throw new errors.ArgumentError(`Must pass in a file `,
+                "no_file_for_hostnames");
+        }
+        let utils = new Utils();
+        if (options.file) {
+            if (utils.fileExists(options.file)) {
+                hostname = utils.readJsonFile(options.file);
+            } else {
+                throw new errors.ArgumentError(`File '${options.file}' does not exist`,
+                    "file_does_not_exist");
+            }
+        }
+        return devops.updatePropertyHostnames(propertyInfo, hostname).then(data => {
+            consoleLogger.info(helpers.jsonStringify(data));
+        });
+    };
+
     const activateVersion = async function(devops, options) {
         let property = devops.extractProjectName(options);
         commonCli.handleNotes(options);
         let propertyInfo = commonCli.checkPropertyIdAndPropertyVersion(property, parseInt(options.propver, 10));
         let network = commonCli.checkNetworkName(options);
-        return devops.activateVersion(propertyInfo, network, options.emails, options.message).then(data => {
-            if (devops.devopsSettings.outputFormat === 'table') {
-                consoleLogger.info("Following activations are now pending:");
-                data = [
-                    [
-                        data["propertyId"],
-                        data["propertyVersion"],
-                        data["network"],
-                        data["activationId"]
-                    ]
-                ];
-                data.unshift(["PropertyId", "Version", "Network", "Activation Id"]);
-                consoleLogger.info(AsciiTable.table(data, 30));
-            } else {
-                consoleLogger.info(helpers.jsonStringify(data));
-            }
-        });
+        let data = await devops.activateVersion(propertyInfo, network, options.emails, options.message);
+        let propertyId = data["propertyId"];
+        let activationId = data["activationId"];
+        if (devops.devopsSettings.outputFormat === 'table') {
+            consoleLogger.info("Following activations are now pending:");
+            data = [
+                [
+                    data["propertyId"],
+                    data["propertyVersion"],
+                    data["network"],
+                    data["activationId"]
+                ]
+            ];
+            data.unshift(["PropertyId", "Version", "Network", "Activation Id"]);
+            consoleLogger.info(AsciiTable.table(data, 30));
+        } else {
+            consoleLogger.info(helpers.jsonStringify(data));
+        }
+
+        if (options.waitForActivate) {
+            return checkPropertyAcitvations(devops, propertyId, activationId, network);
+        }
     };
 
     /**
@@ -513,6 +591,10 @@ Are you sure you want to deactivate the property '${propertyName}' on network '$
     const checkActivations = async function(devops, options) {
         return commonCli.checkActivations(devops, devops.extractProjectName(options), options);
     };
+
+    const checkPropertyAcitvations = async function(devops, propertyId, activationId, network) {
+        return commonCli.checkPropertyActivations(devops, propertyId, activationId, network);
+    }
 
     const importProperty = async function(devops, options) {
         let propertyName = options.property;
@@ -613,13 +695,14 @@ Are you sure you want to DELETE the property '${options.property}'?`,
         .version(version)
         .description("Property Manager CLI. Run these commands from the project directory that contains your local properties.")
         .option('-f, --format <format>', "Select output format for commands, either 'table', the default, or 'json'.")
-        .option('-s, --section <section>', "The section of the .edgerc file that contains the user profile, or client ID, to " + "use for the command. If not set, uses the `default` settings in the .edgerc file.")
+        .option('-s, --section <section>', "The section of the .edgerc file containing the user profile, or client ID, to use " + "for the command. If not set, uses the 'default' settings in the .edgerc file.")
         .option('-v, --verbose', 'Show detailed log information for the command.')
-        .option('--edgerc <edgerc>', "Optional. Enter the location of the .edgerc file used for credentials. If not set, uses " + "the edgerc.config file in the project directory if present. Otherwise, uses " + "the .edgerc file in your home directory.")
-        .option('--workspace <workspace>', "Optional. Enter the directory containing all property and project files. If not set, " + "uses the value of the AKAMAI_PROJECT_HOME environment variable if present." + "Otherwise, uses the current working directory as the workspace.");
+        .option('--edgerc <edgerc>', "Optional. Enter the location of the .edgerc file used for credentials. " + "If option not set, uses the edgerc.config file in the project " + "directory.  Otherwise, uses the .edgerc file in your home directory.")
+        .option('--workspace <workspace>', "Optional. Enter the directory containing all property and project " + "files. If option not set, uses the value of the AKAMAI_PROJECT_HOME " + "environment variable. Otherwise, uses the current working " + "directory as the workspace.")
+        .option('-a, --accountSwitchKey <accountSwitchKey>', "Optional. If you have multiple accounts, enter " + "the account switch key you want to use when running commands. You can use " + "the Identity Management API to retrieve the key: " + "https://developer.akamai.com/api/core_features/identity_management/v2.html#getaccountswitchkeys.");
 
     commander
-        .command("new-property", "Create a new property using the attributes provided.")
+        .command("new-property", "Create a new property using the attributes provided. Use the list commands to retrieve the required IDs.")
         .option('-c, --contractId <contractId>', "Enter the contract ID to use. Optional if using -e with a property ID or name.", helpers.prefixeableString('ctr_'))
         .option('-d, --productId <productId>', "Enter the product ID to use. Optional if using -e with a property ID or name.", helpers.prefixeableString('prd_'))
         .option('-e, --propertyId <propertyId/propertyName>', "Optional. Use an existing property as the blueprint for the new one. " + "Enter either a property ID or an exact property name. The CLI looks up the group ID, contract ID, and product ID " + "of the existing property and uses that data to create a new property.")
@@ -642,7 +725,7 @@ Are you sure you want to DELETE the property '${options.property}'?`,
 
     commander
         .command("set-default", "Set the default property and the default section name from the .edgerc file.")
-        .option('-a, --accountSwitchKey <accountSwitchKey>', "Enter the account ID you want to use when running commands. " + "The account persists for all pipeline commands until you change it.")
+        .option('-a, --accountSwitchKey <accountSwitchKey>', "Enter the account switch key you want to use when running commands. " + "The key entered is the default for all Property Manager commands until you change it. You can use " + "the Identity Management API to retrieve the key: " + "https://developer.akamai.com/api/core_features/identity_management/v2.html#getaccountswitchkeys.")
         .option('-e, --emails <emails>', 'Enter the email addresses to send notifications to as a comma-separated list.')
         .option('-f, --format <format>', "Select output format for commands, either 'table', the default, or 'json'.")
         .option('-p, --property <propertyName>', 'Set the default property to use with commands.')
@@ -668,7 +751,7 @@ Are you sure you want to DELETE the property '${options.property}'?`,
         });
 
     commander
-        .command("merge", "Merge all property configuration files, or snippets, into a property rule tree file in JSON format. " + "You can find the file in the property's dist folder.")
+        .command("merge", "Merge all property configuration files, or snippets, into a property rule tree file in JSON format. " + "You can find the file in the property's dist folder. By default, this command also calls PAPI " + "to validate the rule tree generated.")
         .option('-n, --no-validate', "Merge without validating command syntax.")
         .option('-p, --property <propertyName>', 'Property name. Optional if a default property was previously set with the set-default command.')
         .alias("m")
@@ -681,7 +764,7 @@ Are you sure you want to DELETE the property '${options.property}'?`,
         });
 
     commander
-        .command("search <name>", "Search for properties by name.")
+        .command("search <name>", "Search for a property by name. Be sure to enter the exact name " + "as wildcards aren't supported.")
         .alias("s")
         .on('--help', () => {
             consoleLogger.debug(footer);
@@ -692,7 +775,7 @@ Are you sure you want to DELETE the property '${options.property}'?`,
         });
 
     commander
-        .command("set-prefixes <useprefix>", "Boolean. Enter `true` to use the Property Manager ID prefixes with ID values. " + "Enter `false` to disable them. For prefixes used, see: " + "https://developer.akamai.com/api/core_features/property_manager/v1.html#prefixes.")
+        .command("set-prefixes <useprefix>", "Boolean. Enter `true` to enable prefixes on responses based on the current " + "user credentials and setup. Enter `false` to disable them. If you have multiple client IDs, " + "run separately for each client ID you want to update. " + "**Caution.** Setting prefixes for this CLI impacts all other PAPI REST clients implemented for this client ID.")
         .alias("sp")
         .on('--help', () => {
             consoleLogger.debug(footer);
@@ -703,7 +786,7 @@ Are you sure you want to DELETE the property '${options.property}'?`,
         });
 
     commander
-        .command("set-ruleformat <ruleformat>", "Set the rule format to use for the user credentials and setup. " + "Enter `latest` for the most current rule format. " + "For a list of earlier rule formats, see: " + "https://developer.akamai.com/api/core_features/property_manager/v1.html#versioning.")
+        .command("set-ruleformat <ruleformat>", "Set the rule format to use by default based on the user's client ID." + "Enter `latest` for the most current rule format. For a list of earlier rule formats, see: " + "https://developer.akamai.com/api/core_features/property_manager/v1.html#versioning " + "**Caution.** Setting the rule format for this CLI impacts all other " + "PAPI REST clients implemented for this client ID.")
         .alias("srf")
         .on('--help', () => {
             consoleLogger.debug(footer);
@@ -775,7 +858,7 @@ Are you sure you want to DELETE the property '${options.property}'?`,
 
     commander
         .command("list-property-hostnames", "List hostnames assigned to this property.")
-        .requiredOption('-p, --property <property>', "Property name or ID.")
+        .requiredOption('-p, --property <property>', "Property name or property ID.")
         .option(' --propver <propver>', "Optional. Select the property version to search on. Uses latest version by default.")
         .option('-n, --no-validate', "Use if you don't want to validate the command before running.")
         .option('--file <file>', "Optional. Enter a filename to save the command output to. The output is in JSON format.")
@@ -803,8 +886,7 @@ Are you sure you want to DELETE the property '${options.property}'?`,
         });
 
     commander
-        .command("save", "Saves the rule tree and hostnames for the selected property. " +
-            "Creates edge hostnames if needed.")
+        .command("save", "Saves the rule tree and hostnames for the selected property. " + "This command calls PAPI to validate the rule tree, and creates edge hostnames if needed.")
         .option('-p, --property <propertyName>', 'Property name. Optional if default property was set using the set-default command.')
         .alias("sv")
         .on('--help', () => {
@@ -816,7 +898,7 @@ Are you sure you want to DELETE the property '${options.property}'?`,
         });
 
     commander
-        .command("list-edgehostnames", "List edge hostnames available based on current user credentials and setup. " + "May return a long list of hostnames.")
+        .command("list-edgehostnames", "List edge hostnames available based on the contract ID and group ID provided. " + "Use the list commands to retrieve the required IDs. May return a long list of hostnames.")
         .requiredOption('-c, --contractId <contractId>', "Contract ID.")
         .requiredOption('-g, --groupId <groupId>', "Group ID.", helpers.parseGroupId)
         .alias("leh")
@@ -830,7 +912,7 @@ Are you sure you want to DELETE the property '${options.property}'?`,
 
     commander
         .command("list-property-variables", "List the property's variables.")
-        .requiredOption('-p, --property <property>', "Property name or ID.")
+        .requiredOption('-p, --property <property>', "Property name or property ID.")
         .option(' --propver <propver>', "Optional. The property version to list variables for. Uses latest version by default.")
         .option('--file <file>', "Optional. Enter a filename to save the command output to. The output is in JSON format.")
         .alias("lpv")
@@ -844,7 +926,7 @@ Are you sure you want to DELETE the property '${options.property}'?`,
 
     commander
         .command("list-property-rule-format", "List the current rule format for the property.")
-        .requiredOption('-p, --property <property>', "Property name or ID.")
+        .requiredOption('-p, --property <property>', "Property name or property ID.")
         .option(' --propver <propver>', "Optional. Prints the rule format of the property version. Uses latest version by default.")
         .option('--file <file>', "Optional. Enter a filename to save the command output to. The output is in JSON format.")
         .alias("lprf")
@@ -871,9 +953,9 @@ Are you sure you want to DELETE the property '${options.property}'?`,
     commander
         .command("activate",
             "Activate the latest version of a property. By default, this command also executes the merge and save commands.")
-        .option('-e, --emails <emails>', "Comma-separated list of email addresses. Optional if default emails were set using the set-default command.")
+        .option('-e, --emails <emails>', "Optional. A comma-separated list of email addresses. If not used, sends updates to any default emails set using the set-default command.")
         .option('-m, --message <message>', "Enter a message describing changes made to the property.")
-        .option('--note <message>', "(Alias of --message) Enter a message describing changes made to the property.")
+        .option('--note <message>', "Alias of --message. Enter a message describing changes made to the property.")
         .requiredOption('-n, --network <network>', "Network, either 'production' or 'staging'. You can shorten 'production' to " + "'prod' or 'p' and 'staging' to 'stage' or 's'.")
         .option('-p, --property <propertyName>', 'Property name. Optional if default property was set using the set-default command.')
         .option('-w, --wait-for-activate', "Prevents you from entering more commands until activation is complete. May take several minutes.")
@@ -889,9 +971,9 @@ Are you sure you want to DELETE the property '${options.property}'?`,
     commander
         .command("deactivate",
             "Deactivates a property. Checks if the property is active and then deactivates it.")
-        .option('-e, --emails <emails>', "Comma-separated list of email addresses. Optional if default emails were set using the set-default command.")
+        .option('-e, --emails <emails>', "Optional. A comma-separated list of email addresses. If not used, sends updates to any default emails set using the set-default command.")
         .option('-m, --message <message>', "Enter a message describing the reason for deactivating.")
-        .option('--note <message>', "(Alias of --message) Enter a message describing the reason for deactivating.")
+        .option('--note <message>', "Alias of --message. Enter a message describing the reason for deactivating.")
         .requiredOption('-n, --network <network>', "Network, either 'production' or 'staging'. You can shorten 'production' to " + "'prod' or 'p' and 'staging' to 'stage' or 's'.")
         .option('-p, --property <propertyName>', 'Property name. Optional if default property was set using the set-default command.')
         .option('-w, --wait-for-activate', "Prevents you from entering more commands until deactivation is complete. May take several minutes.")
@@ -906,14 +988,48 @@ Are you sure you want to DELETE the property '${options.property}'?`,
         });
 
     commander
+        .command("property-update",
+            "Create a new version of a property. Copy the rules from a file stream, using –-file, or from a different property, using --srcprop.")
+        .option('--dry-run', "Run validations without saving rule tree")
+        .option('--file <file>', "Specify the JSON file containing the rules. You can find the JSON format to use here: " + "https://developer.akamai.com/api/core_features/property_manager/v1.html#putpropertyversionrules.")
+        .option('--message <message>', "Add comments for the property version.")
+        .option('--note <message>', "Alias of --message. Add comments for the property version.")
+        .option('-p, --property <property>', 'The name or ID of the property you are updating. Optional if the default property was previously set using set-default.')
+        .option('--srcprop <srcprop>', "The name or ID of the source property containing the rules you want to copy")
+        .option('--srcver <srcver>', "Optional. The version of the property containing the rules you want to copy. " +
+            "To use this option, you must specify the source property using --srcprop. The rules from the latest version of the property will be used if you do not specify –-srcver.")
+        .on('--help', () => {
+            consoleLogger.debug('Copyright (C) Akamai Technologies, Inc\nVisit http://github.com/akamai/cli-property-manager for detailed documentation');
+        })
+        .action(function(...args) {
+            argumentsUsed = args;
+            actionCalled = propertyUpdate
+        });
+
+    commander
+        .command("hostname-update", "Updates hostnames assigned to this property.")
+        .option('-p, --property <property>', "Property name or property ID.")
+        .requiredOption('--propver <propver>', "Select the property version to update to.")
+        .requiredOption('--file <file>', "Specify the JSON file containing the hostnames. You can find the JSON format to use here: " + "https://developer.akamai.com/api/core_features/property_manager/v1.html#putpropertyversionhostnames.")
+        .alias("hu")
+        .on('--help', () => {
+            consoleLogger.debug(footer);
+        })
+        .action(function(...args) {
+            argumentsUsed = args;
+            actionCalled = hostnameUpdate
+        });
+
+    commander
         .command("activate-version",
             "Activate a specific version of a property. Activates latest if no version specified.")
-        .option('-e, --emails <emails>', "Comma-separated list of email addresses. Optional if default emails were previously set with set-default")
-        .option('-m, --message <message>', "Activation message passed to activation backend")
-        .option('--note <message>', "(Alias of --message) Activation message passed to activation backend")
+        .option('-e, --emails <emails>', "Optional. A comma-separated list of email addresses. If not used, sends updates to any default emails set using the set-default command.")
+        .option('-m, --message <message>', "Enter a message describing the reason for activating.")
+        .option('--note <message>', "Alias of --message. Activation message passed to activation backend")
         .requiredOption('-n, --network <network>', "Network, either 'production' or 'staging'. You can shorten 'production' to " + "'prod' or 'p' and 'staging' to 'stage' or 's'.")
-        .option('-p, --property <property>', 'Property name or ID, Optional if default property was previously set using set-default.')
+        .option('-p, --property <property>', 'Property name or property ID. Optional if default property was previously set using set-default.')
         .option(' --propver <propver>', "Optional. The property version to activate. Uses latest version if not specified.")
+        .option('-w, --wait-for-activate', "Prevents you from entering more commands until activation is complete. May take several minutes.")
         .on('--help', () => {
             consoleLogger.debug('Copyright (C) Akamai Technologies, Inc\nVisit http://github.com/akamai/cli-property-manager for detailed documentation');
         })
@@ -951,7 +1067,7 @@ Are you sure you want to DELETE the property '${options.property}'?`,
         });
 
     commander
-        .command("import", "Import a property from Property Manager.")
+        .command("import", "Import an existing property from Property Manager.")
         .option('-p, --property <propertyName>', 'Property name. Optional if default property was set using the set-default command.')
         .option('--dry-run', 'Verify the result of your command syntax before running it. Displays the JSON generated by the command as currently written.')
         .option('--variable-mode <variableMode>', `Choose how to pull in variables.  Allowed values are ${printAllowedModesUpdateOrImport()}.  By default, variables aren't imported (no-var).`)
@@ -966,9 +1082,9 @@ Are you sure you want to DELETE the property '${options.property}'?`,
 
     commander
         .command("delete", "Permanently deletes a property. You have to deactivate the property on both networks first.")
-        .requiredOption('-p, --property <property>', 'Property name or ID.')
+        .requiredOption('-p, --property <property>', 'Property name or property ID.')
         .requiredOption('-m, --message <message>', "Enter a message describing the reason for the deletion.")
-        .requiredOption('--note <message>', "(Alias of --message) Enter a message describing the reason for the deletion.")
+        .requiredOption('--note <message>', "Alias of --message. Enter a message describing the reason for the deletion.")
         .option('--force-delete', 'WARNING: This option bypasses the confirmation prompt and automatically deletes your property.')
         .on('--help', () => {
             consoleLogger.debug(footer);

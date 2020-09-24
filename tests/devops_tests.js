@@ -1270,4 +1270,9 @@ describe('Promote test', function() {
         assert.throws(() => {
             devops.promote("foobar", "qa", "staging", ", b,spom@ugg.com");
         }, "The emails 'b,a' are not valid.");    });
+
+    it('promote with no email', function() {
+        devops.promote("foobar", "qa", "staging", "", "Message", true);
+        td.verify(projectClass.prototype.promote("qa", "staging", new Set(["noreply@akamai.com"]), "Message", true));
+    });
 });

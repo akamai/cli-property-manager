@@ -339,6 +339,9 @@ class DevOps {
                 emailSet.add(e)
             }
         }
+        if (emailSet.size === 0 || !emailSet) {
+            emailSet.add("noreply@akamai.com");
+        }
         this.checkEmails(emailSet);
         logger.info(this.promoteEmailString, emailSet);
         return emailSet;
@@ -518,6 +521,11 @@ class DevOps {
         return this.getPAPI().listPropertyHostnames(versionInfo.propertyId, versionInfo.propertyVersion, versionInfo.contractId, versionInfo.groupId, validate);
     }
 
+    async updatePropertyHostnames(propertyInfo, hostnames) {
+        let versionInfo = await this.getVersionInfo(propertyInfo);
+        return this.getPAPI().storePropertyVersionHostnames(versionInfo.propertyId, versionInfo.propertyVersion, hostnames, versionInfo.contractId, versionInfo.groupId);
+    }
+
     async getVersionInfo(propertyInfo) {
         let versionInfo;
         if (!_.isNumber(propertyInfo.propertyId) && _.isString(propertyInfo.propertyName)) {
@@ -550,6 +558,25 @@ class DevOps {
             }
         }
         return versionInfo;
+    }
+
+    async propertyUpdate(propertyInfo, rules, dryRun) {
+        let versionInfo = await this.getVersionInfo(propertyInfo);
+
+        let ruleFormat;
+        if (rules.ruleFormat && rules.ruleFormat !== "latest") {
+            ruleFormat = rules.ruleFormat;
+        }
+
+        if (dryRun) {
+            return await this.getPAPI().validatePropertyVersionRules(versionInfo.propertyId,
+                versionInfo.propertyVersion, rules, ruleFormat);
+        } else {
+            let newVersionData = await this.getPAPI().createNewPropertyVersion(versionInfo.propertyId, versionInfo.propertyVersion);
+            let propertyVersion = Environment._extractVersionId(newVersionData);
+            return await this.getPAPI().storePropertyVersionRules(versionInfo.propertyId,
+                propertyVersion, rules, ruleFormat);
+        }
     }
 }
 

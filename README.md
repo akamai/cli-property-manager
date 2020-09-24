@@ -456,23 +456,20 @@ To save and promote changes:
         `akamai pipeline  save -p <pipelineName> <environment_name>`
 
 4. Promote the change to the environment you want to update: 
-        `akamai pipeline  promote -p <pipelineName> -n <network> <environment_name> <notification_emails>` 
+        `akamai pipeline  promote -p <pipelineName> -n <network> <environment_name> -e <notification_emails>` 
 
     The `<network>` value corresponds to Akamai’s staging and production networks. Enter either `STAGING` or `PROD` for this value. For example: 
         `akamai pipeline  promote -p MyPipeline123 -n STAGING -e jsmith@example.com qa`
 
     When run, `promote` merges the template and variables files, saves any changes to Property Manager, and 
     activates the property version on the selected Akamai network. The `-e` lets you send notification emails to the
-	email addresses you enter. If you don't use `-e`, the CLI uses the default ones entered with the `set-default` command.
+	email addresses you enter. If you don't use `-e`, the CLI doesn't send email updates unless you added default addresses with the `set-default` command.
     
-5. Once the activation is complete, run this command to update the pipeline to the latest version:  
-        `akamai pipeline  import <environment_name>` 
-
     **Note:** You should receive an email once activation is complete. Activation times vary, so you may want to wait several minutes before attempting to run this command.
 
-6. Repeat steps 2 through 5 until you promote your changes to all environments in the pipeline. 
+5. Repeat steps 2 through 4 until you promote your changes to all environments in the pipeline. 
 
-7. Verify that the updates made it to all environments in the pipeline: 
+6. Verify that the updates made it to all environments in the pipeline: 
         `akamai pipeline lstat -p <pipelineName>`
 
 # How you can use this CLI

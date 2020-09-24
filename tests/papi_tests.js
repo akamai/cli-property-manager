@@ -30,7 +30,7 @@ describe('PAPI Tests', function () {
 
     it ('create Property', function() {
         papi.createProperty("foobar.com", "Waa", "CTR-123", 3452, "18-12-2018");
-        td.verify(openClient.post("/papi/v0/properties?groupId=3452&contractId=CTR-123", {
+        td.verify(openClient.post("/papi/v1/properties?groupId=3452&contractId=CTR-123", {
             productId: "Waa",
             propertyName: "foobar.com",
             ruleFormat: "18-12-2018"
@@ -39,12 +39,12 @@ describe('PAPI Tests', function () {
 
     it('create EdgeHostnames', function () {
         papi.createEdgeHostname("CTR-345", 3598, {body: "body"});
-        td.verify(openClient.post("/papi/v0/edgehostnames/?contractId=CTR-345&groupId=3598", {body: "body"}));
+        td.verify(openClient.post("/papi/v1/edgehostnames/?contractId=CTR-345&groupId=3598", {body: "body"}));
     });
 
     it('show rule tree', function() {
         papi.getPropertyVersionRules(494064, 1);
-        td.verify(openClient.get("/papi/v0/properties/494064/versions/1/rules", {}));
+        td.verify(openClient.get("/papi/v1/properties/494064/versions/1/rules", {}));
     });
 
     it('find property', function() {
@@ -56,7 +56,7 @@ describe('PAPI Tests', function () {
 
     it('get property', function(){
        papi.getPropertyInfo(123456);
-       td.verify(openClient.get('/papi/v0/properties/123456'));
+       td.verify(openClient.get('/papi/v1/properties/123456'));
     });
 
 

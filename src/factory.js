@@ -114,6 +114,18 @@ const prepareSettings = function(dependencies, procEnv, utils) {
     }
 
     devopsSettings.outputFormat = dependencies.outputFormat || devopsSettings.outputFormat || "table";
+    let accountSwitchKey = dependencies.accountSwitchKey
+    logger.info(`Switching account key to: '${accountSwitchKey}'`);
+    // Switches the account switch key value to switch the account context
+    if (accountSwitchKey) {
+        if (accountSwitchKey.includes("?") || accountSwitchKey.includes("&") || accountSwitchKey.includes("=")) {
+            //Try and prevent them from adding some random query parameter through the switch key
+            throw new errors.AkamaiPDError("switchKey is malformed", "malformed switchKey");
+        } else {
+            devopsSettings.accountSwitchKey = accountSwitchKey;
+            logger.info(`Switching account key to: '${devopsSettings.accountSwitchKey}'`);
+        }
+    }
 
     if (!devopsSettings.devopsHome) {
         throw new errors.DependencyError("Need to know location of devopsHome folder. Please set AKAMAI_PROJECT_HOME environment variable.",
@@ -227,9 +239,11 @@ const createDevOps = function(dependencies = {}) {
     function getOpenClient() {
 
         const defaultHeaders = (devOpsClass === DevOpsSnippets) ? {
-            "X-User-Agent": `Akamai-PD; Version=${version};pm-cli;`
+            "X-User-Agent": `Akamai-PD; Version=${version};pm-cli;`,
+            "User-Agent": `Akamai-PD; Version=${version};pm-cli;`
         } : {
-            "X-User-Agent": `Akamai-PD; Version=${version}`
+            "X-User-Agent": `Akamai-PD; Version=${version}`,
+            "User-Agent": `Akamai-PD; Version=${version}`
         };
         if (clientType === "regular") {
             return new openClientClass({

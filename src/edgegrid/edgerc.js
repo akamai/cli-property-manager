@@ -16,7 +16,7 @@ const _ = require('underscore');
 const fs = require('fs');
 const errors = require('../errors');
 
-const sectionRegex = /^\s*\[(.*)]\s*$/;
+const sectionRegex = /^\s*\[(.*)]/;
 
 class EdgeRC {
     constructor(path) {
@@ -40,7 +40,6 @@ class EdgeRC {
 
     __parse() {
         let lines = fs.readFileSync(this.path).toString().split('\n');
-        let section;
         _.each(lines, function(line, lineNumber) {
             line = line.trim();
             if (line === '') {
@@ -49,30 +48,51 @@ class EdgeRC {
             let sectionMatch = sectionRegex.exec(line);
             if (sectionMatch) {
                 let sectionName = sectionMatch[1];
-                section = {};
+                let sectionLines = this.extractSectionLines(lines, lineNumber + 1);
+                let section = this.buildSection(sectionLines);
                 this.sections[sectionName] = section;
-            } else {
-                if (_.isObject(section)) {
-                    let index = line.indexOf('=');
-                    if (index < 0) {
-                        throw new errors.ArgumentError(`Error parsing key-value pair '${line}' in line ${lineNumber}`,
-                            "edgerc_parse_error", line)
-                    }
-                    let key = line.slice(0, index).trim();
-                    let val = line.slice(index + 1).trim();
-
-                    // Remove trailing slash as if often found in the host property
-                    val = val.replace(/\/$/, '');
-                    if (key === "host" && val.indexOf('https://') < 0) {
-                        val = 'https://' + val;
-                    }
-                    section[key] = val;
-                } else {
-                    throw new errors.ArgumentError(`Unexpected data '${line}' outside of section in line ${lineNumber}!`,
-                        "edgerc_parse_error", line)
-                }
             }
         }, this);
+    }
+
+    // inserts the section into this.sections
+    extractSectionLines(lines, lineNumber) {
+        let sectionLines = []
+        // collect all the lines until the beginning of the next section
+        for (let i = lineNumber; i < lines.length; i++) {
+            let nextSectionMatch = sectionRegex.exec(lines[i]);
+            if (nextSectionMatch) {
+                break;
+            }
+            sectionLines.push(lines[i]);
+        }
+        return sectionLines;
+    }
+
+    // build section object for the lines specific to the section
+    buildSection(sectionLines) {
+        let section = {};
+        sectionLines.forEach(function(line) {
+            // Remove comment lines
+            if (line.startsWith('#') || line.startsWith('//')) {
+                return;
+            }
+            line = line.trim();
+            let index = line.indexOf('=');
+            if (index > -1) {
+                let key = line.slice(0, index).trim();
+                let val = line.slice(index + 1).trim();
+
+                // Remove trailing slash as if often found in the host property
+                val = val.replace(/\/$/, '');
+                // Add https: in front of hostname
+                if (key === "host" && val.indexOf('https://') < 0) {
+                    val = 'https://' + val;
+                }
+                section[key] = val;
+            }
+        });
+        return section;
     }
 }
 

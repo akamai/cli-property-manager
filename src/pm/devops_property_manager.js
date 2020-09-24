@@ -184,6 +184,11 @@ class DevopsPropertyManager extends Devops {
         return project;
     }
 
+    async checkActivations(propertyId, activationId) {
+        let result = await this.getPAPI().activationStatus(propertyId, activationId);
+        return result.activations.items[0];
+    }
+
 
     /**
      * Extract the desired project name either from devopsSettings.json file or
@@ -213,6 +218,7 @@ class DevopsPropertyManager extends Devops {
         }
         return projectName;
     }
+
 
     /**
      * Merge config snippets into a merged rule tree for passed project name

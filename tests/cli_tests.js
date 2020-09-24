@@ -135,6 +135,16 @@ describe('Commands with no action called', function () {
         });
     });
 
+    it("just -a statement", function() {
+        let cliArgs = createCommand("-a");
+        let expectedError = 'Error: Option \'-a, --accountSwitchKey <accountSwitchKey>\' argument missing\'';
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, {}, errorReporter, {});
+        }, errorCatcher => {
+            assert.equal(errorCatcher.error, expectedError)
+        });
+    });
+
 });
 describe('Devops-prov CLI provide help test', function () {
     const devopsHome = __dirname;
@@ -375,9 +385,21 @@ describe('Devops-prov CLI set default tests', function () {
 
         return mainTester(errorReporter => {
             main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
-    }, errorCatcher => {
+        }, errorCatcher => {
             assert.equal(errorCatcher.error, "Error: Option '-s, --section <section>' argument missing'",
-                    errorCatcher.error.stack)
+                errorCatcher.error.stack)
+        });
+    });
+
+    it('set Default missing accountSwitchKey values', function () {
+        let cliArgs = createCommand("sd", "-a");
+        let testConsole = new TestConsole();
+
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            assert.equal(errorCatcher.error, "Error: Option '-a, --accountSwitchKey <accountSwitchKey>' argument missing'",
+                errorCatcher.error.stack)
         });
     });
 
