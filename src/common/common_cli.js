@@ -244,12 +244,12 @@ class CommonCli {
             if (!hostnames) {
                 hostnames = [];
             }
+            if (options.file) {
+                let utils = new Utils();
+                utils.writeJsonFile(options.file, hostnames);
+                this.consoleLogger.info("output saved to file: " + options.file);
+            }
             if (devops.devopsSettings.outputFormat === 'table') {
-                if (options.file) {
-                    let utils = new Utils();
-                    utils.writeJsonFile(options.file, hostnames);
-                    this.consoleLogger.info("output saved to file: " + options.file);
-                }
                 hostnames = _.map(hostnames, function(hostname) {
                     if (!hostname["edgeHostnameId"]) {
                         hostname["edgeHostnameId"] = null;
@@ -425,6 +425,71 @@ class CommonCli {
             return this.reportOrWait(resultObject)
         }
         return resultObject;
+    }
+
+
+    async checkPropertyActivations(devops, propertyId, activationId, network) {
+        //checkActivationsLogic has logic to report if not waiting
+        let resultObject = await this.checkActivationsLogic(devops, propertyId, activationId, network);
+        if (resultObject.error) {
+            this.reportError(resultObject.error, this.verbose);
+            return;
+        }
+        let dateStart = new Date();
+        resultObject.dateStart = dateStart;
+        return this.reportUntilActive(resultObject);
+    }
+
+    async checkActivationsLogic(devops, propertyId, activationId, network, dateStart) {
+        //Mostly intact 'non-waiting' check and report logic from before
+        try {
+            let data = await devops.checkActivations(propertyId, activationId);
+            let results = [];
+            if (data.activationType === "DEACTIVATE" && data.status === "ACTIVE") {
+                results.push([propertyId, network, data.activationId, "DEACTIVATED"]);
+            } else {
+                results.push([propertyId, network, data.activationId, data.status]);
+            }
+            return {
+                results,
+                data,
+                devops,
+                dateStart
+            };
+        } catch (error) {
+            return {
+                error,
+                devops,
+            };
+        }
+    }
+
+    reportUntilActive(resultObject) {
+        let results = resultObject.results,
+            devops = resultObject.devops,
+            dateStart = resultObject.dateStart,
+            data = resultObject.data,
+            error = resultObject.error;
+        let outputFormat = devops.devopsSettings.outputFormat;
+        if (error) {
+            this.reportError(error, this.verbose);
+        } else if (results && results.length === 0) {
+            this.reportNoPromotionPending(data, results.propertyId, outputFormat, true);
+        } else if (this.isActivationPending(results[0][3], outputFormat === 'table')) {
+            if (outputFormat === 'table') {
+                this.consoleLogger.info("...Waiting for active status..."); //we don't want to confused json parsers with text output
+                this.consoleLogger.info(`...Checking ${this.reportLabel.activationLabel}s...`);
+            }
+            setTimeout(this.delayedActivationCheck.bind(this), devops.pollingIntervalMs, devops, results[0][0], results[0][2], results[0][1], dateStart);
+        } else {
+            let secondsSince = (new Date() - dateStart) / 1000;
+            this.reportPromotionActiveStatus(results, outputFormat, secondsSince);
+        }
+    }
+
+    async delayedActivationCheck(devops, propertyId, activationId, network, dateStart) {
+        let resultObject = await this.checkActivationsLogic(devops, propertyId, activationId, network, dateStart);
+        this.reportUntilActive(resultObject);
     }
 
 

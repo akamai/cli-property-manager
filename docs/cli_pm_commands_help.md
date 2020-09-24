@@ -1,66 +1,68 @@
 
-# Property Manager command help
-## General Property Manager Help
-Use akamai pm help to get general help about all property manager commands.
+# Property Manager Command Help
+## Property Manager CLI help
+Get general help about Property Manager CLI commands.
 ```
    Usage: akamai property-manager [options] [command]
    
    Property Manager CLI. Run these commands from the project directory that contains your local properties.
    
    Options:
-     -V, --version                             output the version number
-     -f, --format <format>                     Select output format for commands, either 'table', the default, or 'json'.
-     -s, --section <section>                   The section of the .edgerc file that contains the user profile, or client ID, to use for the command. If not set, uses the `default` settings in the .edgerc file.
-     -v, --verbose                             Show detailed log information for the command.
-     --edgerc <edgerc>                         Optional. Enter the location of the .edgerc file used for credentials. If not set, uses the edgerc.config file in the project directory if present. Otherwise, uses the .edgerc file in your home directory.
-     --workspace <workspace>                   Optional. Enter the directory containing all property and project files. If not set, uses the value of the AKAMAI_PROJECT_HOME environment variable if present.Otherwise, uses the current working directory as the workspace.
-     -h, --help                                output usage information
+     -V, --version                              output the version number
+     -f, --format <format>                      Select output format for commands, either 'table', the default, or 'json'.
+     -s, --section <section>                    The section of the .edgerc file containing the user profile, or client ID, to use for the command. If not set, uses the 'default' settings in the .edgerc file.
+     -v, --verbose                              Show detailed log information for the command.
+     --edgerc <edgerc>                          Optional. Enter the location of the .edgerc file used for credentials. If option not set, uses the edgerc.config file in the project directory.  Otherwise, uses the .edgerc file in your home directory.
+     --workspace <workspace>                    Optional. Enter the directory containing all property and project files. If option not set, uses the value of the AKAMAI_PROJECT_HOME environment variable. Otherwise, uses the current working directory as the workspace.
+     -a, --accountSwitchKey <accountSwitchKey>  Optional. If you have multiple accounts, enter the account switch key you want to use when running commands. You can use the Identity Management API to retrieve the key: https://developer.akamai.com/api/core_features/identity_management/v2.html#getaccountswitchkeys.
+     -h, --help                                 output usage information
    
    Commands:
-     activate|atv [options]                    Activate the latest version of a property. By default, this command also executes the merge and save commands.
-     activate-version [options]                Activate a specific version of a property. Activates latest if no version specified.
-     check-activation-status|cs [options]      Check the activation status of a property.
-     create-cpcode [options]                   Create a new CP code.
-     deactivate|datv [options]                 Deactivates a property. Checks if the property is active and then deactivates it.
-     delete [options]                          Permanently deletes a property. You have to deactivate the property on both networks first.
-     help                                      help command
-     import|i [options]                        Import a property from Property Manager.
-     list-contracts|lc                         List contracts available based on the current user credentials and setup.
-     list-cpcodes|lcp [options]                List CP codes available based on the current user credentials and setup.
-     list-edgehostnames|leh [options]          List edge hostnames available based on current user credentials and setup. May return a long list of hostnames.
-     list-groups|lg                            List groups available based on the current user credentials (clientId).
-     list-products|lp [options]                List products available based on the current user credentials and contract ID.
-     list-properties|lpr [options]             List properties available based on the current user credentials and setup.
-     list-property-hostnames|lph [options]     List hostnames assigned to this property.
-     list-property-rule-format|lprf [options]  List the current rule format for the property.
-     list-property-variables|lpv [options]     List the property's variables.
-     list-rule-formats|lrf                     Display the list of available rule formats.
-     merge|m [options]                         Merge all property configuration files, or snippets, into a property rule tree file in JSON format. You can find the file in the property's dist folder.
-     new-property|np [options]                 Create a new property using the attributes provided.
-     property-update [options]                 Create a new version of a property. Copy the rules from a file stream, using –-file, or from a different property, using --srcprop.
-     save|sv [options]                         Saves the rule tree and hostnames for the selected property. Creates edge hostnames if needed.
-     search|s <name>                           Search for properties by name.
-     set-default|sd [options]                  Set the default property and the default section name from the .edgerc file.
-     set-prefixes|sp <useprefix>               Boolean. Enter `true` to use the Property Manager ID prefixes with ID values. Enter `false` to disable them. For prefixes used, see: https://developer.akamai.com/api/core_features/property_manager/v1.html#prefixes.
-     set-ruleformat|srf <ruleformat>           Set the rule format to use for the user credentials and setup. Enter `latest` for the most current rule format. For a list of earlier rule formats, see: https://developer.akamai.com/api/core_features/property_manager/v1.html#versioning.
-     show-defaults|sf                          Displays the current default settings for this workspace.
-     show-ruletree|sr [options]                Shows the rule tree for the selected environment.
-     update-local|ul [options]                 Update local property with the latest version from the Property Manager API.
-     help [cmd]                                display help for [cmd]
+     activate|atv [options]                     Activate the latest version of a property. By default, this command also executes the merge and save commands.
+     activate-version [options]                 Activate a specific version of a property. Activates latest if no version specified.
+     check-activation-status|cs [options]       Check the activation status of a property.
+     create-cpcode [options]                    Create a new CP code.
+     deactivate|datv [options]                  Deactivates a property. Checks if the property is active and then deactivates it.
+     delete [options]                           Permanently deletes a property. You have to deactivate the property on both networks first.
+     help                                       help command
+     hostname-update|hu [options]               Updates hostnames assigned to this property.
+     import|i [options]                         Import an existing property from Property Manager.
+     list-contracts|lc                          List contracts available based on the current user credentials and setup.
+     list-cpcodes|lcp [options]                 List CP codes available based on the current user credentials and setup.
+     list-edgehostnames|leh [options]           List edge hostnames available based on the contract ID and group ID provided. Use the list commands to retrieve the required IDs. May return a long list of hostnames.
+     list-groups|lg                             List groups available based on the current user credentials (clientId).
+     list-products|lp [options]                 List products available based on the current user credentials and contract ID.
+     list-properties|lpr [options]              List properties available based on the current user credentials and setup.
+     list-property-hostnames|lph [options]      List hostnames assigned to this property.
+     list-property-rule-format|lprf [options]   List the current rule format for the property.
+     list-property-variables|lpv [options]      List the property's variables.
+     list-rule-formats|lrf                      Display the list of available rule formats.
+     merge|m [options]                          Merge all property configuration files, or snippets, into a property rule tree file in JSON format. You can find the file in the property's dist folder. By default, this command also calls PAPI to validate the rule tree generated.
+     new-property|np [options]                  Create a new property using the attributes provided. Use the list commands to retrieve the required IDs.
+     property-update [options]                  Create a new version of a property. Copy the rules from a file stream, using –-file, or from a different property, using --srcprop.
+     save|sv [options]                          Saves the rule tree and hostnames for the selected property. This command calls PAPI to validate the rule tree, and creates edge hostnames if needed.
+     search|s <name>                            Search for a property by name. Be sure to enter the exact name as wildcards aren't supported.
+     set-default|sd [options]                   Set the default property and the default section name from the .edgerc file.
+     set-prefixes|sp <useprefix>                Boolean. Enter `true` to enable prefixes on responses based on the current user credentials and setup. Enter `false` to disable them. If you have multiple client IDs, run separately for each client ID you want to update. **Caution.** Setting prefixes for this CLI impacts all other PAPI REST clients implemented for this client ID.
+     set-ruleformat|srf <ruleformat>            Set the rule format to use by default based on the user's client ID.Enter `latest` for the most current rule format. For a list of earlier rule formats, see: https://developer.akamai.com/api/core_features/property_manager/v1.html#versioning **Caution.** Setting the rule format for this CLI impacts all other PAPI REST clients implemented for this client ID.
+     show-defaults|sf                           Displays the current default settings for this workspace.
+     show-ruletree|sr [options]                 Shows the rule tree for the selected environment.
+     update-local|ul [options]                  Update local property with the latest version from the Property Manager API.
+     help [cmd]                                 display help for [cmd]
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
-## Most useful commands in order of assumed importance
+## Common commands
 
 ### <a name="createNew"></a>Create new property
-In order to create a new property you also need to specify a group Id, product Id and contract Id. These ids can be obtained by using the list-* commands. See below.
+Create a new property for a specific contract, group, and product.
 
 ```
    Usage: akamai property-manager new-property|np [options]
    
-   Create a new property using the attributes provided.
+   Create a new property using the attributes provided. Use the list commands to retrieve the required IDs.
    
    Options:
      -c, --contractId <contractId>               Enter the contract ID to use. Optional if using -e with a property ID or name.
@@ -77,16 +79,16 @@ In order to create a new property you also need to specify a group Id, product I
      -h, --help                                  output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
 ### <a name="import"></a>Import existing property
-      Import creates a PM CLI Property locally to work directly with an existing configuration
+Creates a local version of an existing property. 
       
 ```
    Usage: akamai property-manager import|i [options]
    
-   Import a property from Property Manager.
+   Import an existing property from Property Manager.
    
    Options:
      -p, --property <propertyName>   Property name. Optional if default property
@@ -101,11 +103,11 @@ In order to create a new property you also need to specify a group Id, product I
      -h, --help                      output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
 ### <a name="pull"></a>Update property
-Update local property with the latest from papi.
+Update local property with the latest from the Property Manager API (PAPI).
 
 ```
    Usage: akamai property-manager update-local|ul [options]
@@ -129,17 +131,16 @@ Update local property with the latest from papi.
      -h, --help                      output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
 ### <a name="merge"></a>Merge
-Merge config snippets into a PM/PAPI rule tree JSON document, stored in dist folder in the current pipeline folder.
-This command also calls validate on the PAPI end point.
+Merge your local configuration files into a property rule tree file in JSON format. 
 
 ```
    Usage: akamai property-manager merge|m [options]
    
-   Merge all property configuration files, or snippets, into a property rule tree file in JSON format. You can find the file in the property's dist folder.
+   Merge all property configuration files, or snippets, into a property rule tree file in JSON format. You can find the file in the property's dist folder. By default, this command also calls PAPI to validate the rule tree generated.
    
    Options:
      -n, --no-validate              Merge without validating command syntax.
@@ -149,16 +150,16 @@ This command also calls validate on the PAPI end point.
      -h, --help                     output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
 ### <a name="save"></a>Save
-Store rule tree of provided property. This will also perform validation.
+Store the rule tree of a property you select. 
 
 ```
    Usage: akamai property-manager save|sv [options]
    
-   Saves the rule tree and hostnames for the selected property. Creates edge hostnames if needed.
+   Saves the rule tree and hostnames for the selected property. This command calls PAPI to validate the rule tree, and creates edge hostnames if needed.
    
    Options:
      -p, --property <propertyName>  Property name. Optional if default property
@@ -166,7 +167,7 @@ Store rule tree of provided property. This will also perform validation.
      -h, --help                     output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
 ### <a name="activate"></a>Activate environment
@@ -178,13 +179,14 @@ Activate a property.
    Activate the latest version of a property. By default, this command also executes the merge and save commands.
    
    Options:
-     -e, --emails <emails>          Comma-separated list of email addresses.
-                                    Optional if default emails were set using the
-                                    set-default command.
+     -e, --emails <emails>          Optional. A comma-separated list of email
+                                    addresses. If not used, sends updates to any
+                                    default emails set using the set-default
+                                    command.
      -m, --message <message>        Enter a message describing changes made to the
                                     property.
-     --note <message>               (Alias of --message) Enter a message
-                                    describing changes made to the property.
+     --note <message>               Alias of --message. Enter a message describing
+                                    changes made to the property.
      -n, --network <network>        Network, either 'production' or 'staging'. You
                                     can shorten 'production' to 'prod' or 'p' and
                                     'staging' to 'stage' or 's'.
@@ -196,7 +198,7 @@ Activate a property.
      -h, --help                     output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
 ### <a name="deactivate"></a>Deactivate environment
@@ -208,13 +210,14 @@ Deactivate a property.
    Deactivates a property. Checks if the property is active and then deactivates it.
    
    Options:
-     -e, --emails <emails>          Comma-separated list of email addresses.
-                                    Optional if default emails were set using the
-                                    set-default command.
+     -e, --emails <emails>          Optional. A comma-separated list of email
+                                    addresses. If not used, sends updates to any
+                                    default emails set using the set-default
+                                    command.
      -m, --message <message>        Enter a message describing the reason for
                                     deactivating.
-     --note <message>               (Alias of --message) Enter a message
-                                    describing the reason for deactivating.
+     --note <message>               Alias of --message. Enter a message describing
+                                    the reason for deactivating.
      -n, --network <network>        Network, either 'production' or 'staging'. You
                                     can shorten 'production' to 'prod' or 'p' and
                                     'staging' to 'stage' or 's'.
@@ -229,11 +232,11 @@ Deactivate a property.
      -h, --help                     output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
 ### <a name="checkActivate"></a>Check activation status
-Checks status of previously initiated activation.
+Check status of an activation that's been started.
 
 ```
    Usage: akamai property-manager check-activation-status|cs [options]
@@ -249,11 +252,11 @@ Checks status of previously initiated activation.
      -h, --help                     output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
 ### <a name="showDefault"></a>Show Default
-Show default property and section name in snippetSettings.json.
+Get default property and default section name information from the snippetSettings.json file.
 
 ```
    Usage: akamai property-manager show-defaults|sf [options]
@@ -264,12 +267,11 @@ Show default property and section name in snippetSettings.json.
      -h, --help  output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
-### <a name="setDefault"></a>Set Default
-Sets default property and section name in snippetsSettings.json. For all commands involving an existing property one can omit the
--p [property-name] option
+### <a name="setDefault"></a>Set default
+Sets default property and section name in the snippetsSettings.json file. 
 
 ```
    Usage: akamai property-manager set-default|sd [options]
@@ -277,7 +279,7 @@ Sets default property and section name in snippetsSettings.json. For all command
    Set the default property and the default section name from the .edgerc file.
    
    Options:
-     -a, --accountSwitchKey <accountSwitchKey>  Enter the account ID you want to use when running commands. The account persists for all pipeline commands until you change it.
+     -a, --accountSwitchKey <accountSwitchKey>  Enter the account switch key you want to use when running commands. The key entered is the default for all Property Manager commands until you change it. You can use the Identity Management API to retrieve the key: https://developer.akamai.com/api/core_features/identity_management/v2.html#getaccountswitchkeys.
      -e, --emails <emails>                      Enter the email addresses to send notifications to as a comma-separated list.
      -f, --format <format>                      Select output format for commands, either 'table', the default, or 'json'.
      -p, --property <propertyName>              Set the default property to use with commands.
@@ -285,11 +287,11 @@ Sets default property and section name in snippetsSettings.json. For all command
      -h, --help                                 output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
 ### List contracts
-List contracts available to client ID. The output is in form of a table.
+List available contracts based on your client ID. 
 
 ```
    Usage: akamai property-manager list-contracts|lc [options]
@@ -300,11 +302,11 @@ List contracts available to client ID. The output is in form of a table.
      -h, --help  output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
 ### List products
-List products available under provided contract ID and client ID. The output is in form of a table.
+List available products based on your client ID and the contract ID you select. 
 
 ```
    Usage: akamai property-manager list-products|lp [options]
@@ -316,11 +318,11 @@ List products available under provided contract ID and client ID. The output is 
      -h, --help                     output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
 ### List groups
-List groups client ID has access to. The output is in form of a table.
+List available groups based on your client ID. 
 
 ```
    Usage: akamai property-manager list-groups|lg [options]
@@ -331,11 +333,11 @@ List groups client ID has access to. The output is in form of a table.
      -h, --help  output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
-### List cpcodes.
-List cpcodes for provided contract ID and group ID.
+### List CP codes
+List available CP codes for provided contract ID and group ID.
 
 ```
    Usage: akamai property-manager list-cpcodes|lcp [options]
@@ -348,16 +350,16 @@ List cpcodes for provided contract ID and group ID.
      -h, --help                     output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
-### List Edge hostnames
-List edge hostnames available under provided contract ID and group ID (this could be a long list).
+### List edge hostnames
+List edge hostnames available based on the contract ID and group ID provided. 
 
 ```
    Usage: akamai property-manager list-edgehostnames|leh [options]
    
-   List edge hostnames available based on current user credentials and setup. May return a long list of hostnames.
+   List edge hostnames available based on the contract ID and group ID provided. Use the list commands to retrieve the required IDs. May return a long list of hostnames.
    
    Options:
      -c, --contractId <contractId>  Contract ID.
@@ -365,64 +367,56 @@ List edge hostnames available under provided contract ID and group ID (this coul
      -h, --help                     output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
 ### Search
-Searches for existing property by name. Does not support wild cards, the name needs to be exact.
+Search for an existing property by name. 
 
 ```
    Usage: akamai property-manager search|s [options] <name>
    
-   Search for properties by name.
+   Search for a property by name. Be sure to enter the exact name as wildcards aren't supported.
    
    Options:
      -h, --help  output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
-### Set Prefixes
-Set or unset id prefixes in responses. Instead of IDs with prefix like act_ACCT-ID or grp_2342 responses will only contain the id,
-like ACCT-ID or just 2342. This should not matter to the end user for the most part since the SDK hides most of the
-details with the communication between client and REST end points.
-The value is stored with options of the currently used client id.
-If the users uses multiple client ids, they would have to call set-prefixes for each client id.
-*Caution: this will also affect any other REST client implemented by user using the same client id!*
+### Set prefixes
+Add or remove prefixes in responses.                  
 
 ```
    Usage: akamai property-manager set-prefixes|sp [options] <useprefix>
    
-   Boolean. Enter `true` to use the Property Manager ID prefixes with ID values. Enter `false` to disable them. For prefixes used, see: https://developer.akamai.com/api/core_features/property_manager/v1.html#prefixes.
+   Boolean. Enter `true` to enable prefixes on responses based on the current user credentials and setup. Enter `false` to disable them. If you have multiple client IDs, run separately for each client ID you want to update. **Caution.** Setting prefixes for this CLI impacts all other PAPI REST clients implemented for this client ID.
    
    Options:
      -h, --help  output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
-### Set Rule Format
-Sets the default rule format for creating new properties. This value is stored per client id.
-*Caution: this will also affect any other REST client implemented by user using the same client id!*
+### Set rule format
+Sets the default rule format used when creating new properties. 
 
 ```
    Usage: akamai property-manager set-ruleformat|srf [options] <ruleformat>
    
-   Set the rule format to use for the user credentials and setup. Enter `latest` for the most current rule format. For a list of earlier rule formats, see: https://developer.akamai.com/api/core_features/property_manager/v1.html#versioning.
+   Set the rule format to use by default based on the user's client ID.Enter `latest` for the most current rule format. For a list of earlier rule formats, see: https://developer.akamai.com/api/core_features/property_manager/v1.html#versioning **Caution.** Setting the rule format for this CLI impacts all other PAPI REST clients implemented for this client ID.
    
    Options:
      -h, --help  output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
 ### Show rule tree
-Download and print out the rule tree for provided property (default or provided by -p option).
-For the most part this command is useless, since the rule tree is generated by the SDK and stored in the dist folder.
-This command might get removed in the future or expanded in some way to make it more useful.
+Download and print out a property's rule tree.
 
 ```
    Usage: akamai property-manager show-ruletree|sr [options]
@@ -439,6 +433,6 @@ This command might get removed in the future or expanded in some way to make it 
      -h, --help                     output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```

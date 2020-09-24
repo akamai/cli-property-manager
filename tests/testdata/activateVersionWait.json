@@ -1,0 +1,24 @@
+{
+  "activationId": "atv_8481528",
+  "propertyName": "dev.heggadahalli.com",
+  "propertyId": "prp_609774",
+  "propertyVersion": 2,
+  "network": "STAGING",
+  "activationType": "ACTIVATE",
+  "status": "ACTIVE",
+  "submitDate": "2020-09-11T13:47:34Z",
+  "updateDate": "2020-09-11T13:48:55Z",
+  "note": "testing",
+  "notifyEmails": [
+    "sheggada@akamai.com"
+  ],
+  "fmaActivationState": "steady",
+  "fallbackInfo": {
+    "fastFallbackAttempted": false,
+    "fallbackVersion": 1,
+    "canFastFallback": true,
+    "steadyStateTime": 1599832135,
+    "fastFallbackExpirationTime": 1599835735,
+    "fastFallbackRecoveryState": null
+  }
+}

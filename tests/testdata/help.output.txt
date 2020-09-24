@@ -12,16 +12,20 @@ Options:
                                                      Otherwise, uses the .edgerc file in your home directory.
   --workspace <workspace>                            Optional. Enter the directory containing all property and project files. If not set, uses the value of the AKAMAI_PROJECT_HOME environment variable
                                                      if present.Otherwise, uses the current working directory as the workspace.
+  -a, --accountSwitchKey <accountSwitchKey>          Optional. Enter the account switch key you want to use when running  commands. Using this option overwrites the default account. You can use the
+                                                     Identity Management API to retrieve keys: https://developer.akamai.com/api/core_features/identity_management/v2.html#getaccountswitchke
   -h, --help                                         output usage information
 
 Commands:
   change-ruleformat|crf [options] [environments...]  Change the property rule format used by a pipeline or an environment. Enter a space-separated list of environments after the pipeline name to
                                                      update a subset of environments.
-  check-promotion-status|cs [options] <environment>  For the selected environment, check the activation status.
+  check-promotion-status|cs [options] <environment>  For the selected environment, check the activation status. If the underlying property activation is complete, the environment is considered
+                                                     promoted.
   help                                               help command
   list-contracts|lc                                  List contracts available based on current user credentials and setup.
   list-cpcodes|lcp [options]                         List CP codes available based on the current user credentials and setup.
-  list-edgehostnames|leh [options]                   List edge hostnames available based on current user credentials and setup. May return a long list of hostnames.
+  list-edgehostnames|leh [options]                   List edge hostnames available based on the contract ID and group ID provided. Use the list commands to retrieve the required IDs. May return a
+                                                     long list of hostnames.
   list-groups|lg                                     List groups available based on the current user credentials and setup.
   list-products|lp [options]                         List products available based on contract ID, client ID, and the current user credentials and setup.
   list-properties|lpr [options]                      List properties available based on the current user credentials and setup.
@@ -32,15 +36,20 @@ Commands:
   list-status|lstat [options]                        Show status of the pipeline.
   merge|m [options] <environment>                    Merge the pipeline property's template JSON and variable values into a rule tree file. The system stores the resulting JSON file in the pipeline's
                                                      /dist folder.
-  new-pipeline|np [options] <environments...>        Create a new pipeline with provided attributes. Separate each environment name with a space. This command creates one property for each
+  new-pipeline|np [options] <environments...>        Create a new pipeline with provided attributes. You need a name for the pipeline, one or more environment names, and IDs for contract, group, and
+                                                     product. Separate each environment name with a space. Use the list commands to retrieve these IDs. This command creates one property for each
                                                      environment.
   promote|pm [options] <targetEnvironment>           Promote, or activate, an environment. By default, this command also executes the merge and save commands.
-  save|sv [options] <environment>                    Save rule tree and hostnames for the environment you select. Also creates edge hostnames if needed.
-  search|s <name>                                    Search for properties by name.
+  save|sv [options] <environment>                    Save rule tree and hostnames for the environment you select. This command calls PAPI to validate the rule tree, and creates edge hostnames if
+                                                     needed.
+  search|s <name>                                    Search for a property by name. Be sure to enter the exact name as wildcards aren't supported.
   set-default|sd [options]                           Set the default pipeline and the default section of the .edgerc file to use.
-  set-prefixes|sp <useprefix>                        Boolean. Enter `true` to enable prefixes with the current user credentials and setup. Enter `false` to disable them.
-  set-ruleformat|srf <ruleformat>                    Set the rule format to use with the current user credentials and setup. Enter `latest` for the most current rule format. For a list of earlier
-                                                     rule formats, see: https://developer.akamai.com/api/core_features/property_manager/v1.html#versioning
+  set-prefixes|sp <useprefix>                        Boolean. Enter `true` to enable prefixes on responses based on the current user credentials and setup. Enter `false` to disable them. If you have
+                                                     multiple client IDs, run separately for each client ID you want to update. **Caution.** Setting prefixes for this CLI impacts all other PAPI REST
+                                                     clients implemented for this client ID.
+  set-ruleformat|srf <ruleformat>                    Set the rule format to use based on the user's client ID.Enter `latest` for the most current rule format. For a list of earlier rule formats, see:
+                                                     https://developer.akamai.com/api/core_features/property_manager/v1.html#versioning **Caution.** Setting prefixes for this CLI impacts  all other
+                                                     PAPI REST clients implemented for this client ID.
   show-defaults|sf                                   Displays the current default settings for this workspace.
   show-ruletree|sr [options] <environment>           For the selected environment, shows local property's rule tree. Run this to store the rule tree in a local file: show-ruletree -p <pipelineName>
                                                      <environment> >> <filename.json>

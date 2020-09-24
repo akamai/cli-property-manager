@@ -1,0 +1,8 @@
+[
+  {
+    "cnameType": "EDGE_HOSTNAME",
+    "cnameFrom": "dev.pipeline.com",
+    "cnameTo": "dev.pipeline.com.edgesuite.net",
+    "edgeHostnameId": 4363836
+  }
+]

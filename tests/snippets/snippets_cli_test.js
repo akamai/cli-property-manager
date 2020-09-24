@@ -124,6 +124,16 @@ describe('Commands with no action called', function () {
         });
     });
 
+    it("just -a statement", function() {
+        let cliArgs = createCommand("-a");
+        let expectedError = 'Error: Option \'-a, --accountSwitchKey <accountSwitchKey>\' argument missing\'';
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, {}, errorReporter, {});
+        }, errorCatcher => {
+            assert.equal(errorCatcher.error, expectedError)
+        });
+    });
+
 });
 
 describe('Snippets CLI create new project', function () {
@@ -589,7 +599,6 @@ describe('Snippets CLI show rule tree', function () {
         return mainTester(errorReporter => {
             main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
         }, errorCatcher => {
-            console.log(errorCatcher);
             assert.equal(errorCatcher, null);
             assert.equal(testConsole.logs.length, 1);
             let output = testConsole.logs[0][0];
@@ -945,6 +954,11 @@ describe('Snippets list tests', function () {
                 resolve(utils.readJsonFile(path.join(baseDir, "testdata", "propertyHostnamesList.json")));
             }));
 
+        td.when(devOpsClass.prototype.updatePropertyHostnames(td.matchers.anything(), td.matchers.anything()))
+            .thenReturn(new Promise((resolve, reject) => {
+                resolve(utils.readJsonFile(path.join(baseDir, "testdata", "propertyHostnamesList.json")));
+            }));
+
         td.when(devOpsClass.prototype.listEdgeHostnames("1-1TJZH5", 61726))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(utils.readJsonFile(path.join(baseDir, "testdata", "edgeHostnames.json")));
@@ -1170,6 +1184,24 @@ describe('Snippets list tests', function () {
         }, createDevOpsFun);
     });
 
+    it('updatePropertyHostnames test', function () {
+        let hostFilePath = path.join(baseDir, "testdata/host.json");
+        let cliArgs = createCommand("hu", "-p","dev.pipeline.com", "--propver", 1, "--file", hostFilePath);
+        testConsole = new TestConsole();
+        return mainTester(errorReporter => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": baseDir
+            }, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            assert.equal(null,errorCatcher);
+            assert.equal(testConsole.logs.length, 1);
+            assert.equal(testConsole.logs[0].length, 1);
+            let output = testConsole.logs[0][0];
+            let expected = utils.readFile(path.join(baseDir,"testdata", "updatePropertyHostnamesOutput.json"))
+            assert.deepEqual(output,expected)
+        }, createDevOpsFun);
+    });
+
     describe('merge tests', function () {
         let createDevOpsFun;
         let testConsole;
@@ -1360,10 +1392,20 @@ describe('activate version tests', function () {
     let utils = new Utils();
 
     before(function () {
-        activateVersion = td.func();
+        let checkActivationsObject = helpers.clone(utils.readJsonFile(path.join(baseDir, "testdata", "activateVersionWait.json")));
+
+        let activateVersion = td.func();
         td.when(activateVersion(td.matchers.anything(), "STAGING", "one@email.com, two@email.com", "activate version"))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(utils.readJsonFile(path.join(baseDir, "testdata", "activateVersion.json")));
+                })
+            );
+
+        let checkActivations = td.func();
+        td.when(checkActivations(td.matchers.anything(), td.matchers.anything()))
+            .thenReturn(
+                new Promise((resolve, reject) => {
+                    resolve(checkActivationsObject);
                 })
             );
 
@@ -1375,6 +1417,7 @@ describe('activate version tests', function () {
 
             let devOps = createDevOps(deps);
             devOps.activateVersion = activateVersion;
+            devOps.checkActivations = checkActivations;
             return devOps;
         };
 
@@ -1397,6 +1440,24 @@ describe('activate version tests', function () {
             assert.equal(output, utils.readFile(path.join(baseDir,"testdata", "activateVersion.output.txt")))
         }, createDevOpsFun);
     });
+
+    it('activate version with wait option (polling) test success', function () {
+
+
+        let cliArgs = createCommand("activate-version", "-p", "example.com", "--propver", "2", "-n", "stag", "-w", "-e", "one@email.com, two@email.com", "--message", "activate version");
+        let testConsole = new TestConsole();
+        return mainTester(errorReporter => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": baseDir
+            }, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            assert.equal(null, errorCatcher);
+            testConsole.logs.splice(testConsole.logs.length -3, 1);
+            let output = testConsole.logs.join("\n");
+            assert.equal(output, utils.readFile(path.join(baseDir,"testdata", "activateVersionWait.output.txt")))
+        }, createDevOpsFun);
+    });
+
 });
 
 describe('Snippets activation tests', function () {

@@ -39,7 +39,7 @@ const reportLabel = {
 };
 
 const footer = "  © 2017-2020 Akamai Technologies, Inc. All rights reserved\n" +
-    "  Visit http://github.com/akamai/cli-property-manager for documentation\n";
+    "  Visit http://github.com/akamai/cli-property-manager for more documentation\n";
 
 /**
  * Main function called by CLI command
@@ -130,6 +130,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         let section;
         let devopsHome;
         let edgerc;
+        let accountSwitchKey;
         if (options.parent) {
             let parentOptions = options.parent;
             if (parentOptions.format) {
@@ -141,6 +142,9 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
             }
             if (parentOptions.edgerc) {
                 edgerc = parentOptions.edgerc;
+            }
+            if (parentOptions.accountSwitchKey) {
+                accountSwitchKey = parentOptions.accountSwitchKey;
             }
         }
         logging.log4jsLogging(useVerboseLogging(options), 'devops');
@@ -159,7 +163,8 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
             edgerc,
             section,
             version,
-            outputFormat
+            outputFormat,
+            accountSwitchKey
         });
     };
 
@@ -493,6 +498,9 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
 
     const changeRuleFormat = async function(devops, environments, options) {
         let projectName = devops.extractProjectName(options);
+        if (!options.ruleFormat) {
+            throw new errors.DependencyError("ruleFormat needs to be provided", "missing_rule_format");
+        }
         let result = await devops.changeRuleFormat(projectName, environments, options.ruleFormat);
         for (let data of result) {
             if (devops.devopsSettings.outputFormat === 'table') {
@@ -538,11 +546,11 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         .option('-s, --section <section>', "The section of the .edgerc file that contains the user profile, or client ID, to " + "use for the command. If not set, uses the `default` settings in the .edgerc file.")
         .option('-v, --verbose', 'Show detailed log information for the command.')
         .option('--edgerc <edgerc>', "Optional. Enter the location of the edgerc.config file used for credentials. If not set, uses " + "the .edgerc file in the project directory if present. Otherwise, uses " + "the .edgerc file in your home directory.")
-        .option('--workspace <workspace>', "Optional. Enter the directory containing all property and project files. If not set, " + "uses the value of the AKAMAI_PROJECT_HOME environment variable if present." + "Otherwise, uses the current working directory as the workspace.");
+        .option('--workspace <workspace>', "Optional. Enter the directory containing all property and project files. If not set, " + "uses the value of the AKAMAI_PROJECT_HOME environment variable if present." + "Otherwise, uses the current working directory as the workspace.")
+        .option('-a, --accountSwitchKey <accountSwitchKey>', "Optional. Enter the account switch key you want to use when running  " + "commands. Using this option overwrites the default account. You can use the Identity Management API to retrieve keys: " + "https://developer.akamai.com/api/core_features/identity_management/v2.html#getaccountswitchke");
 
     commander
-        .command("new-pipeline <environments...>", "Create a new pipeline with provided attributes. Separate each environment name with a space. " +
-            "This command creates one property for each environment.")
+        .command("new-pipeline <environments...>", "Create a new pipeline with provided attributes. You need a name " + "for the pipeline, one or more environment names, and IDs for contract, group, and product. " + "Separate each environment name with a space. Use the list commands to retrieve these IDs. " + "This command creates one property for each environment.")
         .option('-c, --contractId <contractId>', "Enter the contract ID to use. If used with the -e option, the CLI takes the contract " + "value from the template property.", helpers.prefixeableString('ctr_'))
         .option('-d, --productId <productId>', "Enter the product ID to use. Optional if using -e with a property ID or name.", helpers.prefixeableString('prd_'))
         .option('-e, --propertyId <propertyId/propertyName>', "Optional. Use an existing property as the blueprint for new pipeline properties. " + "Enter a property ID or an exact property name. The CLI looks up the group ID, contract ID, and " + "product ID of the existing property and uses that information to create properties for the pipeline.")
@@ -567,7 +575,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
 
     commander
         .command("set-default", "Set the default pipeline and the default section of the .edgerc file to use.")
-        .option('-a, --accountSwitchKey <accountSwitchKey>', "Enter the account ID you want to use when running commands. " + "The account persists for all pipeline commands until you change it.")
+        .option('-a, --accountSwitchKey <accountSwitchKey>', "Enter the account switch key you want to use when running commands. " + "The key entered is the default for all pipeline commands until you change it. You can use " + "the Identity Management API to retrieve keys: " + "https://developer.akamai.com/api/core_features/identity_management/v2.html#getaccountswitchkeys.")
         .option('-e, --emails <emails>', 'Enter the email addresses to send notification emails to as a comma-separated list')
         .option('-f, --format <format>', "Select output format for commands, either 'table', the default, or 'json'.")
         .option('-p, --pipeline <pipelineName>', 'Set the default pipeline to use with commands.')
@@ -606,7 +614,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         });
 
     commander
-        .command("search <name>", "Search for properties by name.")
+        .command("search <name>", "Search for a property by name. Be sure to enter the exact name " + "as wildcards aren't supported.")
         .alias("s")
         .on('--help', () => {
             consoleLogger.debug(footer);
@@ -617,7 +625,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         });
 
     commander
-        .command("set-prefixes <useprefix>", "Boolean. Enter `true` to enable prefixes with the current user credentials and setup. " + "Enter `false` to disable them.")
+        .command("set-prefixes <useprefix>", "Boolean. Enter `true` to enable prefixes on responses based on the current " + "user credentials and setup. Enter `false` to disable them. If you have multiple client IDs, " + "run separately for each client ID you want to update. " + "**Caution.** Setting prefixes for this CLI impacts all other PAPI REST clients implemented for this client ID.")
         .alias("sp")
         .on('--help', () => {
             consoleLogger.debug(footer);
@@ -628,7 +636,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         });
 
     commander
-        .command("set-ruleformat <ruleformat>", "Set the rule format to use with the current user credentials and setup. " + "Enter `latest` for the most current rule format. For a list of earlier rule formats, see: " + "https://developer.akamai.com/api/core_features/property_manager/v1.html#versioning")
+        .command("set-ruleformat <ruleformat>", "Set the rule format to use based on the user's client ID." + "Enter `latest` for the most current rule format. For a list of earlier rule formats, see: " + "https://developer.akamai.com/api/core_features/property_manager/v1.html#versioning " + "**Caution.** Setting prefixes for this CLI impacts  all other " + "PAPI REST clients implemented for this client ID.")
         .alias("srf")
         .on('--help', () => {
             consoleLogger.debug(footer);
@@ -688,7 +696,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
 
     commander
         .command("list-property-hostnames", "List hostnames assigned to this property.")
-        .requiredOption('-p, --property <property>', "Property name or ID.")
+        .requiredOption('-p, --property <property>', "Property name or property ID.")
         .option(' --propver <propver>', "Optional. The property version to list. Uses latest version if not specified.")
         .option('-n, --no-validate', "Use if you don't want to validate the command before running.")
         .option('--file <file>', "Optional. Enter a filename to save the command output to. The output is in JSON format.")
@@ -716,7 +724,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
 
     commander
         .command("list-property-variables", "List the property's variables.")
-        .requiredOption('-p, --property <property>', "Property name or ID.")
+        .requiredOption('-p, --property <property>', "Property name or property ID.")
         .option(' --propver <propver>', "Optional. The property version to list variables for. Uses latest version by default.")
         .option('--file <file>', "Optional. Enter a filename to save the command output to. The output is in JSON format.")
         .alias("lpv")
@@ -730,7 +738,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
 
     commander
         .command("list-property-rule-format", "List the current rule format for the property.")
-        .requiredOption('-p, --property <property>', "Property name or ID.")
+        .requiredOption('-p, --property <property>', "Property name or property ID.")
         .option(' --propver <propver>', "Optional. The property version to list rule formats for. Uses latest version by default.")
         .option('--file <file>', "Optional. Enter a filename to save the command output to. The output is in JSON format.")
         .alias("lprf")
@@ -767,7 +775,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
 
     commander
         .command("save <environment>", "Save rule tree and hostnames for the environment you select. " +
-            "Also creates edge hostnames if needed.")
+            "This command calls PAPI to validate the rule tree, and creates edge hostnames if needed.")
         .option('-p, --pipeline <pipelineName>', 'Pipeline name. Optional if a default pipeline was set using the set-default command.')
         .alias("sv")
         .on('--help', () => {
@@ -779,7 +787,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         });
 
     commander
-        .command("list-edgehostnames", "List edge hostnames available based on current user credentials and setup. " + "May return a long list of hostnames.")
+        .command("list-edgehostnames", "List edge hostnames available based on the contract ID and group ID provided. " + "Use the list commands to retrieve the required IDs. May return a long list of hostnames.")
         .requiredOption('-c, --contractId <contractId>', "Contract ID.")
         .requiredOption('-g, --groupId <groupId>', "Group ID.", helpers.parseGroupId)
         .alias("leh")
@@ -806,10 +814,10 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
     commander
         .command("promote <targetEnvironment>",
             "Promote, or activate, an environment. By default, this command also executes the merge and save commands.")
-        .option('-e, --emails <emails>', "Comma-separated list of email addresses. Optional if default emails were set using the set-default command.")
+        .option('-e, --emails <emails>', "Optional. A comma-separated list of email addresses. If not used, sends updates to any default emails set using the set-default command.")
         .option('-p, --pipeline <pipelineName>', 'Pipeline name. Optional if default pipeline was set using the set-default command.')
-        .option('-m, --message <message>', "Enter a  message describing changes made to the environment.")
-        .option('--note <message>', "(Alias of --message) Enter a  message describing changes made to the environment.")
+        .option('-m, --message <message>', "Enter a message describing changes made to the environment.")
+        .option('--note <message>', "Alias of --message. Enter a message describing changes made to the environment.")
         .requiredOption('-n, --network <network>', "Network, either 'production' or 'staging'. You can shorten 'production' to " + "'prod' or 'p' and 'staging' to 'stage' or 's'.")
         .option('-w, --wait-for-activate', "Prevents you from entering more commands until promotion is complete. May take several minutes.")
         .option('--force', "Deprecated. Out-of-sequence activations are now allowed by default.")
@@ -823,7 +831,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         });
 
     commander
-        .command("check-promotion-status <environment>", "For the selected environment, check the activation status.")
+        .command("check-promotion-status <environment>", "For the selected environment, check the activation status. " + "If the underlying property activation is complete, the environment is considered promoted.")
         .option('-p, --pipeline <pipelineName>', 'Pipeline name. Optional if default pipeline was set using the set-default command.')
         .option('-w, --wait-for-activate', "Prevents you from entering more commands until promotion is complete. May take several minutes.")
         .alias("cs")

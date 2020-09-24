@@ -1,8 +1,8 @@
 
-# Akamai Pipeline command help
+# Akamai Pipeline Command Help
 
-## General Pipeline help
-Use akamai pl help to get general help about all pipeline commands.
+## Akamai Pipeline CLI help
+Get help for Akamai Pipeline CLI commands. A pipeline is a chain of environments within your organization.
 
 ```
    Usage: akamai pipeline [options] [command]
@@ -16,15 +16,16 @@ Use akamai pl help to get general help about all pipeline commands.
      -v, --verbose                                      Show detailed log information for the command.
      --edgerc <edgerc>                                  Optional. Enter the location of the edgerc.config file used for credentials. If not set, uses the .edgerc file in the project directory if present. Otherwise, uses the .edgerc file in your home directory.
      --workspace <workspace>                            Optional. Enter the directory containing all property and project files. If not set, uses the value of the AKAMAI_PROJECT_HOME environment variable if present.Otherwise, uses the current working directory as the workspace.
+     -a, --accountSwitchKey <accountSwitchKey>          Optional. Enter the account switch key you want to use when running  commands. Using this option overwrites the default account. You can use the Identity Management API to retrieve keys: https://developer.akamai.com/api/core_features/identity_management/v2.html#getaccountswitchke
      -h, --help                                         output usage information
    
    Commands:
      change-ruleformat|crf [options] [environments...]  Change the property rule format used by a pipeline or an environment. Enter a space-separated list of environments after the pipeline name to update a subset of environments.
-     check-promotion-status|cs [options] <environment>  For the selected environment, check the activation status.
+     check-promotion-status|cs [options] <environment>  For the selected environment, check the activation status. If the underlying property activation is complete, the environment is considered promoted.
      help                                               help command
      list-contracts|lc                                  List contracts available based on current user credentials and setup.
      list-cpcodes|lcp [options]                         List CP codes available based on the current user credentials and setup.
-     list-edgehostnames|leh [options]                   List edge hostnames available based on current user credentials and setup. May return a long list of hostnames.
+     list-edgehostnames|leh [options]                   List edge hostnames available based on the contract ID and group ID provided. Use the list commands to retrieve the required IDs. May return a long list of hostnames.
      list-groups|lg                                     List groups available based on the current user credentials and setup.
      list-products|lp [options]                         List products available based on contract ID, client ID, and the current user credentials and setup.
      list-properties|lpr [options]                      List properties available based on the current user credentials and setup.
@@ -34,31 +35,30 @@ Use akamai pl help to get general help about all pipeline commands.
      list-rule-formats|lrf                              Display the list of available rule formats.
      list-status|lstat [options]                        Show status of the pipeline.
      merge|m [options] <environment>                    Merge the pipeline property's template JSON and variable values into a rule tree file. The system stores the resulting JSON file in the pipeline's /dist folder.
-     new-pipeline|np [options] <environments...>        Create a new pipeline with provided attributes. Separate each environment name with a space. This command creates one property for each environment.
+     new-pipeline|np [options] <environments...>        Create a new pipeline with provided attributes. You need a name for the pipeline, one or more environment names, and IDs for contract, group, and product. Separate each environment name with a space. Use the list commands to retrieve these IDs. This command creates one property for each environment.
      promote|pm [options] <targetEnvironment>           Promote, or activate, an environment. By default, this command also executes the merge and save commands.
-     save|sv [options] <environment>                    Save rule tree and hostnames for the environment you select. Also creates edge hostnames if needed.
-     search|s <name>                                    Search for properties by name.
+     save|sv [options] <environment>                    Save rule tree and hostnames for the environment you select. This command calls PAPI to validate the rule tree, and creates edge hostnames if needed.
+     search|s <name>                                    Search for a property by name. Be sure to enter the exact name as wildcards aren't supported.
      set-default|sd [options]                           Set the default pipeline and the default section of the .edgerc file to use.
-     set-prefixes|sp <useprefix>                        Boolean. Enter `true` to enable prefixes with the current user credentials and setup. Enter `false` to disable them.
-     set-ruleformat|srf <ruleformat>                    Set the rule format to use with the current user credentials and setup. Enter `latest` for the most current rule format. For a list of earlier rule formats, see: https://developer.akamai.com/api/core_features/property_manager/v1.html#versioning
+     set-prefixes|sp <useprefix>                        Boolean. Enter `true` to enable prefixes on responses based on the current user credentials and setup. Enter `false` to disable them. If you have multiple client IDs, run separately for each client ID you want to update. **Caution.** Setting prefixes for this CLI impacts all other PAPI REST clients implemented for this client ID.
+     set-ruleformat|srf <ruleformat>                    Set the rule format to use based on the user's client ID.Enter `latest` for the most current rule format. For a list of earlier rule formats, see: https://developer.akamai.com/api/core_features/property_manager/v1.html#versioning **Caution.** Setting prefixes for this CLI impacts  all other PAPI REST clients implemented for this client ID.
      show-defaults|sf                                   Displays the current default settings for this workspace.
      show-ruletree|sr [options] <environment>           For the selected environment, shows local property's rule tree. Run this to store the rule tree in a local file: show-ruletree -p <pipelineName> <environment> >> <filename.json>
      help [cmd]                                         display help for [cmd]
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
-## Most useful commands in order of assumed importance
+## Common commands
 
-### <a name="createNew"></a>Create new pipeline.
-A pipeline consists of a pipeline name and 2 or more environment names. In order to create a new pipeline you also need to specify
-a group Id, product Id and contract Id. These ids can be obtained by using the list-* commands. See below.
+### <a name="createNew"></a>Create new pipeline
+Create a pipeline for distributing properties across your environments. 
 
 ```
    Usage: akamai pipeline new-pipeline|np [options] <environments...>
    
-   Create a new pipeline with provided attributes. Separate each environment name with a space. This command creates one property for each environment.
+   Create a new pipeline with provided attributes. You need a name for the pipeline, one or more environment names, and IDs for contract, group, and product. Separate each environment name with a space. Use the list commands to retrieve these IDs. This command creates one property for each environment.
    
    Options:
      -c, --contractId <contractId>               Enter the contract ID to use. If used with the -e option, the CLI takes the contract value from the template property.
@@ -77,12 +77,11 @@ a group Id, product Id and contract Id. These ids can be obtained by using the l
      -h, --help                                  output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
 ### <a name="merge"></a>Merge
-Merge template json and environment variable values into a PM/PAPI rule tree JSON document, stored in dist folder in the current pipeline folder.
-This command also calls validate on the PAPI end point.
+Merge your template JSON files and environment variable values into a JSON-based property rule tree file. 
 
 ```
    Usage: akamai pipeline merge|m [options] <environment>
@@ -96,16 +95,16 @@ This command also calls validate on the PAPI end point.
      -h, --help                     output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
 ### <a name="save"></a>Save
-Store rule tree of provided environment. This will also perform validation.
+Store the rule tree for the environment you select.
 
 ```
    Usage: akamai pipeline save|sv [options] <environment>
    
-   Save rule tree and hostnames for the environment you select. Also creates edge hostnames if needed.
+   Save rule tree and hostnames for the environment you select. This command calls PAPI to validate the rule tree, and creates edge hostnames if needed.
    
    Options:
      -p, --pipeline <pipelineName>  Pipeline name. Optional if a default pipeline
@@ -113,11 +112,11 @@ Store rule tree of provided environment. This will also perform validation.
      -h, --help                     output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
 ### <a name="promote"></a>Promote environment
-Promote (activate property of) an environment.
+Activate, or promote, a property within a specific environment.
 
 ```
    Usage: akamai pipeline promote|pm [options] <targetEnvironment>
@@ -125,15 +124,16 @@ Promote (activate property of) an environment.
    Promote, or activate, an environment. By default, this command also executes the merge and save commands.
    
    Options:
-     -e, --emails <emails>          Comma-separated list of email addresses.
-                                    Optional if default emails were set using the
-                                    set-default command.
+     -e, --emails <emails>          Optional. A comma-separated list of email
+                                    addresses. If not used, sends updates to any
+                                    default emails set using the set-default
+                                    command.
      -p, --pipeline <pipelineName>  Pipeline name. Optional if default pipeline
                                     was set using the set-default command.
-     -m, --message <message>        Enter a  message describing changes made to
-                                    the environment.
-     --note <message>               (Alias of --message) Enter a  message
-                                    describing changes made to the environment.
+     -m, --message <message>        Enter a message describing changes made to the
+                                    environment.
+     --note <message>               Alias of --message. Enter a message describing
+                                    changes made to the environment.
      -n, --network <network>        Network, either 'production' or 'staging'. You
                                     can shorten 'production' to 'prod' or 'p' and
                                     'staging' to 'stage' or 's'.
@@ -145,17 +145,16 @@ Promote (activate property of) an environment.
      -h, --help                     output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
 ### <a name="checkPromote"></a>Check promotion status
-Checks status of previously initiated promotion. If the underlying property activation is complete,
-the environment is considered promoted.
+Checks status of a promotion that's been started. 
 
 ```
    Usage: akamai pipeline check-promotion-status|cs [options] <environment>
    
-   For the selected environment, check the activation status.
+   For the selected environment, check the activation status. If the underlying property activation is complete, the environment is considered promoted.
    
    Options:
      -p, --pipeline <pipelineName>  Pipeline name. Optional if default pipeline
@@ -166,11 +165,11 @@ the environment is considered promoted.
      -h, --help                     output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
 ### <a name="showStatus"></a>Show status
-Lists or shows status of each environment of the provided (or default) pipeline. Output format is a table.
+List status of each environment within the selected pipeline. 
 
 ```
    Usage: akamai pipeline list-status|lstat [options]
@@ -182,11 +181,12 @@ Lists or shows status of each environment of the provided (or default) pipeline.
      -h, --help                     output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
-### <a name="showDefault"></a>Show Default
-Show default pipeline and section name in devopsSettings.json.
+### <a name="showDefault"></a>Show default
+Get default pipeline and section name information from the devopsSettings.json file. 
+
 
 ```
    Usage: akamai pipeline show-defaults|sf [options]
@@ -197,12 +197,11 @@ Show default pipeline and section name in devopsSettings.json.
      -h, --help  output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
-### <a name="setDefault"></a>Set Default
-Sets default pipeline and section name in devopsSettings.json. For all commands involving an existing pipeline one can omit the
--p [pipeline-name] option
+### <a name="setDefault"></a>Set default
+Sets default property and section name in the devopsSettings.json file. 
 
 ```
    Usage: akamai pipeline set-default|sd [options]
@@ -210,7 +209,7 @@ Sets default pipeline and section name in devopsSettings.json. For all commands 
    Set the default pipeline and the default section of the .edgerc file to use.
    
    Options:
-     -a, --accountSwitchKey <accountSwitchKey>  Enter the account ID you want to use when running commands. The account persists for all pipeline commands until you change it.
+     -a, --accountSwitchKey <accountSwitchKey>  Enter the account switch key you want to use when running commands. The key entered is the default for all pipeline commands until you change it. You can use the Identity Management API to retrieve keys: https://developer.akamai.com/api/core_features/identity_management/v2.html#getaccountswitchkeys.
      -e, --emails <emails>                      Enter the email addresses to send notification emails to as a comma-separated list
      -f, --format <format>                      Select output format for commands, either 'table', the default, or 'json'.
      -p, --pipeline <pipelineName>              Set the default pipeline to use with commands.
@@ -218,11 +217,11 @@ Sets default pipeline and section name in devopsSettings.json. For all commands 
      -h, --help                                 output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
 ### List contracts
-List contracts available to client ID. The output is in form of a table.
+List available contracts based on your client ID. 
 
 ```
    Usage: akamai pipeline list-contracts|lc [options]
@@ -233,11 +232,11 @@ List contracts available to client ID. The output is in form of a table.
      -h, --help  output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
 ### List products
-List products available under provided contract ID and client ID. The output is in form of a table.
+List available products based on your client ID and the contract ID you select. 
 
 ```
    Usage: akamai pipeline list-products|lp [options]
@@ -251,11 +250,11 @@ List products available under provided contract ID and client ID. The output is 
      -h, --help                     output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
 ### List groups
-List groups client ID has access to. The output is in form of a table.
+List available groups based on your client ID.
 
 ```
    Usage: akamai pipeline list-groups|lg [options]
@@ -266,11 +265,11 @@ List groups client ID has access to. The output is in form of a table.
      -h, --help  output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
-### List cpcodes.
-List cpcodes for provided contract ID and group ID.
+### List CP codes
+List available CP codes for the contract ID and group ID provided.
 
 ```
    Usage: akamai pipeline list-cpcodes|lcp [options]
@@ -283,16 +282,16 @@ List cpcodes for provided contract ID and group ID.
      -h, --help                     output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
-### List Edge hostnames
-List edge hostnames available under provided contract ID and group ID (this could be a long list).
+### List edge hostnames
+List edge hostnames available based on the contract ID and group ID provided. 
 
 ```
    Usage: akamai pipeline list-edgehostnames|leh [options]
    
-   List edge hostnames available based on current user credentials and setup. May return a long list of hostnames.
+   List edge hostnames available based on the contract ID and group ID provided. Use the list commands to retrieve the required IDs. May return a long list of hostnames.
    
    Options:
      -c, --contractId <contractId>  Contract ID.
@@ -300,64 +299,56 @@ List edge hostnames available under provided contract ID and group ID (this coul
      -h, --help                     output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
 ### Search
-Searches for existing property by name. Does not support wild cards, the name needs to be exact.
+Search for an existing property by name. 
 
 ```
    Usage: akamai pipeline search|s [options] <name>
    
-   Search for properties by name.
+   Search for a property by name. Be sure to enter the exact name as wildcards aren't supported.
    
    Options:
      -h, --help  output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
-### Set Prefixes
-Set or unset id prefixes in responses. Instead of IDs with prefix like act_ACCT-ID or grp_2342 responses will only contain the id,
-like ACCT-ID or just 2342. This should not matter to the end user for the most part since the SDK hides most of the
-details with the communication between client and REST end points.
-The value is stored with options of the currently used client id.
-If the users uses multiple client ids, they would have to call set-prefixes for each client id.
-*Caution: this will also affect any other REST client implemented by user using the same client id!*
+### Set prefixes
+Add or remove prefixes in responses.                  
 
 ```
    Usage: akamai pipeline set-prefixes|sp [options] <useprefix>
    
-   Boolean. Enter `true` to enable prefixes with the current user credentials and setup. Enter `false` to disable them.
+   Boolean. Enter `true` to enable prefixes on responses based on the current user credentials and setup. Enter `false` to disable them. If you have multiple client IDs, run separately for each client ID you want to update. **Caution.** Setting prefixes for this CLI impacts all other PAPI REST clients implemented for this client ID.
    
    Options:
      -h, --help  output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
-### Set Rule Format
-Sets the default rule format for creating new properties. This value is stored per client id.
-*Caution: this will also affect any other REST client implemented by user using the same client id!*
+### Set rule format
+Sets the default rule format used when creating new properties. 
 
 ```
    Usage: akamai pipeline set-ruleformat|srf [options] <ruleformat>
    
-   Set the rule format to use with the current user credentials and setup. Enter `latest` for the most current rule format. For a list of earlier rule formats, see: https://developer.akamai.com/api/core_features/property_manager/v1.html#versioning
+   Set the rule format to use based on the user's client ID.Enter `latest` for the most current rule format. For a list of earlier rule formats, see: https://developer.akamai.com/api/core_features/property_manager/v1.html#versioning **Caution.** Setting prefixes for this CLI impacts  all other PAPI REST clients implemented for this client ID.
    
    Options:
      -h, --help  output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
 ### Show rule tree
-Download and print out the rule tree for provided environment under a pipeline (default or provided by -p option).
-For the most part this command is useless, since the rule tree is generated by the SDK and stored in the dist folder.
-This command might get removed in the future or expanded in some way to make it more useful.
+Download and print out the rule tree the environment you provide.
 
 ```
    Usage: akamai pipeline show-ruletree|sr [options] <environment>
@@ -370,6 +361,6 @@ This command might get removed in the future or expanded in some way to make it 
      -h, --help                     output usage information
    
      © 2017-2020 Akamai Technologies, Inc. All rights reserved
-     Visit http://github.com/akamai/cli-property-manager for documentation
+     Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```

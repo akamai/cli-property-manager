@@ -27,10 +27,17 @@ describe('Edgerc tests', function () {
         assert.equal(cred.client_token, "foobarvoobawejrw");
     });
 
+    it('Parse section with comments', function () {
+        let cred = edgerc.getSection(path.join(__dirname, "edgerc.config"), "sec-with-comment");
+        assert.exists(cred);
+        assert.equal(cred.host, "https://sec.with.comment.com");
+        assert.equal(cred.client_token, "foobasdfsdfwdsfnfnfgnfgn");
+    });
+
     it('Parse test with class success', function () {
         let edgeRC = new edgerc.EdgeRC(path.join(__dirname, "edgerc.config"));
         assert.exists(edgeRC);
-        assert.deepEqual(edgeRC.getSectionNames(), ["credentials", "frodo"]);
+        assert.deepEqual(edgeRC.getSectionNames(), ["credentials", "frodo", "sec-with-comment"]);
         let frodo = edgeRC.getSection("frodo");
         assert.equal(frodo.host, "https://ewrdfsfsdweew");
         assert.equal(frodo.client_token, "foobasdfsdfwdsfnfnfgnfgn");
@@ -43,7 +50,7 @@ describe('Edgerc tests', function () {
             assert.fail("should throw exception")
         } catch (ex) {
             assert.isTrue(ex.message.startsWith("Section 'nonexistent' not found in edgerc file: "));
-            assert.isTrue(ex.message.endsWith("tests/edgerc.config'. Possible section names: ['credentials', 'frodo']"));
+            assert.isTrue(ex.message.endsWith("tests/edgerc.config'. Possible section names: ['credentials', 'frodo', 'sec-with-comment']"));
         }
     });
 
@@ -51,11 +58,5 @@ describe('Edgerc tests', function () {
         assert.throws(() => {
             edgerc.getSection(path.join(__dirname, "edgercblah.config"), "nonexistent");
         }, `Could not load .edgerc file from '${__dirname}/edgercblah.config'`);
-    });
-
-    it('Parse test wrong file format', function () {
-        assert.throws(() => {
-            edgerc.getSection(path.join(__dirname, "devopsSettings.json"), "nonexistent");
-        }, "Unexpected data '{' outside of section in line 0!");
     });
 });

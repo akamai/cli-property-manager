@@ -339,6 +339,9 @@ class DevOps {
                 emailSet.add(e)
             }
         }
+        if (emailSet.size === 0 || !emailSet) {
+            emailSet.add("noreply@akamai.com");
+        }
         this.checkEmails(emailSet);
         logger.info(this.promoteEmailString, emailSet);
         return emailSet;
@@ -516,6 +519,11 @@ class DevOps {
     async listPropertyHostnames(propertyInfo, validate) {
         let versionInfo = await this.getVersionInfo(propertyInfo);
         return this.getPAPI().listPropertyHostnames(versionInfo.propertyId, versionInfo.propertyVersion, versionInfo.contractId, versionInfo.groupId, validate);
+    }
+
+    async updatePropertyHostnames(propertyInfo, hostnames) {
+        let versionInfo = await this.getVersionInfo(propertyInfo);
+        return this.getPAPI().storePropertyVersionHostnames(versionInfo.propertyId, versionInfo.propertyVersion, hostnames, versionInfo.contractId, versionInfo.groupId);
     }
 
     async getVersionInfo(propertyInfo) {

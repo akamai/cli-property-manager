@@ -2299,7 +2299,12 @@ describe('Snippets Promote test', function() {
             new Set(["foo@bar.com", "spam@egg.com", "fee@baz.com", "spom@ugg.com"]), "Message", true));
     });
 
-    it('promote with bad default and and a bad cli option emails', function() {
+    it('promote with no email', function() {
+        devops.promote("foobar", "qa", "staging", "", "Message", true);
+        td.verify(projectClass.prototype.promote("qa", "staging", new Set(["noreply@akamai.com"]), "Message", true));
+    });
+
+    it('activate with bad default and and a bad cli option emails', function() {
         devops.devopsSettings.emails = ["a ", "spam@egg.com"];
         assert.throws(() => {
             devops.promote("foobar", "qa", "staging", ", b,spom@ugg.com");
@@ -2337,6 +2342,11 @@ describe('Snippets Deactivate test', function() {
         devops.deactivate("foobar", "staging", "fee@baz.com,spom@ugg.com", "Message");
         td.verify(projectClass.prototype.deactivate("foobar", "staging",
             new Set(["foo@bar.com", "spam@egg.com", "fee@baz.com", "spom@ugg.com"]), "Message"));
+    });
+
+    it('deactivate with no email', function() {
+        devops.promote("foobar", "qa", "staging", "", "Message", true);
+        td.verify(projectClass.prototype.promote("qa", "staging", new Set(["noreply@akamai.com"]), "Message", true));
     });
 
     it('deactivate with bad default and and a bad cli option emails', function() {
