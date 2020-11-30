@@ -1,0 +1,14 @@
+{
+    "errors": [
+        {
+            "type": "https://problems.luna.akamaiapis.net/papi/v0/validation/attribute_required",
+            "errorLocation": "#/rules/behaviors/3/options/netStorage",
+            "detail": "The NetStorage Account option on the `Origin Server` behavior is required."
+        },
+        {
+            "type": "https://problems.luna.akamaiapis.net/papi/v0/validation/attribute_required",
+            "errorLocation": "#/rules/behaviors/4/options/value",
+            "detail": "The Content Provider Code option on the `Content Provider Code` behavior is required."
+        }
+    ]
+}

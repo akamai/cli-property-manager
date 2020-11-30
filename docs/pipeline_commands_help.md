@@ -40,8 +40,8 @@ Get help for Akamai Pipeline CLI commands. A pipeline is a chain of environments
      save|sv [options] <environment>                    Save rule tree and hostnames for the environment you select. This command calls PAPI to validate the rule tree, and creates edge hostnames if needed.
      search|s <name>                                    Search for a property by name. Be sure to enter the exact name as wildcards aren't supported.
      set-default|sd [options]                           Set the default pipeline and the default section of the .edgerc file to use.
-     set-prefixes|sp <useprefix>                        Boolean. Enter `true` to enable prefixes on responses based on the current user credentials and setup. Enter `false` to disable them. If you have multiple client IDs, run separately for each client ID you want to update. **Caution.** Setting prefixes for this CLI impacts all other PAPI REST clients implemented for this client ID.
-     set-ruleformat|srf <ruleformat>                    Set the rule format to use based on the user's client ID.Enter `latest` for the most current rule format. For a list of earlier rule formats, see: https://developer.akamai.com/api/core_features/property_manager/v1.html#versioning **Caution.** Setting prefixes for this CLI impacts  all other PAPI REST clients implemented for this client ID.
+     set-prefixes|sp <useprefix>                        Boolean. Enter `true` to enable prefixes on responses based on the current user credentials and setup. Enter `false` to disable them. If you have multiple client IDs, run separately for each client ID you want to update. **Caution.** Setting prefixes with this CLI impacts all other Property Manager API clients that use this client ID.
+     set-ruleformat|srf <ruleformat>                    Set the rule format to use based on the user's client ID.Enter `latest` for the most current rule format. For a list of earlier rule formats, see: https://developer.akamai.com/api/core_features/property_manager/v1.html#versioning **Caution.** Setting the rule format with this CLI impacts all other Property Manager API clients that use this client ID.
      show-defaults|sf                                   Displays the current default settings for this workspace.
      show-ruletree|sr [options] <environment>           For the selected environment, shows local property's rule tree. Run this to store the rule tree in a local file: show-ruletree -p <pipelineName> <environment> >> <filename.json>
      help [cmd]                                         display help for [cmd]
@@ -323,7 +323,7 @@ Add or remove prefixes in responses.
 ```
    Usage: akamai pipeline set-prefixes|sp [options] <useprefix>
    
-   Boolean. Enter `true` to enable prefixes on responses based on the current user credentials and setup. Enter `false` to disable them. If you have multiple client IDs, run separately for each client ID you want to update. **Caution.** Setting prefixes for this CLI impacts all other PAPI REST clients implemented for this client ID.
+   Boolean. Enter `true` to enable prefixes on responses based on the current user credentials and setup. Enter `false` to disable them. If you have multiple client IDs, run separately for each client ID you want to update. **Caution.** Setting prefixes with this CLI impacts all other Property Manager API clients that use this client ID.
    
    Options:
      -h, --help  output usage information
@@ -338,7 +338,7 @@ Sets the default rule format used when creating new properties.
 ```
    Usage: akamai pipeline set-ruleformat|srf [options] <ruleformat>
    
-   Set the rule format to use based on the user's client ID.Enter `latest` for the most current rule format. For a list of earlier rule formats, see: https://developer.akamai.com/api/core_features/property_manager/v1.html#versioning **Caution.** Setting prefixes for this CLI impacts  all other PAPI REST clients implemented for this client ID.
+   Set the rule format to use based on the user's client ID.Enter `latest` for the most current rule format. For a list of earlier rule formats, see: https://developer.akamai.com/api/core_features/property_manager/v1.html#versioning **Caution.** Setting the rule format with this CLI impacts all other Property Manager API clients that use this client ID.
    
    Options:
      -h, --help  output usage information

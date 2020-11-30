@@ -1,0 +1,43 @@
+{
+  "rules" : {
+    "name" : "default",
+    "children" : [ ],
+    "behaviors" : [ {
+      "name" : "originCharacteristics",
+      "options" : {
+        "authenticationMethod" : "AUTOMATIC",
+        "country" : "UNKNOWN"
+      }
+    }, {
+      "name" : "contentCharacteristicsDD",
+      "options" : {
+        "catalogSize" : "UNKNOWN",
+        "contentType" : "UNKNOWN",
+        "objectSize" : "UNKNOWN",
+        "optimizeOption" : false,
+        "popularityDistribution" : "UNKNOWN"
+      }
+    }, {
+      "name" : "clientCharacteristics",
+      "options" : {
+        "country" : "UNKNOWN"
+      }
+    }, {
+      "name" : "origin",
+      "options" : {
+        "originType" : "NET_STORAGE"
+      }
+    }, {
+      "name" : "cpCode",
+      "options" : { }
+    }, {
+      "name" : "cacheKeyQueryParams",
+      "options" : {
+        "behavior" : "IGNORE_ALL"
+      }
+    } ],
+    "options" : {
+      "is_secure" : false
+    }
+  }
+}

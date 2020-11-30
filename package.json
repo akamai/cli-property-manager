@@ -1,6 +1,6 @@
 {
   "name": "cli-promotional-deployment",
-  "version": "0.7.3-RELEASE",
+  "version": "0.7.4-RELEASE",
   "engines": {
     "node": ">=8.0.0",
     "npm": ">=6.13.4"

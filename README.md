@@ -6,7 +6,7 @@
 
 * [Stay up to date](#stay-up-to-date)
 
-* [Upgrade to this version](upgrade-to-this-version)
+* [Upgrade to this version](#upgrade-to-this-version)
 
 * [Concepts](#concepts)
 
@@ -38,31 +38,31 @@
 
 * [How you can use this CLI](#how-you-can-use-this-cli)
 
-    * [Retrieving the latest version of the property from Property Manager](#retrieving-the-latest-version-of-the-property-from-property-manager)
+    * [Retrieve the latest version of the property from Property Manager](#retrieve-the-latest-version-of-the-property-from-property-manager)
 
-    * [Retrieving a specific rule from Property Manager](#retrieving-a-specific-rule-from-property-manager)
+    * [Retrieve a specific rule from Property Manager](#retrieve-a-specific-rule-from-property-manager)
  
-    * [Using Property Manager user variables](#using-property-manager-user-variables)
+    * [Use Property Manager user variables](#use-property-manager-user-variables)
 
-    * [Using attributes that vary across environments with Akamai Pipeline](#using-attributes-that-vary-across-environments-with-akamai-pipeline)
+    * [Use attributes that vary across environments with Akamai Pipeline](#use-attributes-that-vary-across-environments-with-akamai-pipeline)
 
-    * [Working with edge hostnames](#working-with-edge-hostnames) 
+    * [Work with edge hostnames](#work-with-edge-hostnames) 
 
-        * [Creating edge hostnames](#creating-edge-hostnames)
+        * [Create edge hostnames](#create-edge-hostnames)
         
-        * [Reusing edge hostnames](#reusing-edge-hostnames)
+        * [Reuse edge hostnames](#reuse-edge-hostnames)
 
-        * [Using multiple edge hostnames](#using-multiple-edge-hostnames)
+        * [Use multiple edge hostnames](#use-multiple-edge-hostnames)
 
         * [Domain suffixes for edge hostnames](#domain-suffixes-for-edge-hostnames)
 
-    * [Working with advanced behaviors](#working-with-advanced-behaviors)	
+    * [Work with advanced behaviors](#work-with-advanced-behaviors)	
 
-    * [Working with CP codes](#working-with-cp-codes)
+    * [Work with CP codes](#work-with-cp-codes)
     
-    * [Working with multiple accounts](working-with-multiple-accounts)
+    * [Work with multiple accounts](#work-with-multiple-accounts)
     
-    * [Using existing properties in your pipeline](using-existing-properties-in-your-pipeline)
+    * [Use existing properties in your pipeline](#use-existing-properties-in-your-pipeline)
 	
 * [Notice](#notice)
 
@@ -476,19 +476,19 @@ To save and promote changes:
 
 Here are some ways you can use the Property Manager CLI to meet your business needs.
 
-## Retrieving the latest version of the property from Property Manager
+## Retrieve the latest version of the property from Property Manager
 
 If you also use the Property Manager UI, make sure your client side files are in sync with the latest property version on the network. 
 
 To retrieve all updates from the latest property version, run this command: `akamai property-manager update-local -p <property_name>`. <br> The `update-local` command overrides any locally-saved configuration version with the latest active property version.
 
-## Retrieving a specific rule from Property Manager
+## Retrieve a specific rule from Property Manager
 
 You may want to manually retrieve the new rules from the Property Manager UI without updating all of your local snippets.
 
 To get the JSON syntax for these rules, open the property version in the Property Manager application, select a rule, and click **View Rule JSON** to display the syntax. You can then copy the JSON and [create a new snippet](#add-a-new-snippet) for the rule.
 
-## Using Property Manager user variables
+## Use Property Manager user variables
 
 Some Property Manager behaviors, like Origin Server [`origin`](https://developer.akamai.com/api/core_features/property_manager/v2018-02-27.html#origin), let you define custom user variables for certain settings. 
 
@@ -501,9 +501,9 @@ When you’re ready to create the pipeline or local configuration, use the `--va
 
 If you’re creating a new property from scratch, you can also use the `default` value, which replaces parts of the template configuration, like the `origin` behavior, with Property Manager’s default settings.
 
-If you've already created a pipeline and want declare a new user variable, you can revise the `../environments/variableDefinitions.json` and `../environments/{environment}/variables.json` files using the [syntax for Property Manager variables](https://developer.akamai.com/api/core_features/property_manager/v1.html#declaringvariables).
+If you've already created a pipeline and want declare a new user variable, you can revise the `../environments/variableDefinitions.json` and `../environments/{environment}/variables.json` files using the [syntax for Property Manager variables](https://developer.akamai.com/api/core_features/property_manager/v1.html#variables).
 
-## Using attributes that vary across environments with Akamai Pipeline
+## Use attributes that vary across environments with Akamai Pipeline
 
 Property Manager CLI is a client-only library. With it you can create tokens for any attribute in your configuration. Each environment can then have different values for that attribute. 
 
@@ -570,11 +570,11 @@ We need to change the value of `enabled` to a variable. We'll do this in a few s
     ```
 1. Merge, save, and promote your change as needed. 
 
-## Working with edge hostnames 
+## Work with edge hostnames 
 
 The Property Manager CLI lets you create and reuse edge hostnames for your properties. It supports Standard Transport Layer Security (TLS), Enhanced TLS, and shared certificate edge hostnames.
 
-### Creating edge hostnames
+### Create edge hostnames
 
 With this CLI, you can create Standard Transport Layer Security (TLS), Enhanced TLS, and shared certificate edge hostnames. 
 
@@ -610,14 +610,14 @@ Here's an example of what the entry in the `hostname.json` file might look like 
 	]
 ```
 
-### Reusing edge hostnames
+### Reuse edge hostnames
 
 To reuse an edge hostname with your pipeline, simply add the existing edge hostname to your `hostnames.json` file. You can also create a new edge hostname in Property Manager and add it to your `hostnames.json` file.
 
 Use this command to view a list of your existing available edge hostnames: 
    `akamai property-manager list-edgehostnames -c <contractId> -g <groupId>`
 
-### Using multiple edge hostnames
+### Use multiple edge hostnames
 
 If you want to use multiple edge hostnames with any environment in your pipeline, you can modify the `hostnames.json` file like this:
 
@@ -673,13 +673,13 @@ Each type of edge hostname has its own domain suffix.  Knowing which one to use 
   </tr>
 </table>
 
-## Working with advanced behaviors
+## Work with advanced behaviors
 
 Does the property you want to use as an Akamai Pipeline template include advanced behaviors? If so, you'll need to convert all advanced behaviors to custom behaviors before creating the pipeline. See [Custom Behaviors for PAPI](https://developer.akamai.com/blog/2018/04/26/custom-behaviors-property-manager-papi) for more information.
 
 With this CLI, you can use advanced and custom behaviors with local instances of properties you create as long as you don’t modify them.
 
-## Working with CP codes
+## Work with CP codes
 
 When creating a pipeline using an existing property as a template, verify that the new property includes a valid content provider (CP) code in the `cpCode` object. 
 
@@ -687,7 +687,7 @@ If the template property doesn't have a CP code, the CLI automatically adds `INP
 	
 **Note:** If needed, you can use PAPI to [create a new CP code](https://developer.akamai.com/api/core_features/property_manager/v1.html#postcpcodes).  
 
-## Working with multiple accounts
+## Work with multiple accounts
 
 If you're an Akamai partner who works with multiple accounts, you can use the account switch key option. It lets you change the account you're using with Akamai Pipeline.
 
@@ -697,7 +697,7 @@ Run the `set-default` command with the `--accountSwitchKey` option and the accou
 
 To check what the current default account is, run the show defaults command. Here's the short-cut version of the command: `akamai pl sf`.
 
-## Using existing properties in your pipeline
+## Use existing properties in your pipeline
 
 Do you want to use properties that already exist in Property Manager in your pipeline? Use the `-associate-property-name` option when creating your pipeline.  Here's an example of a command that uses this option: 
 

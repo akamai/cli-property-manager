@@ -526,6 +526,11 @@ class DevOps {
         return this.getPAPI().storePropertyVersionHostnames(versionInfo.propertyId, versionInfo.propertyVersion, hostnames, versionInfo.contractId, versionInfo.groupId);
     }
 
+    async patchPropertyHostnames(propertyInfo, hostnames) {
+        let versionInfo = await this.getVersionInfo(propertyInfo);
+        return this.getPAPI().patchPropertyVersionHostnames(versionInfo.propertyId, versionInfo.propertyVersion, hostnames, versionInfo.contractId, versionInfo.groupId);
+    }
+
     async getVersionInfo(propertyInfo) {
         let versionInfo;
         if (!_.isNumber(propertyInfo.propertyId) && _.isString(propertyInfo.propertyName)) {
@@ -571,11 +576,32 @@ class DevOps {
         if (dryRun) {
             return await this.getPAPI().validatePropertyVersionRules(versionInfo.propertyId,
                 versionInfo.propertyVersion, rules, ruleFormat);
+        } else if (propertyInfo.propertyVersion) {
+            let results = await this.getPAPI().storePropertyVersionRules(versionInfo.propertyId,
+                versionInfo.propertyVersion, rules, ruleFormat);
+            if (propertyInfo.suppress) {
+                return this.processValidationResults(results);
+            } else {
+                return results;
+            }
         } else {
             let newVersionData = await this.getPAPI().createNewPropertyVersion(versionInfo.propertyId, versionInfo.propertyVersion);
             let propertyVersion = Environment._extractVersionId(newVersionData);
-            return await this.getPAPI().storePropertyVersionRules(versionInfo.propertyId,
+            let results = await this.getPAPI().storePropertyVersionRules(versionInfo.propertyId,
                 propertyVersion, rules, ruleFormat);
+            if (propertyInfo.suppress) {
+                return this.processValidationResults(results);
+            } else {
+                return results;
+            }
+        }
+    }
+
+    processValidationResults(validationResult) {
+        if (_.isArray(validationResult.errors) && validationResult.errors.length > 0) {
+            return validationResult.errors;
+        } else {
+            return [];
         }
     }
 }
