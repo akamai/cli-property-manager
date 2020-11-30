@@ -56,7 +56,7 @@ class OpenClient {
             method: method,
             headers: myHeaders
         };
-        if (method === "POST" || method === "PUT") {
+        if (method === "POST" || method === "PUT" || method === "PATCH") {
             request.body = body;
         }
         return request;

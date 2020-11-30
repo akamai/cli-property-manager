@@ -157,6 +157,11 @@ class PAPI {
         return this.openClient.put(url, hostnames);
     }
 
+    patchPropertyVersionHostnames(propertyId, propertyVersion, hostnames, contractId, groupId) {
+        let url = `/papi/v1/properties/${propertyId}/versions/${propertyVersion}/hostnames?contractId=${contractId}&groupId=${groupId}`;
+        return this.openClient.patch(url, hostnames);
+    }
+
     listCpcodes(contractId, groupId) {
         let url = `/papi/v1/cpcodes?contractId=${contractId}&groupId=${groupId}`;
         return this.openClient.get(url);

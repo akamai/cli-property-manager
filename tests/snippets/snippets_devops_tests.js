@@ -316,6 +316,17 @@ describe('Snippets createPipeline integration tests', function() {
         });
     });
 
+    it('createPipeline with propertyId no local directory = true', async function() {
+        //This should create a new project without local directory
+        await devops.createProperty({
+            projectName: testProjectUserVar,
+            contractId: null,
+            groupId: null,
+            propertyId: 98789,
+            noLocalFolders: true
+        });
+    });
+
     it('createPipeline with propertyId', async function() {
         await devops.createProperty({
             projectName: testProjectExistingName,
