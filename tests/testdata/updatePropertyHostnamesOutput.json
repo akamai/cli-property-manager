@@ -12,7 +12,31 @@
                 "cnameType": "EDGE_HOSTNAME",
                 "edgeHostnameId": "ehn_4363836",
                 "cnameFrom": "dev.pipeline.com",
-                "cnameTo": "dev.pipeline.com.edgesuite.net"
+                "cnameTo": "dev.pipeline.com.edgesuite.net",
+                "certProvisioningType": "DEFAULT",
+                "certStatus": {
+                    "validationCname": {
+                        "hostname": "_acme-challenge.www.example.com",
+                        "target": "{token}.www.example.com.akamai-domain.com"
+                    },
+                    "staging": [
+                        {
+                            "status": "NEEDS_VALIDATION"
+                        }
+                    ],
+                    "production": [
+                        {
+                            "status": "NEEDS_VALIDATION"
+                        }
+                    ]
+                }
+            },
+            {
+                "cnameType": "EDGE_HOSTNAME",
+                "edgeHostnameId": "ehn_4363836",
+                "cnameFrom": "dev1.pipeline.com",
+                "cnameTo": "dev1.pipeline.com.edgesuite.net",
+                "certProvisioningType": "CPS_MANAGED"
             }
         ]
     }

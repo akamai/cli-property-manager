@@ -224,7 +224,7 @@ describe('snippets Environment save with hostnames - associating hostname with p
         }
 
 
-        td.when(papi.storePropertyVersionHostnames(td.matchers.anything(), td.matchers.anything(),td.matchers.anything(),"1-1TJZH5",61726 )).thenReturn(
+        td.when(papi.storePropertyVersionHostnames(td.matchers.anything(), td.matchers.anything(),td.matchers.anything(),"1-1TJZH5",61726, true )).thenReturn(
             {
                 "accountId" : "act_1-1TJZFB",
                 "contractId" : "ctr_1-1TJZH5",
@@ -349,7 +349,7 @@ describe('snippets Environment save with hostnames - clear warnings and errors',
         }
 
 
-        td.when(papi.storePropertyVersionHostnames(td.matchers.anything(), td.matchers.anything(),td.matchers.anything(),"1-1TJZH5",61726 )).thenReturn(
+        td.when(papi.storePropertyVersionHostnames(td.matchers.anything(), td.matchers.anything(),td.matchers.anything(),"1-1TJZH5",61726, true )).thenReturn(
             {
                 "accountId" : "act_1-1TJZFB",
                 "contractId" : "ctr_1-1TJZH5",
@@ -1381,7 +1381,7 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
                 ]
             }
         });
-        td.when(papi.storePropertyVersionHostnames(td.matchers.anything(), td.matchers.anything(), td.matchers.anything(), td.matchers.anything(), td.matchers.anything())).thenReturn(
+        td.when(papi.storePropertyVersionHostnames(411089, td.matchers.anything(), td.matchers.anything(), td.matchers.anything(), 61726, true)).thenReturn(
             {
                 "accountId" : "act_1-1TJZFB",
                 "contractId" : "ctr_1-1TJZH5",
@@ -1390,12 +1390,21 @@ describe('Environment Merge, Save, Promote and check status tests', function () 
                 "propertyName" : "james-sqa2-uservar-test6",
                 "propertyVersion" : 1,
                 "hostnames" : {
-                    "items" : [ {
-                        "cnameType" : "EDGE_HOSTNAME",
-                        "edgeHostnameId" : "ehn_3444495",
-                        "cnameFrom" : "james-sqa2-uservar-test6.com",
-                        "cnameTo" : "james-sqa2-uservar-test6.edgesuite.net"
-                    } ]
+                    "items" : [
+                        {
+                            "cnameFrom": "new.snippets.com",
+                            "cnameTo": "snippets.environment.tests.com.edgesuite.net",
+                            "cnameType": "EDGE_HOSTNAME",
+                            "edgeHostnameId": 2683119
+                        },
+                        {
+                            "cnameFrom": "qa.securesite.com",
+                            "cnameTo": "qa.securesite.com.edgekey.net",
+                            "cnameType": "EDGE_HOSTNAME",
+                            "edgeHostnameId": 2922843,
+                            "ipVersionBehavior": "IPV4"
+                        }
+                    ]
                 }
             }
         );
@@ -2088,7 +2097,7 @@ describe('Snippets Environment merge and save new version after activation', fun
 
         papi = td.object(['validatePropertyVersionRules', 'setRuleFormat', 'storePropertyVersionHostnames',
             'getPropertyVersion', 'listEdgeHostnames', 'storePropertyVersionRules', 'createNewPropertyVersion']);
-        td.when(papi.storePropertyVersionHostnames(td.matchers.anything(), td.matchers.anything(), td.matchers.anything(), td.matchers.anything(), td.matchers.anything())).thenReturn(
+        td.when(papi.storePropertyVersionHostnames(td.matchers.anything(), td.matchers.anything(), td.matchers.anything(), td.matchers.anything(), td.matchers.anything(),td.matchers.anything())).thenReturn(
             {
                 "accountId" : "act_1-1TJZFB",
                 "contractId" : "ctr_1-1TJZH5",
@@ -2240,7 +2249,7 @@ describe('Snippets Environment merge and save new version after abort', function
                 ]
             }
         });
-        td.when(papi.storePropertyVersionHostnames(td.matchers.anything(), td.matchers.anything(), td.matchers.anything(), td.matchers.anything(), td.matchers.anything())).thenReturn(
+        td.when(papi.storePropertyVersionHostnames(td.matchers.anything(), td.matchers.anything(), td.matchers.anything(), td.matchers.anything(), td.matchers.anything(), td.matchers.anything())).thenReturn(
             {
                 "accountId" : "act_1-1TJZFB",
                 "contractId" : "ctr_1-1TJZH5",
@@ -2325,6 +2334,6 @@ describe('Snippets Environment merge and save new version after abort', function
         envInfo = utils.readJsonFile(envInfoPath);
         assert.equal(envInfo.latestVersionInfo.propertyVersion, 2);
         assert.equal(envInfo.lastSavedHash, "33e96e8ff7288ead357e4e866da601cddb3c73e23e9e495665e001b7e1c32d31");
-        assert.equal(envInfo.lastSavedHostnamesHash, "0692a8d14e80ec21e81b449639f5622c0f31bf5bbf58aef74913aaf7f54d3a1b");
+        assert.equal(envInfo.lastSavedHostnamesHash, "0391f43b4059bfbb2440d2a7270c4d41ba98a269f3a09b3729853dde2ead2904");
     });
 });

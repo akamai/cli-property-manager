@@ -161,6 +161,14 @@ class CommonCli {
         return propertyInfo;
     }
 
+    checkPropertyVersionIsZero(version) {
+        if (version === 0) {
+            throw new errors.DependencyError("Property version is invalid", "illegal_property_version");
+        } else {
+            return version;
+        }
+    }
+
     /**
      * list cpcodes under a given contract and group
      * @type {Function}
@@ -235,6 +243,7 @@ class CommonCli {
 
     async listPropertyHostnames(devops, options) {
         let propertyInfo = this.checkPropertyIdAndPropertyVersion(options.property, parseInt(options.propver, 10));
+        propertyInfo.propertyVersion = this.checkPropertyVersionIsZero(options.propver);
         let validate = true;
         if (_.isBoolean(options.validate)) {
             validate = options.validate;
@@ -251,17 +260,41 @@ class CommonCli {
             }
             if (devops.devopsSettings.outputFormat === 'table') {
                 hostnames = _.map(hostnames, function(hostname) {
+                    let validationCnameHostname, validationCnameTarget, cert_staging_status, cert_production_status;
                     if (!hostname["edgeHostnameId"]) {
                         hostname["edgeHostnameId"] = null;
                     }
-                    return [
-                        hostname["cnameTo"],
-                        hostname["cnameFrom"],
-                        hostname["edgeHostnameId"],
-                        hostname["cnameType"]
-                    ];
+                    if (hostname["certStatus"]) {
+                        validationCnameHostname = hostname["certStatus"]["validationCname"]["hostname"];
+                        validationCnameTarget = hostname["certStatus"]["validationCname"]["target"];
+                        cert_staging_status = hostname["certStatus"]["staging"][0]["status"]; // For now the array will always contain 1 object. Change may occur once changes are made in papi for CPS_MANAGED.
+                        cert_production_status = hostname["certStatus"]["production"][0]["status"]; // Same as above
+                        return [
+                            hostname["cnameTo"],
+                            hostname["cnameFrom"],
+                            hostname["edgeHostnameId"],
+                            hostname["cnameType"],
+                            hostname["certProvisioningType"],
+                            validationCnameHostname,
+                            validationCnameTarget,
+                            cert_staging_status,
+                            cert_production_status
+                        ];
+                    } else {
+                        return [
+                            hostname["cnameTo"],
+                            hostname["cnameFrom"],
+                            hostname["edgeHostnameId"],
+                            hostname["cnameType"],
+                            hostname["certProvisioningType"],
+                            null,
+                            null,
+                            null,
+                            null
+                        ];
+                    }
                 });
-                hostnames.unshift(["Cname To", "Cname From", "Edge hostname ID", "Cname Type"]);
+                hostnames.unshift(["Cname To", "Cname From", "Edge hostname ID", "Cname Type", "Cert Type", "Validation Cname Hostname", "Validation Cname Target", "Cert Staging Status", "Cert Production Status"]);
                 this.consoleLogger.info(AsciiTable.table(hostnames, 30));
             } else {
                 this.consoleLogger.info(helpers.jsonStringify(hostnames));
@@ -302,7 +335,7 @@ class CommonCli {
 
     async listPropertyVariables(devops, options) {
         let propertyInfo = this.checkPropertyIdAndPropertyVersion(options.property, parseInt(options.propver, 10));
-
+        propertyInfo.propertyVersion = this.checkPropertyVersionIsZero(options.propver);
         return devops.getPropertyRules(propertyInfo).then(data => {
             let variables = data["rules"]["variables"];
             if (!variables) {

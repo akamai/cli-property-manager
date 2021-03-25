@@ -374,6 +374,29 @@ describe('Snippets CLI create new project', function () {
         });
     });
 
+    it('create new project with property name no account info and no local directory', function () {
+        let cliArgs = createCommand("np", "-e", "www.foobar.com", "-p", "testproject2.com", "--nolocaldir");
+
+        return mainTester(errorCatcher => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": baseDir
+            }, createDevOpsFun, errorCatcher);
+        }, errorCatcher => {
+            td.verify(devOpsClass.prototype.createProperty({
+                projectName: "testproject2.com",
+                productId: undefined,
+                contractId: undefined,
+                groupId: undefined,
+                isInRetryMode: false,
+                propertyId: undefined,
+                propertyName: "www.foobar.com",
+                propertyVersion: undefined,
+                variableMode: "no-var",
+                noLocalFolders: true
+            }));
+        });
+    });
+
     it('create new project with propertyId and version no account info', function () {
         let cliArgs = createCommand("np", "-e", "3456", "-n", "4", "-p", "testproject2.com");
 
@@ -959,6 +982,11 @@ describe('Snippets list tests', function () {
                 resolve(utils.readJsonFile(path.join(baseDir, "testdata", "propertyHostnamesList.json")));
             }));
 
+        td.when(devOpsClass.prototype.patchPropertyHostnames(td.matchers.anything(), td.matchers.anything()))
+            .thenReturn(new Promise((resolve, reject) => {
+                resolve(utils.readJsonFile(path.join(baseDir, "testdata", "propertyHostnamesList.json")));
+            }));
+
         td.when(devOpsClass.prototype.listEdgeHostnames("1-1TJZH5", 61726))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve(utils.readJsonFile(path.join(baseDir, "testdata", "edgeHostnames.json")));
@@ -1202,6 +1230,24 @@ describe('Snippets list tests', function () {
         }, createDevOpsFun);
     });
 
+    it('patchPropertyHostnames test', function () {
+        let hostFilePath = path.join(baseDir, "testdata/patchhost.json");
+        let cliArgs = createCommand("hu", "-p","dev.pipeline.com", "--propver", 1,"--patch","--file", hostFilePath, "-v");
+        testConsole = new TestConsole();
+        return mainTester(errorReporter => {
+            main(cliArgs, {
+                "AKAMAI_PROJECT_HOME": baseDir
+            }, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            assert.equal(null,errorCatcher);
+            assert.equal(testConsole.logs.length, 1);
+            assert.equal(testConsole.logs[0].length, 1);
+            let output = testConsole.logs[0][0];
+            let expected = utils.readFile(path.join(baseDir,"testdata", "updatePropertyHostnamesOutput.json"))
+            assert.deepEqual(output,expected)
+        }, createDevOpsFun);
+    });
+
     describe('merge tests', function () {
         let createDevOpsFun;
         let testConsole;
@@ -1218,6 +1264,11 @@ describe('Snippets list tests', function () {
                         resolve(merge);
                     })
                 );
+
+            td.when(devOpsClass.prototype.propertyUpdate(td.matchers.anything(), td.matchers.anything(), td.matchers.anything()))
+                .thenReturn(new Promise((resolve, reject) => {
+                    resolve(utils.readJsonFile(path.join(baseDir, "testdata", "propertyUpdateSuppressOutput.json")));
+                }));
 
             var devopsHome = baseDir;
 
@@ -1378,6 +1429,29 @@ describe('Snippets list tests', function () {
             }, errorCatcher => {
                 let output = testConsole.logs[0][0];
                 assert.equal(output, utils.readFile(path.join(baseDir, "testdata", "merge.output.hostname.warning.txt")))
+            }, createDevOpsFun);
+        });
+
+        it('test property update with suppress parameter', function () {
+            runBefore({
+                fileName: "foobar.json",
+                hash: "hash baby hash",
+                changesDetected: true,
+                validationPerformed: true
+            });
+            testConsole = new TestConsole();
+            let rulesJsonFilePath = path.join(baseDir, "testdata/ruletreeError.json");
+            let cliArgs = createCommand("property-update", "-p","example.com", "--propver", 1, "--file", rulesJsonFilePath, "--suppress");
+            return mainTester(errorReporter => {
+                main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+            }, errorCatcher => {
+               assert.equal(null,errorCatcher);
+               assert.equal(testConsole.logs.length, 1);
+               assert.equal(testConsole.logs[0].length, 1);
+                let output = testConsole.logs[0][0];
+                // let expected = utils.readFile(path.join(baseDir,"testdata", "propertyUpdateSuppressOutput.json"))
+                // assert.deepEqual(output,expected)
+                assert.equal(output, utils.readFile(path.join(baseDir,"testdata", "propertyUpdateSuppressOutput.json")))
             }, createDevOpsFun);
         });
     });

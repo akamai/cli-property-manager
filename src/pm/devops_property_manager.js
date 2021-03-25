@@ -83,6 +83,12 @@ class DevopsPropertyManager extends Devops {
         }
         logger.info('Creating new PM CLI property with data: ', helpers.jsonStringify(createPropertyInfo));
 
+        if (createPropertyInfo.noLocalFolders) {
+            logger.info('Creating new PM CLI property without local folders');
+            let results = await this.getPAPI().createProperty(project.projectName,
+                createPropertyInfo.productId, createPropertyInfo.contractId, createPropertyInfo.groupId, null, createPropertyInfo.propertyId, createPropertyInfo.propertyVersion);
+            return results;
+        }
         if (!project.exists()) {
             project.createProjectFolders(createPropertyInfo);
         }

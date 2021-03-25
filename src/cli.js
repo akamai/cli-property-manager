@@ -625,7 +625,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         });
 
     commander
-        .command("set-prefixes <useprefix>", "Boolean. Enter `true` to enable prefixes on responses based on the current " + "user credentials and setup. Enter `false` to disable them. If you have multiple client IDs, " + "run separately for each client ID you want to update. " + "**Caution.** Setting prefixes for this CLI impacts all other PAPI REST clients implemented for this client ID.")
+        .command("set-prefixes <useprefix>", "Boolean. Enter `true` to enable prefixes on responses based on the current " + "user credentials and setup. Enter `false` to disable them. If you have multiple client IDs, " + "run separately for each client ID you want to update. " + "**Caution.** Setting prefixes with this CLI impacts all other Property Manager API " + "clients that use this client ID.")
         .alias("sp")
         .on('--help', () => {
             consoleLogger.debug(footer);
@@ -636,7 +636,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         });
 
     commander
-        .command("set-ruleformat <ruleformat>", "Set the rule format to use based on the user's client ID." + "Enter `latest` for the most current rule format. For a list of earlier rule formats, see: " + "https://developer.akamai.com/api/core_features/property_manager/v1.html#versioning " + "**Caution.** Setting prefixes for this CLI impacts  all other " + "PAPI REST clients implemented for this client ID.")
+        .command("set-ruleformat <ruleformat>", "Set the rule format to use based on the user's client ID." + "Enter `latest` for the most current rule format. For a list of earlier rule formats, see: " + "https://developer.akamai.com/api/core_features/property_manager/v1.html#versioning " + "**Caution.** Setting the rule format with this CLI impacts all other Property Manager API " + "clients that use this client ID.")
         .alias("srf")
         .on('--help', () => {
             consoleLogger.debug(footer);
@@ -697,7 +697,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
     commander
         .command("list-property-hostnames", "List hostnames assigned to this property.")
         .requiredOption('-p, --property <property>', "Property name or property ID.")
-        .option(' --propver <propver>', "Optional. The property version to list. Uses latest version if not specified.")
+        .option(' --propver <propver>', "Optional. The property version to list. Uses latest version if not specified.", helpers.parsePropertyVersion)
         .option('-n, --no-validate', "Use if you don't want to validate the command before running.")
         .option('--file <file>', "Optional. Enter a filename to save the command output to. The output is in JSON format.")
         .alias("lph")
@@ -725,7 +725,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
     commander
         .command("list-property-variables", "List the property's variables.")
         .requiredOption('-p, --property <property>', "Property name or property ID.")
-        .option(' --propver <propver>', "Optional. The property version to list variables for. Uses latest version by default.")
+        .option(' --propver <propver>', "Optional. The property version to list variables for. Uses latest version by default.", helpers.parsePropertyVersion)
         .option('--file <file>', "Optional. Enter a filename to save the command output to. The output is in JSON format.")
         .alias("lpv")
         .on('--help', () => {
@@ -739,7 +739,7 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
     commander
         .command("list-property-rule-format", "List the current rule format for the property.")
         .requiredOption('-p, --property <property>', "Property name or property ID.")
-        .option(' --propver <propver>', "Optional. The property version to list rule formats for. Uses latest version by default.")
+        .option(' --propver <propver>', "Optional. The property version to list rule formats for. Uses latest version by default.", helpers.parsePropertyVersion)
         .option('--file <file>', "Optional. Enter a filename to save the command output to. The output is in JSON format.")
         .alias("lprf")
         .on('--help', () => {
