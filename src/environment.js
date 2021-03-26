@@ -551,7 +551,7 @@ class Environment {
             this.checkForLastSavedHostnameErrors(envInfo, results);
             if (results.edgeHostnames.errors.length === 0) {
                 let versionHostnamesResponse = await papi.storePropertyVersionHostnames(envInfo.propertyId,
-                    envInfo.latestVersionInfo.propertyVersion, hostnames, this.project.getProjectInfo().contractId, envInfo.groupId);
+                    envInfo.latestVersionInfo.propertyVersion, hostnames, this.project.getProjectInfo().contractId, envInfo.groupId, true);
                 //unless a 400 or 500 is thrown, it will always save/store to the version.
                 results.storedHostnames = true;
                 envInfo.lastSaveHostnameErrors = [];
@@ -566,6 +566,10 @@ class Environment {
                     envInfo.lastSaveHostnameWarnings = versionHostnamesResponse.warnings;
                     results.hostnameWarnings = envInfo.lastSaveHostnameWarnings;
                 }
+                let hostnamesResponse = versionHostnamesResponse.hostnames.items;
+                let mgr = new EdgeHostnameManager(this);
+                mgr.cleanHostnameIds(hostnamesResponse);
+                this.storeHostnames(hostnamesResponse);
             }
             hostnamesHash = helpers.createHash(hostnames);
             envInfo.lastSavedHostnamesHash = hostnamesHash;

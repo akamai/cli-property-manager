@@ -3,12 +3,30 @@
         "cnameFrom": "testing-snippets-pull.com",
         "cnameTo": "testing-snippets-pull.com.edgesuite.net",
         "cnameType": "EDGE_HOSTNAME",
-        "edgeHostnameId": 3248236
+        "edgeHostnameId": 3248236,
+        "certProvisioningType": "CPS_MANAGED"
     },
     {
         "cnameFrom": "testing-snippets.com",
         "cnameTo": "testing-snippets.edgesuite.net",
         "cnameType": "EDGE_HOSTNAME",
-        "edgeHostnameId": 3216762
+        "edgeHostnameId": 3216762,
+        "certProvisioningType": "DEFAULT",
+        "certStatus": {
+            "validationCname": {
+                "hostname": "_acme-challenge.www.example.com",
+                "target": "{token}.www.example.com.akamai-domain.com"
+            },
+            "staging": [
+                {
+                    "status": "NEEDS_VALIDATION"
+                }
+            ],
+            "production": [
+                {
+                    "status": "NEEDS_VALIDATION"
+                }
+            ]
+        }
       }
 ]

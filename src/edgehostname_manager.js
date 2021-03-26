@@ -62,8 +62,12 @@ class EdgeHostnameManager {
                 if (hostname.edgeHostnameId) {
                     logger.info(`cnameId for '${hostname.cnameFrom}' is already set to: ${hostname.edgeHostnameId}`);
                     continue;
+                } else if (hostname.certProvisioningType === "DEFAULT" && !hostname.certEnrollmentId) {
+                    logger.info(`certProvisioningType is '${hostname.certProvisioningType}', '${hostname.cnameFrom}'`);
+                    continue;
+                } else {
+                    await this.createEdgeHostname(hostname, envInfo)
                 }
-                await this.createEdgeHostname(hostname, envInfo)
             } catch (error) {
                 this.errors.push(error);
             }
@@ -112,9 +116,15 @@ class EdgeHostnameManager {
         }
         let edgeDomain;
         let createReq = {
-            productId: this.projectInfo.productId,
-            ipVersionBehavior: "IPV6_COMPLIANCE",
+            productId: this.projectInfo.productId
         };
+
+        if (hostname.ipVersionBehavior && hostname.ipVersionBehavior === "IPV4_COMPLIANCE") {
+            createReq.ipVersionBehavior = hostname.ipVersionBehavior;
+        } else {
+            createReq.ipVersionBehavior = "IPV6_COMPLIANCE";
+        }
+
         if (hostname.cnameTo.endsWith(EdgeDomains.EDGE_SUITE)) {
             edgeDomain = "edgesuite.net";
         } else if (hostname.cnameTo.endsWith(EdgeDomains.EDGE_KEY)) {

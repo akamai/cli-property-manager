@@ -113,7 +113,7 @@ class EnvironmentPropertyManager extends Environment {
 
         let envInfo = this.getEnvironmentInfo();
 
-        let hostnameResponse = await this.getPAPI().getPropertyVersionHostnames(envInfo.propertyId, envInfo.latestVersionInfo.propertyVersion);
+        let hostnameResponse = await this.getPAPI().getPropertyVersionHostnames(envInfo.propertyId, envInfo.latestVersionInfo.propertyVersion, true);
         let hostnames = hostnameResponse.hostnames.items;
 
         let mgr = new EdgeHostnameManager(this);

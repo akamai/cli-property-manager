@@ -453,7 +453,7 @@ describe('Snippets Import property Tests', function () {
                 })
             );
 
-        td.when(papiClass.prototype.getPropertyVersionHostnames(501778, 1))
+        td.when(papiClass.prototype.getPropertyVersionHostnames(501778, 1, true))
             .thenReturn(new Promise((resolve, reject) => {
                 let info = {
                     "hostnames": {
@@ -677,7 +677,7 @@ describe('Snippets Import property Tests', function () {
                 })
             );
 
-        td.when(papiClass.prototype.getPropertyVersionHostnames(501778, 1))
+        td.when(papiClass.prototype.getPropertyVersionHostnames(501778, 1, true))
             .thenReturn(new Promise((resolve, reject) => {
                     let info = {
                         "hostnames": {
@@ -883,7 +883,7 @@ describe('Snippets Import property test without EdgeHostnameID', function () {
                 })
             );
 
-        td.when(papiClass.prototype.getPropertyVersionHostnames(501778, 1))
+        td.when(papiClass.prototype.getPropertyVersionHostnames(501778, 1, true))
             .thenReturn(
                 new Promise((resolve, reject) => {
                     let info = {
@@ -891,7 +891,24 @@ describe('Snippets Import property test without EdgeHostnameID', function () {
                             "items": [{
                                 "cnameFrom": "import.snippets.noHostnameID.com",
                                 "cnameTo": "import.snippets.noHostnameID.com.edgesuite.net",
-                                "cnameType": "EDGE_HOSTNAME"
+                                "cnameType": "EDGE_HOSTNAME",
+                                "certProvisioningType": "DEFAULT",
+                                "certStatus": {
+                                    "validationCname": {
+                                        "hostname": "_acme-challenge.www.example.com",
+                                        "target": "{token}.www.example.com.akamai-domain.com"
+                                    },
+                                    "staging": [
+                                        {
+                                            "status": "NEEDS_VALIDATION"
+                                        }
+                                    ],
+                                    "production": [
+                                        {
+                                            "status": "NEEDS_VALIDATION"
+                                        }
+                                    ]
+                                }
                             }]
 
                         }
@@ -1074,7 +1091,7 @@ describe('Snippets Import property test without EdgeHostnames', function () {
                 })
             );
 
-        td.when(papiClass.prototype.getPropertyVersionHostnames(501778, 1))
+        td.when(papiClass.prototype.getPropertyVersionHostnames(501778, 1, true))
             .thenReturn(
                 new Promise((resolve, reject) => {
                     let info = {
@@ -1387,7 +1404,7 @@ describe('Snippets update property integration tests', function() {
             );
 
 
-        td.when(papiClass.prototype.getPropertyVersionHostnames(411089, 9))
+        td.when(papiClass.prototype.getPropertyVersionHostnames(411089, 9, true))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve({
                         "accountId": "1-1TJZFB",
@@ -1401,12 +1418,30 @@ describe('Snippets update property integration tests', function() {
                                 "cnameType": "EDGE_HOSTNAME",
                                 "edgeHostnameId": "3248236",
                                 "cnameFrom": "testing-snippets-pull.com",
-                                "cnameTo": "testing-snippets-pull.com.edgesuite.net"
+                                "cnameTo": "testing-snippets-pull.com.edgesuite.net",
+                                "certProvisioningType": "CPS_MANAGED"
                             }, {
                                 "cnameType": "EDGE_HOSTNAME",
                                 "edgeHostnameId": "3216762",
                                 "cnameFrom": "testing-snippets.com",
-                                "cnameTo": "testing-snippets.edgesuite.net"
+                                "cnameTo": "testing-snippets.edgesuite.net",
+                                "certProvisioningType": "DEFAULT",
+                                "certStatus": {
+                                    "validationCname": {
+                                        "hostname": "_acme-challenge.www.example.com",
+                                        "target": "{token}.www.example.com.akamai-domain.com"
+                                    },
+                                    "staging": [
+                                        {
+                                            "status": "NEEDS_VALIDATION"
+                                        }
+                                    ],
+                                    "production": [
+                                        {
+                                            "status": "NEEDS_VALIDATION"
+                                        }
+                                    ]
+                                }
                             }]
                         }
                     })
@@ -1658,7 +1693,7 @@ describe('Snippets update uservar property integration tests', function() {
             );
 
 
-        td.when(papiClass.prototype.getPropertyVersionHostnames(411089, 9))
+        td.when(papiClass.prototype.getPropertyVersionHostnames(411089, 9, true))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve({
                         "accountId": "1-1TJZFB",
@@ -1979,7 +2014,7 @@ describe('Snippets update property integration tests - with pending activations'
             );
 
 
-        td.when(papiClass.prototype.getPropertyVersionHostnames(411089, 9))
+        td.when(papiClass.prototype.getPropertyVersionHostnames(411089, 9, true))
             .thenReturn(new Promise((resolve, reject) => {
                     resolve({
                         "accountId": "1-1TJZFB",

@@ -147,18 +147,18 @@ class PAPI {
         return this.openClient.put(url, rules, headers);
     }
 
-    getPropertyVersionHostnames(propertyId, propertyVersion) {
-        let url = `/papi/v1/properties/${propertyId}/versions/${propertyVersion}/hostnames`;
+    getPropertyVersionHostnames(propertyId, propertyVersion, includeCertStatus = true) {
+        let url = `/papi/v1/properties/${propertyId}/versions/${propertyVersion}/hostnames?includeCertStatus=${includeCertStatus}`;
         return this.openClient.get(url);
     }
 
-    storePropertyVersionHostnames(propertyId, propertyVersion, hostnames, contractId, groupId) {
-        let url = `/papi/v1/properties/${propertyId}/versions/${propertyVersion}/hostnames?contractId=${contractId}&groupId=${groupId}`;
+    storePropertyVersionHostnames(propertyId, propertyVersion, hostnames, contractId, groupId, includeCertStatus = true) {
+        let url = `/papi/v1/properties/${propertyId}/versions/${propertyVersion}/hostnames?contractId=${contractId}&groupId=${groupId}&includeCertStatus=${includeCertStatus}`;
         return this.openClient.put(url, hostnames);
     }
 
-    patchPropertyVersionHostnames(propertyId, propertyVersion, hostnames, contractId, groupId) {
-        let url = `/papi/v1/properties/${propertyId}/versions/${propertyVersion}/hostnames?contractId=${contractId}&groupId=${groupId}`;
+    patchPropertyVersionHostnames(propertyId, propertyVersion, hostnames, contractId, groupId, includeCertStatus = true) {
+        let url = `/papi/v1/properties/${propertyId}/versions/${propertyVersion}/hostnames?contractId=${contractId}&groupId=${groupId}&includeCertStatus=${includeCertStatus}`;
         return this.openClient.patch(url, hostnames);
     }
 
@@ -177,8 +177,8 @@ class PAPI {
         return this.openClient.get(url);
     }
 
-    listPropertyHostnames(propertyId, propertyVersion, contractId, groupId, validateHostnames) {
-        let url = `/papi/v1/properties/${propertyId}/versions/${propertyVersion}/hostnames?contractId=${contractId}&groupId=${groupId}&validateHostnames=${validateHostnames}`;
+    listPropertyHostnames(propertyId, propertyVersion, contractId, groupId, validateHostnames, includeCertStatus = true) {
+        let url = `/papi/v1/properties/${propertyId}/versions/${propertyVersion}/hostnames?contractId=${contractId}&groupId=${groupId}&validateHostnames=${validateHostnames}&includeCertStatus=${includeCertStatus}`;
         return this.openClient.get(url);
     }
 
@@ -283,14 +283,14 @@ class PAPI {
     }
 
     // GET /papi/cli/v1/properties/${propertyId}/hostnames - list hostnames for latest version of property
-    getHostnamesOfLatestVersion(propertyId) {
-        let url = `/papi/cli/v1/properties/${propertyId}/hostnames`;
+    getHostnamesOfLatestVersion(propertyId, includeCertStatus = true) {
+        let url = `/papi/cli/v1/properties/${propertyId}/hostnames?includeCertStatus=${includeCertStatus}`;
         return this.openClient.get(url);
     }
 
     // PUT /papi/cli/v1/properties/${propertyId}/hostnames?contractId=${contractId}&groupId=${groupId} - associate hostname with the latest version of property.
-    associateHostnameWithLatestVersion(propertyId, contractId, groupId, syntaxVersion, pipelineId, hostnames) {
-        const url = `/papi/cli/v1/properties/${propertyId}/hostnames?contractId=${contractId}&groupId=${groupId}`;
+    associateHostnameWithLatestVersion(propertyId, contractId, groupId, syntaxVersion, pipelineId, hostnames, includeCertStatus = true) {
+        const url = `/papi/cli/v1/properties/${propertyId}/hostnames?contractId=${contractId}&groupId=${groupId}&includeCertStatus=${includeCertStatus}`;
         return this.openClient.post(url, {
             syntaxVersion,
             pipelineId,
