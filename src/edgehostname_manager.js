@@ -106,24 +106,31 @@ class EdgeHostnameManager {
 
         let foundEdgehostname = this.existingEdgehostnames[hostname.cnameTo];
         if (_.isObject(foundEdgehostname)) {
-            hostname.edgeHostnameId = helpers.parseEdgehostnameId(foundEdgehostname.edgeHostnameId);
-            hostname.ipVersionBehavior = foundEdgehostname.ipVersionBehavior;
-            this.hostnamesFound.push({
-                name: hostname.cnameTo,
-                id: hostname.edgeHostnameId
-            });
-            return;
+            // if the ipVersionBehavior is updated, create a new hostname with this ipVersionBehavior
+            if (_.isString(hostname.ipVersionBehavior) && hostname.ipVersionBehavior !== foundEdgehostname.ipVersionBehavior) {
+                this.errors.push({
+                    message: `Hostname with cnameTo: ${hostname.cnameTo} and ipVersionBehavior: ${foundEdgehostname.ipVersionBehavior} exists. ` +
+                        `Must use a different cnameTo for creating a new hostname with ipVersionBehavior: ${hostname.ipVersionBehavior}`,
+                    messageId: "hostname_exists",
+                    edgehostname: hostname.cnameTo
+                });
+                return;
+            } else {
+                hostname.edgeHostnameId = helpers.parseEdgehostnameId(foundEdgehostname.edgeHostnameId);
+                hostname.ipVersionBehavior = foundEdgehostname.ipVersionBehavior;
+                this.hostnamesFound.push({
+                    name: hostname.cnameTo,
+                    id: hostname.edgeHostnameId
+                });
+                return;
+            }
         }
         let edgeDomain;
         let createReq = {
             productId: this.projectInfo.productId
         };
 
-        if (hostname.ipVersionBehavior && hostname.ipVersionBehavior === "IPV4_COMPLIANCE") {
-            createReq.ipVersionBehavior = hostname.ipVersionBehavior;
-        } else {
-            createReq.ipVersionBehavior = "IPV6_COMPLIANCE";
-        }
+        createReq.ipVersionBehavior = helpers.parseIpVersionBehavior(hostname.ipVersionBehavior);
 
         if (hostname.cnameTo.endsWith(EdgeDomains.EDGE_SUITE)) {
             edgeDomain = "edgesuite.net";

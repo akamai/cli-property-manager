@@ -137,6 +137,16 @@ module.exports = {
         return parseNumericResourceId(versionNum, null, "property version", "illegal_property_version");
     },
 
+    parseIpVersionBehavior: function(ipVersionBehavior) {
+        if (!_.isString(ipVersionBehavior)) {
+            return "IPV6_COMPLIANCE";
+        }
+        if (ipVersionBehavior.toUpperCase().includes("IPV4")) {
+            return "IPV4";
+        }
+        return "IPV6_COMPLIANCE";
+    },
+
     /**
      * create sha256 hex has from an object.
      * @param object
