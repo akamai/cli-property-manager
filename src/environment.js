@@ -163,7 +163,7 @@ class Environment {
      **/
     static _extractPropertyId(item) {
         let propertyLink = item.propertyLink;
-        let propIdRegex = /\/papi\/v0\/properties\/(prp_)?(\d+)\?.*/;
+        let propIdRegex = /\/papi\/v[0-1]\/properties\/(prp_)?(\d+)\?.*/;
         let results = propIdRegex.exec(propertyLink);
         logger.info("results: ", results);
         return parseInt(results[2]);
@@ -185,7 +185,7 @@ class Environment {
      */
     static _extractActivationId(item) {
         let activationLink = item.activationLink;
-        let activationRegex = /\/papi\/v0\/properties\/(prp_)?\d+\/activations\/(atv_)?(\d+)/;
+        let activationRegex = /\/papi\/v[0-1]\/properties\/(prp_)?\d+\/activations\/(atv_)?(\d+)/;
         let results = activationRegex.exec(activationLink);
         logger.info("activation regex results: ", results);
         return parseInt(results[3]);
@@ -196,7 +196,7 @@ class Environment {
      **/
     static _extractVersionId(item) {
         let versionLink = item.versionLink;
-        let versionRegex = /\/papi\/v0\/properties\/(prp_)?\d+\/versions\/(\d+)/;
+        let versionRegex = /\/papi\/v[0-1]\/properties\/(prp_)?\d+\/versions\/(\d+)/;
         let results = versionRegex.exec(versionLink);
         logger.info("results: ", results);
         return parseInt(results[2]);
