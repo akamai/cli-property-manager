@@ -46,7 +46,7 @@ class EdgeHostnameManager {
      **/
     static _extractEdgeHostnameId(item) {
         let edgeHostnameLink = item.edgeHostnameLink;
-        let edgeHostnameRegex = /\/papi\/v0\/edgehostnames\/(ehn_)?(\d+)\?.*/;
+        let edgeHostnameRegex = /\/papi\/v[0-1]\/edgehostnames\/(ehn_)?(\d+)\?.*/;
         let results = edgeHostnameRegex.exec(edgeHostnameLink);
         logger.info("results: ", results);
         return parseInt(results[2]);

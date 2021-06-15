@@ -307,7 +307,8 @@ class Project {
                 ruleTree = await env.getRuleTree(clientSettings.ruleFormat);
                 if (_.isArray(ruleTree.warnings)) {
                     for (let warning of ruleTree.warnings) {
-                        if (warning.type === "https://problems.luna.akamaiapis.net/papi/v0/unstable_rule_format") {
+                        if (warning.type === "https://problems.luna.akamaiapis.net/papi/v0/unstable_rule_format" ||
+                            warning.type === "https://problems.luna.akamaiapis.net/papi/v1/unstable_rule_format") {
                             suggestedRuleFormat = warning.suggestedRuleFormat;
                             //see comment above, same reason.
                             ruleTree = await env.getRuleTree(warning.suggestedRuleFormat);
@@ -379,7 +380,8 @@ class Project {
         let ruleTree = await papi.getPropertyVersionRules(propertyId, version, clientSettings.ruleFormat);
         if (_.isArray(ruleTree.warnings)) {
             for (let warning of ruleTree.warnings) {
-                if (warning.type === "https://problems.luna.akamaiapis.net/papi/v0/unstable_rule_format") {
+                if (warning.type === "https://problems.luna.akamaiapis.net/papi/v0/unstable_rule_format" ||
+                    warning.type === "https://problems.luna.akamaiapis.net/papi/v1/unstable_rule_format") {
                     suggestedRuleFormat = warning.suggestedRuleFormat;
                     //we want to get the rule tree converted to the suggested rule format.
                     //so that we don't build the template with an unstable rule format.

@@ -177,7 +177,8 @@ class ProjectPropertyManager extends project {
             ruleTree = await env.getRuleTree(clientSettings.ruleFormat);
             if (_.isArray(ruleTree.warnings)) {
                 for (let warning of ruleTree.warnings) {
-                    if (warning.type === "https://problems.luna.akamaiapis.net/papi/v0/unstable_rule_format") {
+                    if (warning.type === "https://problems.luna.akamaiapis.net/papi/v0/unstable_rule_format" ||
+                        warning.type === "https://problems.luna.akamaiapis.net/papi/v1/unstable_rule_format") {
                         suggestedRuleFormat = warning.suggestedRuleFormat;
                         //see comment above, same reason.
                         ruleTree = await env.getRuleTree(warning.suggestedRuleFormat);
