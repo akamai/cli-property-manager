@@ -1,8 +1,8 @@
 {
   "name": "cli-promotional-deployment",
-  "version": "0.7.7-RELEASE",
+  "version": "0.7.8-RELEASE",
   "engines": {
-    "node": ">=8.0.0",
+    "node": ">=14.17.0",
     "npm": ">=6.13.4"
   },
   "description": "A wrapping command line for common tasks with akamai's PM {OPEN} API.",
@@ -35,31 +35,31 @@
   },
   "devDependencies": {
     "chai": "^4.2.0",
-    "eslint": "^4.12.0",
+    "eslint": "^8.11.0",
     "eslint-plugin-node": "^5.2.1",
     "js-beautify": "^1.8.8",
-    "jsdoc": "^3.6.3",
-    "jsdoc-to-markdown": "^5.0.3",
-    "mocha": "^6.2.3",
-    "nyc": "^15.0.0",
+    "jsdoc": "^3.6.10",
+    "jsdoc-to-markdown": "^7.1.1",
+    "mocha": "^9.2.2",
+    "nyc": "^15.1.0",
     "testdouble": "^3.8.2",
     "webpack": "^4.41.3"
   },
   "dependencies": {
-    "ajv": "^6.10.2",
+    "ajv": "^6.12.6",
     "ajv-keywords": "^3.4.0",
     "ascii-data-table": "^2.1.1",
     "chalk": "^2.3.2",
     "commander": "^4.1.1",
     "debug": "^3.2.6",
     "email-validator": "2.0.4",
-    "inquirer": "^6.2.0",
-    "log4js": "^6.1.2",
+    "inquirer": "^8.2.1",
+    "log4js": "^6.4.4",
     "moment": "^2.20.1",
     "pegjs": "^0.10.0",
     "request": "^2.88.0",
     "request-debug": "^0.2.0",
-    "underscore": "^1.9.1",
+    "underscore": "^1.13.2",
     "uuid": "^3.3.2"
   }
 }
