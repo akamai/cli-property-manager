@@ -645,6 +645,12 @@ describe('Snippets CLI PULL command', function () {
         td.when(project.loadEnvironmentInfo()).thenReturn({
             latestVersionInfo : {
                 propertyVersion : 9
+            },
+            activeIn_STAGING_Info : {
+                propertyVersion : 8
+            },
+            activeIn_PRODUCTION_Info : {
+                propertyVersion : 5
             }
         });
 
@@ -699,6 +705,32 @@ describe('Snippets CLI PULL command', function () {
             main(cliArgs, {devopsHome :  path.join(__dirname, "..")}, createDevOpsFun2, errorReporter, testConsole);
         }, errorCatcher => {
             assert.equal(errorCatcher.error, 'Error: Can\'t read default property name from snippetsSettings.json and no property name provided per -p <property name> option');
+        });
+    });
+
+    it('update local output -with network', function () {
+        let createDevOpsFun = function (deps) {
+            let newDeps = {
+                devopsHome
+            };
+            Object.assign(deps, newDeps);
+
+            let devOps = createDevOps(deps);
+            devOps.updateProperty = function(){
+                return project;
+            };
+            return devOps;
+        };
+
+        let cliArgs = createCommand("update-local", "-p", "testproject.com", "--force-update", "-n", "stg");
+        let testConsole = new TestConsole();
+        return mainTester(errorReporter => {
+            main(cliArgs, {}, createDevOpsFun, errorReporter, testConsole);
+        }, errorCatcher => {
+            assert.equal(errorCatcher, null);
+            assert.equal(testConsole.logs.length, 2);
+            let output = testConsole.logs.join("\n");
+            assert.equal(output, 'Updating and overwriting local files for testproject.com from PAPI...\nUpdated testproject.com to the latest: v9');
         });
     });
 });

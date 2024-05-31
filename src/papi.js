@@ -70,8 +70,13 @@ class PAPI {
         return this.openClient.post(url, postBody);
     }
 
-    latestPropertyVersion(propertyId) {
-        let url = `/papi/v1/properties/${propertyId}/versions/latest`;
+    latestPropertyVersion(propertyId, network) {
+        let url;
+        if (network) {
+            url = `/papi/v1/properties/${propertyId}/versions/latest?activatedOn=${network}`;
+        } else {
+            url = `/papi/v1/properties/${propertyId}/versions/latest`;
+        }
         return this.openClient.get(url);
     }
 

@@ -348,14 +348,15 @@ class Project {
     /**
      * @param propertyId
      * @param version
+     * @param network
      * @return {Promise.<*>}
      */
 
-    async getPropertyInfo(propertyId, version) {
+    async getPropertyInfo(propertyId, version, network) {
         let papi = this.dependencies.getPAPI();
         let versionInfo;
         if (!_.isNumber(version)) {
-            versionInfo = await papi.latestPropertyVersion(propertyId);
+            versionInfo = await papi.latestPropertyVersion(propertyId, network);
         } else {
             versionInfo = await papi.getPropertyVersion(propertyId, version);
         }
