@@ -196,6 +196,27 @@ Updates hostnames assigned to a property.
      Visit http://github.com/akamai/cli-property-manager for more documentation
    
    ```
+### <a name="hostname-bucket-update"></a>Update bucket hostnames
+Updates hostnames in a hostname bucket assigned to a property.
+
+```
+   Usage: akamai property-manager hostname-bucket-update|hbu [options]
+   
+   Updates hostnames in the hostname bucket assigned to this property.
+   
+   Options:
+     -p, --property <property>  Property name or property ID.
+	 -c, --contractId <contractId>  Contract ID.
+     -g, --groupId <groupId>        Group ID.
+     --file <file>              Specify the JSON file containing the hostnames.
+                                You can find the JSON format to use here:
+                                https://techdocs.akamai.com/property-mgr/reference/patch-property-hostnames.
+     -h, --help                 output usage information
+   
+     © 2017-2020 Akamai Technologies, Inc. All rights reserved
+     Visit http://github.com/akamai/cli-property-manager for more documentation
+   
+   ```
 ### <a name="merge"></a>Merge
 Merge your local configuration files into a property rule tree file in JSON format. 
 

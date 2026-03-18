@@ -162,6 +162,11 @@ class PAPI {
         return this.openClient.patch(url, hostnames);
     }
 
+    patchPropertyHostnamesBucket(propertyId, hostnames, contractId, groupId, includeCertStatus = true) {
+        let url = `/papi/v1/properties/${propertyId}/hostnames?contractId=${contractId}&groupId=${groupId}&includeCertStatus=${includeCertStatus}`;
+        return this.openClient.patch(url, hostnames);
+    }
+
     listCpcodes(contractId, groupId) {
         let url = `/papi/v1/cpcodes?contractId=${contractId}&groupId=${groupId}`;
         return this.openClient.get(url);
