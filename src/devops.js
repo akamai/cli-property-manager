@@ -531,6 +531,11 @@ class DevOps {
         return this.getPAPI().patchPropertyVersionHostnames(versionInfo.propertyId, versionInfo.propertyVersion, hostnames, versionInfo.contractId, versionInfo.groupId);
     }
 
+    async patchPropertyHostnamesBucket(propertyId, contractId, groupId, hostnames) {
+        //let versionInfo = await this.getVersionInfo(propertyInfo);
+        return this.getPAPI().patchPropertyHostnamesBucket(propertyId, hostnames, contractId, groupId);
+    }
+
     async getVersionInfo(propertyInfo) {
         let versionInfo;
         if (!_.isNumber(propertyInfo.propertyId) && _.isString(propertyInfo.propertyName)) {

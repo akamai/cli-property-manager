@@ -529,6 +529,35 @@ module.exports = function(cmdArgs = process.argv, procEnv = process.env,
         }
     };
 
+    /**
+     * update hostname bucket of the property with a given hostname json file
+     * @type {Function}
+     */
+    const hostnameBucketUpdate = async function(devops, options) {
+        let hostname;
+        //Version is 0 since we arent asking for a version for a hostname bucket update
+        let propertyInfo = commonCli.checkPropertyIdAndPropertyVersion(options.property, 0);
+        //propertyInfo.propertyVersion = commonCli.checkPropertyVersionIsZero(options.propver);
+        if (!(options.file)) {
+            throw new errors.ArgumentError(`Must pass in a file `,
+                "no_file_for_hostnames");
+        }
+        let utils = new Utils();
+        if (options.file) {
+            if (utils.fileExists(options.file)) {
+                hostname = utils.readJsonFile(options.file);
+            } else {
+                throw new errors.ArgumentError(`File '${options.file}' does not exist`,
+                    "file_does_not_exist");
+            }
+        }
+        
+		return devops.patchPropertyHostnamesBucket(options.property, options.contractId, options.groupId, hostname).then(data => {
+			consoleLogger.info(helpers.jsonStringify(data));
+		});
+        
+    };
+
     const activateVersion = async function(devops, options) {
         let property = devops.extractProjectName(options);
         commonCli.handleNotes(options);
@@ -1037,6 +1066,21 @@ Are you sure you want to DELETE the property '${options.property}'?`,
         .action(function(...args) {
             argumentsUsed = args;
             actionCalled = hostnameUpdate
+        });
+
+    commander
+        .command("hostname-bucket-update", "Updates hostnames assigned to this property.")
+        .option('-p, --property <property>', "Property name or property ID.")
+		.requiredOption('-c, --contractId <contractId>', "Contract ID.")
+        .requiredOption('-g, --groupId <groupId>', "Group ID.", helpers.parseGroupId)
+        .requiredOption('--file <file>', "Specify the JSON file containing the hostnames. You can find the JSON format to use here: " + "https://techdocs.akamai.com/property-mgr/reference/patch-property-hostnames.")
+        .alias("hbu")
+        .on('--help', () => {
+            consoleLogger.debug(footer);
+        })
+        .action(function(...args) {
+            argumentsUsed = args;
+            actionCalled = hostnameBucketUpdate
         });
 
     commander
