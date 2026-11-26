@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-const request = require('request');
+const request = require('@cypress/request');
 const url = require('url');
 const auth = require('./auth');
 const edgerc = require('./edgerc');

@@ -57,9 +57,9 @@
     "log4js": "^6.4.4",
     "moment": "^2.20.1",
     "pegjs": "^0.10.0",
-    "request": "^2.88.0",
+    "@cypress/request": "^4.0.1",
     "request-debug": "^0.2.0",
     "underscore": "^1.13.2",
-    "uuid": "^3.3.2"
+    "uuid": "^11.1.1"
   }
 }
